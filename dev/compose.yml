@@ -1,0 +1,30 @@
+services:
+  frc-codex-server:
+    image: frc-codex-server:latest
+    ports:
+      - 8080:8080
+  frc-codex-processor:
+    image: frc-codex-processor:latest
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      SQS_ENDPOINT_URL: 'http://localstack.localhost:4566'
+      SQS_QUEUE_NAME: 'frc_codex_processor_queue'
+      SQS_REGION_NAME: 'eu-west-2'
+  localstack:
+    image: localstack/localstack:3.4.0
+    environment:
+      SERVICES: sqs
+      DEBUG: 1
+    healthcheck:
+      interval: 10s
+      retries: 15
+      test: curl localstack:4566/health || exit 1
+      timeout: 4s
+    ports:
+      - "4566:4566"
+    networks:
+      default:
+        aliases:
+          - localstack.localhost
