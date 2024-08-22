@@ -1,18 +1,20 @@
 package com.frc.codex.filingindex.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.thymeleaf.util.StringUtils;
+
+import com.frc.codex.FilingIndexProperties;
 
 @Controller
 public class HomeController {
-	@Value("${spring.application.name}")
-	String appName;
+	private final FilingIndexProperties properties;
+
+	public HomeController(FilingIndexProperties properties) {
+		this.properties = properties;
+	}
 
 	@GetMapping("/health")
 	public ResponseEntity<String> healthPage() {
@@ -21,8 +23,11 @@ public class HomeController {
 
 	@GetMapping("/")
 	public String indexPage(Model model) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		model.addAttribute("currentDate", dateFormat.format(Calendar.getInstance().getTime()));
+		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
+		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
+		model.addAttribute("chStreamUrl", properties.companiesHouseStreamApiBaseUrl());
+		model.addAttribute("chRestApiKey", !StringUtils.isEmpty(properties.companiesHouseRestApiKey()));
+		model.addAttribute("chStreamApiKey", !StringUtils.isEmpty(properties.companiesHouseStreamApiKey()));
 		return "index";
 	}
 

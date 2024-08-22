@@ -10,7 +10,16 @@
 <body>
 <div class="container">
     <h1><a href="/">FRC CODEx Filing Index</a></h1>
-    <p>An unexpected error occurred.</p>
+    <table>
+        <tr>
+            <th>Company</th>
+            <td th:text="${company}"></td>
+        </tr>
+        <tr>
+            <th>Filing URLs</th>
+            <td><pre th:text="${filingUrls}"></pre></td>
+        </tr>
+    </table>
 </div>
 </body>
 </html>
