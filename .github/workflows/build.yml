@@ -19,7 +19,20 @@ jobs:
           distribution: corretto
           java-version: 21
           cache: gradle
-      - name: "Build"
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: '3.12'
+      - name: "Install Python dependencies"
+        shell: bash
+        run: |
+          pip3 install -r requirements.txt
+      - name: "Build Java"
         shell: bash
         run: |
           ./gradlew build
+      - name: "Compose"
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          ./dev/env-setup.sh
