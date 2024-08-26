@@ -15,6 +15,8 @@ until [ -z "$(docker ps --format '{{.Names}}: {{.Status}}' | grep -v '(healthy)'
       echo "Some services are unhealthy, exiting..."
       exit 1
   fi
+  echo "Some services are not ready, waiting..."
   sleep 1
+  docker ps --format '  - {{.Names}}: {{.Status}}'
 done
 echo "All services are healthy!"
