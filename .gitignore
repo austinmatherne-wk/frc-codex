@@ -4,3 +4,4 @@ build
 Pipfile
 Pipfile.lock
 dev/logs
+frc-codex-server.secrets

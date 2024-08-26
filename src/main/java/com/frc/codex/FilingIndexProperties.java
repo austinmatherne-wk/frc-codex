@@ -2,11 +2,11 @@ package com.frc.codex;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("frc")
-public record FilingIndexProperties(
-	String companiesHouseDocumentApiBaseUrl,
-	String companiesHouseInformationApiBaseUrl,
-	String companiesHouseRestApiKey,
-	String companiesHouseStreamApiBaseUrl,
-	String companiesHouseStreamApiKey
-) { }
+public interface FilingIndexProperties {
+	public String companiesHouseDocumentApiBaseUrl();
+	public String companiesHouseInformationApiBaseUrl();
+	public String companiesHouseRestApiKey();
+	public String companiesHouseStreamApiBaseUrl();
+	public String companiesHouseStreamApiKey();
+}
+

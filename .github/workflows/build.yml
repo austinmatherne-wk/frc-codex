@@ -42,6 +42,11 @@ jobs:
           docker load --input /tmp/frc-codex-server.tar
           docker image ls -a  
 
+      - name: "Secrets"
+        shell: bash
+        run: |
+          echo "COMPANIES_HOUSE_REST_API_KEY=${{ secrets.COMPANIES_HOUSE_REST_API_KEY }}" >> ./frc-codex-server.secrets
+          echo "COMPANIES_HOUSE_STREAM_API_KEY=${{ secrets.COMPANIES_HOUSE_STREAM_API_KEY }}" >> ./frc-codex-server.secrets
       - name: "Compose"
         timeout-minutes: 5
         shell: bash
@@ -51,6 +56,8 @@ jobs:
         shell: bash
         run: |
           curl -i --fail http://localhost:8080/
+          curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
