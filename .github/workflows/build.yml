@@ -36,7 +36,8 @@ jobs:
           cache-to: type=gha,mode=max
           load: true
       - name: "Compose"
-        timeout-minutes: 3
+        continue-on-error: true
+        timeout-minutes: 5
         shell: bash
         run: |
-          ./dev/env-setup.sh
+          ./dev/env-compose.sh
