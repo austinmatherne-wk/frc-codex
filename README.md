@@ -26,6 +26,8 @@ COMPANIES_HOUSE_REST_API_KEY=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 COMPANIES_HOUSE_STREAM_API_KEY=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
 
+Optionally, add `./dev/compose-local.yml` (untracked) to override Docker compose configuration.
+
 Set up a Docker environment with the server and processor:
 ```bash
     ./dev/env-setup.sh

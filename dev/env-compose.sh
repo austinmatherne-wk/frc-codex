@@ -1,7 +1,11 @@
 #!/bin/bash
 
 set -e
-docker compose -f ./dev/compose.yml up -d
+
+if [ -f "./dev/compose-local.yml" ]; then
+   EXTRA_ARGS=(-f "./dev/compose-local.yml")
+fi
+docker compose -f ./dev/compose.yml "${EXTRA_ARGS[@]}" up -d
 
 # Set up the logging
 mkdir -p ./dev/logs
