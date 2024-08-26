@@ -14,12 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: corretto
-          java-version: 21
-          cache: gradle
-      - name: "Build"
+      - name: "Compose"
+        timeout-minutes: 3
         shell: bash
         run: |
-          ./gradlew build
+          ./dev/env-setup.sh
