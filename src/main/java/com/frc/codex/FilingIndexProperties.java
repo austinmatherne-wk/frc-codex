@@ -1,7 +1,5 @@
 package com.frc.codex;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import com.zaxxer.hikari.HikariConfig;
 
 public interface FilingIndexProperties {
@@ -10,6 +8,8 @@ public interface FilingIndexProperties {
 	String companiesHouseRestApiKey();
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
+	String fcaDataApiBaseUrl();
+	String fcaSearchApiUrl();
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isDbMigrateAsync();
 }
