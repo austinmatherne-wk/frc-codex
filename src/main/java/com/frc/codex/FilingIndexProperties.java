@@ -2,11 +2,15 @@ package com.frc.codex;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import com.zaxxer.hikari.HikariConfig;
+
 public interface FilingIndexProperties {
-	public String companiesHouseDocumentApiBaseUrl();
-	public String companiesHouseInformationApiBaseUrl();
-	public String companiesHouseRestApiKey();
-	public String companiesHouseStreamApiBaseUrl();
-	public String companiesHouseStreamApiKey();
+	String companiesHouseDocumentApiBaseUrl();
+	String companiesHouseInformationApiBaseUrl();
+	String companiesHouseRestApiKey();
+	String companiesHouseStreamApiBaseUrl();
+	String companiesHouseStreamApiKey();
+	HikariConfig getDatabaseConfig(String poolName);
+	boolean isDbMigrateAsync();
 }
 
