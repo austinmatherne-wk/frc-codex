@@ -3,6 +3,10 @@ body {
     margin: 0;
 }
 
+th {
+    text-align: left;
+}
+
 .container {
     margin: auto;
     max-width: 1000px;
