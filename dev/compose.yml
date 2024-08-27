@@ -17,6 +17,8 @@ services:
       DB_PASSWORD: "frc_codex"
       DB_URL: "jdbc:postgresql://postgres.localhost:5432/frc_codex"
       DB_USERNAME: "frc_codex"
+      FCA_DATA_API_BASE_URL: "https://data.fca.org.uk/artefacts/"
+      FCA_SEARCH_API_URL: "https://api.data.fca.org.uk/search?index=fca-nsm-searchdata"
     secrets:
       - frc-codex-server.secrets
     ports:
