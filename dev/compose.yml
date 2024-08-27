@@ -6,13 +6,17 @@ services:
         condition: service_healthy
     healthcheck:
       interval: 2s
-      retries: 5
+      retries: 30
       test: curl localhost:8080/health --fail || exit 1
       timeout: 2s
     environment:
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
+      DB_MAX_LIFETIME: "300"
+      DB_PASSWORD: "frc_codex"
+      DB_URL: "jdbc:postgresql://postgres.localhost:5432/frc_codex"
+      DB_USERNAME: "frc_codex"
     secrets:
       - frc-codex-server.secrets
     ports:
@@ -42,11 +46,29 @@ services:
       SERVICES: sqs
       DEBUG: 1
     ports:
-      - "4566:4566"
+      - 4566:4566
     networks:
       default:
         aliases:
           - localstack.localhost
+  postgres:
+    image: postgres:13
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    environment:
+      POSTGRES_DB: frc_codex
+      POSTGRES_USER: frc_codex
+      POSTGRES_PASSWORD: frc_codex
+    ports:
+      - 5432:5432
+    networks:
+      default:
+        aliases:
+          - postgres.localhost
 secrets:
   frc-codex-server.secrets:
     file: ../frc-codex-server.secrets
