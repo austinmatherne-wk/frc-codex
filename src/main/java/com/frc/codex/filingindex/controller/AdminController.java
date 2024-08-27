@@ -1,25 +1,36 @@
 package com.frc.codex.filingindex.controller;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseClientImpl;
 import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseConfigImpl;
+import com.frc.codex.model.Filing;
+import com.frc.codex.model.NewFilingRequest;
 
 @Controller
 public class AdminController {
 	private final CompaniesHouseClient companiesHouseClient;
+	private final DatabaseManager databaseManager;
 
-	public AdminController(FilingIndexProperties properties) {
+	public AdminController(FilingIndexProperties properties, DatabaseManager databaseManager) {
 		this.companiesHouseClient = new CompaniesHouseClientImpl(new CompaniesHouseConfigImpl(properties));
+		this.databaseManager = databaseManager;
 	}
 
 	/**
@@ -53,5 +64,30 @@ public class AdminController {
 		}
 		model.addAttribute("stream", stream);
 		return "admin/smoketest/companieshouse/stream";
+	}
+
+	/**
+	 * This endpoint demonstrates the database client functionality
+	 * by loading filing data from the database.
+	 */
+	@GetMapping("/admin/smoketest/database")
+	public String smokeTestDatabase(Model model) {
+		List<Filing> filings = this.databaseManager.listFilings();
+		model.addAttribute("filings", filings);
+		model.addAttribute("newFilingRequest", new NewFilingRequest());
+		return "admin/smoketest/database";
+	}
+
+	/**
+	 * This endpoint demonstrates the database client functionality
+	 * by loading filing data from the database.
+	 */
+	@PostMapping("/admin/smoketest/database")
+	public String smokeTestDatabaseSubmit(
+			@ModelAttribute NewFilingRequest newFilingRequest,
+			Model model
+	) {
+		this.databaseManager.createFiling(newFilingRequest);
+		return smokeTestDatabase(model);
 	}
 }
