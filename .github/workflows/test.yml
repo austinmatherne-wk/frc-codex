@@ -57,6 +57,9 @@ jobs:
         run: |
           curl -i --fail http://localhost:8080/
           curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
+          curl -i --fail -X POST localhost:8080/admin/smoketest/database \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "registryCode=reg1&downloadUrl=dl1"
 
       - uses: actions/upload-artifact@v4
         if: always()
