@@ -1,5 +1,6 @@
 package com.frc.codex.discovery.fca.impl;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,7 +28,8 @@ import com.frc.codex.discovery.fca.FcaFiling;
 @Component
 @Profile("application")
 public class FcaClientImpl implements FcaClient {
-	private static final SimpleDateFormat JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	private static final SimpleDateFormat INCOMING_JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private static final SimpleDateFormat OUTGOING_JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private final Logger LOG = LoggerFactory.getLogger(FcaClientImpl.class);
 	private final String dataApiBaseUrl;
 	private final int pageSize;
@@ -60,7 +62,7 @@ public class FcaClientImpl implements FcaClient {
 		ObjectNode dateCriteria = criteriaObj.putArray("dateCriteria").addObject();
 		dateCriteria.put("name", "submitted_date");
 		ObjectNode dateValue = dateCriteria.putObject("value");
-		dateValue.put("from", JSON_DATE_FORMAT.format(sinceDate));
+		dateValue.put("from", OUTGOING_JSON_DATE_FORMAT.format(sinceDate));
 		dateValue.putNull("to");
 		return node.toString();
 	}
@@ -124,7 +126,13 @@ public class FcaClientImpl implements FcaClient {
 			JsonNode source = hit.get("_source");
 			String downloadLink = source.get("download_link").asText();
 			String sequenceId = source.get("seq_id").asText();
-			String submittedDate = source.get("submitted_date").asText();
+			String submittedDateStr = source.get("submitted_date").asText();
+			Date submittedDate;
+			try {
+				submittedDate = INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr);
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
 			String[] downloadLinkSplit = downloadLink.split("/");
 			String filename = downloadLinkSplit[downloadLinkSplit.length - 1];
 			String downloadUrl = this.dataApiBaseUrl + downloadLink;
