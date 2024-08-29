@@ -30,6 +30,14 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "XXX";
 	}
 
+	public String fcaDataApiBaseUrl() {
+		return "http://localhost:8086/data";
+	}
+
+	public String fcaSearchApiUrl() {
+		return "http://localhost:8086/search";
+	}
+
 	public HikariConfig getDatabaseConfig(String poolName) {
 		HikariConfig config = new HikariConfig();
 		config.setInitializationFailTimeout(0);
@@ -45,5 +53,4 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 	public boolean isDbMigrateAsync() {
 		return false;
 	}
-
 }

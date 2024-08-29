@@ -25,6 +25,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_USERNAME = "DB_USERNAME";
 	private static final String DB_PASSWORD = "DB_PASSWORD";
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
+	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
+	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
@@ -35,6 +37,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String dbUsername;
 	private final String dbPassword;
 	private final long dbMaxLifetime;
+	private final String fcaDataApiBaseUrl;
+	private final String fcaSearchApiUrl;
 
 	public FilingIndexPropertiesImpl() {
 		companiesHouseDocumentApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
@@ -57,6 +61,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		dbUsername = requireNonNull(System.getenv(DB_USERNAME));
 		dbPassword = requireNonNull(System.getenv(DB_PASSWORD));
 		dbMaxLifetime = Long.parseLong(requireNonNull(System.getenv(DB_MAX_LIFETIME)));
+
+		fcaDataApiBaseUrl = requireNonNull(System.getenv(FCA_DATA_API_BASE_URL));
+		fcaSearchApiUrl = requireNonNull(System.getenv(FCA_SEARCH_API_URL));
 	}
 
 	private static Properties getSecrets() {
@@ -95,6 +102,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		return companiesHouseStreamApiKey;
 	}
 
+	public String fcaDataApiBaseUrl() {
+		return fcaDataApiBaseUrl;
+	}
+
+	public String fcaSearchApiUrl() {
+		return fcaSearchApiUrl;
+	}
+
 	public HikariConfig getDatabaseConfig(String poolName) {
 		HikariConfig config = new HikariConfig();
 		config.setInitializationFailTimeout(0);
@@ -111,5 +126,4 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	public boolean isDbMigrateAsync() {
 		return false;
 	}
-
 }
