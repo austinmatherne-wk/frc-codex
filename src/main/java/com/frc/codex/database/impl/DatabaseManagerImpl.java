@@ -5,9 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Component;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
+import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.NewFilingRequest;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariDataSource;
@@ -41,20 +41,41 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		this.writeDataSource = new HikariDataSource(properties.getDatabaseConfig("write"));
 	}
 
+	public void applyFilingResult(FilingResultRequest filingResultRequest) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "UPDATE filings SET " +
+					"status = ?, " +
+					"stub_viewer_url = ? " +
+					"WHERE filing_id = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, "completed");
+			statement.setString(2, filingResultRequest.getStubViewerUrl());
+			statement.setObject(3, filingResultRequest.getFilingId());
+
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Updating filing result failed, no rows affected.");
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public UUID createFiling(NewFilingRequest newFilingRequest) {
 		UUID filingId;
 		try (Connection connection = getInitializedConnection(false)) {
-			PreparedStatement statement = connection.prepareStatement(
-					"INSERT INTO filings (status, registry_code, download_url, stream_timepoint) " +
-					"VALUES ('pending', ?, ?, ?)",
-					PreparedStatement.RETURN_GENERATED_KEYS
-			);
-			statement.setString(1, newFilingRequest.getRegistryCode());
-			statement.setString(2, newFilingRequest.getDownloadUrl());
+			String sql = "INSERT INTO filings " +
+					"(status, registry_code, download_url, stream_timepoint) " +
+					"VALUES (?, ?, ?, ?)";
+			PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+			statement.setString(1, "pending");
+			statement.setString(2, newFilingRequest.getRegistryCode());
+			statement.setString(3, newFilingRequest.getDownloadUrl());
 			if (newFilingRequest.getStreamTimepoint() == null) {
-				statement.setNull(3, java.sql.Types.BIGINT);
+				statement.setNull(4, java.sql.Types.BIGINT);
 			} else {
-				statement.setLong(3, newFilingRequest.getStreamTimepoint());
+				statement.setLong(4, newFilingRequest.getStreamTimepoint());
 			}
 
 			int affectedRows = statement.executeUpdate();
@@ -65,8 +86,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
 					filingId = UUID.fromString(generatedKeys.getString("filing_id"));
-				}
-				else {
+				} else {
 					throw new SQLException("Creating filing failed, no ID obtained.");
 				}
 			}
@@ -76,11 +96,24 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		return filingId;
 	}
 
+	public boolean filingExists(NewFilingRequest newFilingRequest) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT filing_id FROM filings " +
+					"WHERE download_url = ? " +
+					"LIMIT 1";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setObject(1, newFilingRequest.getDownloadUrl());
+			ResultSet resultSet = statement.executeQuery();
+			return resultSet.next();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public Filing getFiling(UUID filingId) {
 		try (Connection connection = getInitializedConnection(true)) {
-			PreparedStatement statement = connection.prepareStatement(
-					"SELECT * FROM filings WHERE filing_id = ?"
-			);
+			String sql = "SELECT * FROM filings WHERE filing_id = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setObject(1, filingId);
 			ResultSet resultSet = statement.executeQuery();
 			List<Filing> filings = getFilings(resultSet);
@@ -88,6 +121,50 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				return null;
 			}
 			return filings.get(0);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Date getLatestFcaFilingDate(Date defaultDate) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT MAX(filing_date) FROM filings WHERE registry_code = 'FCA'";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			ResultSet resultSet = statement.executeQuery();
+			Date result = null;
+			if (resultSet.next()) {
+				result = resultSet.getDate(1);
+			}
+			if (result == null) {
+				return defaultDate;
+			}
+			return result;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Long getLatestStreamTimepoint(Long defaultTimepoint) {
+		try (Connection connection = getInitializedConnection(true)) {
+			PreparedStatement statement = connection.prepareStatement(
+					"SELECT MAX(stream_timepoint) FROM filings"
+			);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSet.getLong(1);
+			}
+			return defaultTimepoint;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<Filing> getPendingFilings() {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT * FROM filings WHERE status = 'pending'";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			ResultSet resultSet = statement.executeQuery();
+			return getFilings(resultSet);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -103,14 +180,18 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		return dataSource.getConnection();
 	}
 
-	/*
-	 * List all `filings` records in the database.
-	 */
-	public List<Filing> listFilings() {
-		try (Connection connection = getInitializedConnection(true)) {
-			PreparedStatement statement = connection.prepareStatement("SELECT * FROM filings");
-			ResultSet resultSet = statement.executeQuery();
-			return getFilings(resultSet);
+	public void updateFilingStatus(UUID filingId, String status) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "UPDATE filings SET status = ? WHERE filing_id = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, status);
+			statement.setObject(2, filingId);
+
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Updating filing status failed, no rows affected.");
+			}
+			connection.commit();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -153,22 +234,11 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		LOGGER.info("Starting database migrations.");
 		Flyway flyway = Flyway.configure()
 				.dataSource(writeDataSource)
-				.placeholders(getMigratePlaceholders())
 				.load();
 		flyway.migrate();
 		LOGGER.info("Finished database migrations.");
 	}
 
-	/**
-	 * Create a map of placeholder variables that are used to substitute SQL dialog
-	 * specifics into the flyway migration scripts.
-	 */
-	private Map<String, String> getMigratePlaceholders() {
-		Map<String, String> migratePlaceholders = new HashMap<>();
-		return migratePlaceholders;
-	}
-
-	@Override
 	public void close() throws Exception {
 		try (AutoCloseable closeWriteDataSource = ((Closeable) writeDataSource)) {
 			((Closeable) readDataSource).close();

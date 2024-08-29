@@ -38,11 +38,11 @@ public class CompaniesHouseStreamClient {
 		reader.close();
 	}
 
-	public void streamFilings(Function<String, Boolean> callback) throws IOException {
-		stream("/filings", callback);
-	}
-
-	public void streamFilings(long timepoint, Function<String, Boolean> callback) throws IOException {
-		stream("/filings?timepoint=" + timepoint, callback);
+	public void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException {
+		if (timepoint == null) {
+			stream("/filings", callback);
+		} else {
+			stream("/filings?timepoint=" + timepoint, callback);
+		}
 	}
 }

@@ -16,7 +16,5 @@ public interface CompaniesHouseClient {
 
 	Set<String> getCompanyFilingUrls(String companyNumber) throws JsonProcessingException;
 
-	List<String> streamFilings(long maxMs) throws IOException;
-
-	void streamFilings(Function<String, Boolean> callback) throws IOException;
+	void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException;
 }

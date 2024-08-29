@@ -10,6 +10,10 @@ services:
       test: curl localhost:8080/health --fail || exit 1
       timeout: 2s
     environment:
+      AWS_ACCESS_KEY_ID: "AWS_ACCESS_KEY_ID"
+      AWS_HOST: "http://localstack.localhost:4566"
+      AWS_REGION: "eu-west-2"
+      AWS_SECRET_ACCESS_KEY: "AWS_SECRET_ACCESS_KEY"
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
