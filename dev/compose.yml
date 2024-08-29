@@ -45,14 +45,15 @@ services:
       test: curl localstack:4566/health || exit 1
       timeout: 4s
     environment:
-      SERVICES: sqs
-      DEBUG: 1
+      SQS_REGION_NAME: "eu-west-2"
     ports:
       - 4566:4566
     networks:
       default:
         aliases:
           - localstack.localhost
+    volumes:
+      - ./localstack.sh:/etc/localstack/init/ready.d/script.sh
   postgres:
     image: postgres:13
     healthcheck:
