@@ -228,7 +228,7 @@ public class IndexerImpl implements Indexer {
 	@Scheduled(fixedDelay = 20 * 1000)
 	public void queueJobs() {
 		LOG.info("Starting to queue jobs.");
-		List<Filing> filings = databaseManager.getPendingFilings();
+		List<Filing> filings = databaseManager.getFilingsByStatus(FilingStatus.PENDING);
 		LOG.info("Pending filings: {}", filings.size());
 		queueManager.addJobs(filings, (Filing filing) -> {
 			databaseManager.updateFilingStatus(filing.getFilingId(), FilingStatus.QUEUED.toString());

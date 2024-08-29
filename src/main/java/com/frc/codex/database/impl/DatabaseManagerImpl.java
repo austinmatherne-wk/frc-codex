@@ -161,11 +161,11 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
-	public List<Filing> getPendingFilings() {
+	public List<Filing> getFilingsByStatus(FilingStatus status) {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT * FROM filings WHERE status = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, FilingStatus.PENDING.toString());
+			statement.setString(1, status.toString());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
 		} catch (SQLException e) {

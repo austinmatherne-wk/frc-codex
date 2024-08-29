@@ -1,8 +1,11 @@
 package com.frc.codex.filingindex.controller;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -21,6 +24,7 @@ import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 
 @Controller
@@ -66,11 +70,20 @@ public class AdminController {
 	 * by loading filing data from the database.
 	 */
 	@GetMapping("/admin/smoketest/database")
-	public String smokeTestDatabasePage(Model model) {
-		List<Filing> filings = this.databaseManager.getPendingFilings();
-		model.addAttribute("filings", filings);
-		model.addAttribute("newFilingRequest", new NewFilingRequest());
-		return "admin/smoketest/database";
+	public ModelAndView smokeTestDatabasePage() {
+		ModelAndView model = new ModelAndView("admin/smoketest/database");
+		List<Filing> pendingFilings = this.databaseManager.getFilingsByStatus(FilingStatus.PENDING);
+		List<Filing> queuedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.QUEUED);
+		List<Filing> unprocessedFilings = Stream.concat(pendingFilings.stream(), queuedFilings.stream()).toList();
+		model.addObject("unprocessedFilings", unprocessedFilings);
+		List<Filing> failedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.FAILED);
+		model.addObject("failedFilings", failedFilings);
+		List<Filing> completedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
+		model.addObject("completedFilings", completedFilings);
+		model.addObject("newFilingRequest", new NewFilingRequest());
+		boolean healthy = completedFilings.size() > 0 && failedFilings.size() == 0;
+		model.setStatus(healthy ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
+		return model;
 	}
 
 	/**
@@ -78,12 +91,11 @@ public class AdminController {
 	 * by loading filing data from the database.
 	 */
 	@PostMapping("/admin/smoketest/database")
-	public String smokeTestDatabaseSubmit(
-			@ModelAttribute NewFilingRequest newFilingRequest,
-			Model model
+	public ModelAndView smokeTestDatabaseSubmit(
+			@ModelAttribute NewFilingRequest newFilingRequest
 	) {
 		this.databaseManager.createFiling(newFilingRequest);
-		return smokeTestDatabasePage(model);
+		return smokeTestDatabasePage();
 	}
 
 	/**

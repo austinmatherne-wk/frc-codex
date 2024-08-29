@@ -71,9 +71,9 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.orElse(defaultTimepoint);
 	}
 
-	public List<Filing> getPendingFilings() {
+	public List<Filing> getFilingsByStatus(FilingStatus status) {
 		return filings.values().stream()
-				.filter(f -> f.getStatus().equals(FilingStatus.PENDING.toString()))
+				.filter(f -> f.getStatus().equals(status.toString()))
 				.collect(ImmutableList.toImmutableList());
 	}
 
