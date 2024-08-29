@@ -134,6 +134,7 @@ public class QueueManagerImpl implements QueueManager {
 					.queueUrl();
 			ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
 					.queueUrl(queueUrl)
+					.messageAttributeNames("All")
 					.maxNumberOfMessages(10)
 					.waitTimeSeconds(5)
 					.build();
