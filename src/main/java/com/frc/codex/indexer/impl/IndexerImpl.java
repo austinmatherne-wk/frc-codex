@@ -25,6 +25,7 @@ import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
@@ -230,7 +231,7 @@ public class IndexerImpl implements Indexer {
 		List<Filing> filings = databaseManager.getPendingFilings();
 		LOG.info("Pending filings: {}", filings.size());
 		queueManager.addJobs(filings, (Filing filing) -> {
-			databaseManager.updateFilingStatus(filing.getFilingId(), "queued");
+			databaseManager.updateFilingStatus(filing.getFilingId(), FilingStatus.QUEUED.toString());
 		});
 	}
 }

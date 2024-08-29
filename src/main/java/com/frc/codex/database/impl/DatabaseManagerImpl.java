@@ -22,6 +22,7 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariDataSource;
@@ -49,7 +50,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"stub_viewer_url = ? " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, filingResultRequest.getStatus());
+			statement.setString(1, filingResultRequest.getStatus().toString());
 			statement.setString(2, filingResultRequest.getStubViewerUrl());
 			statement.setObject(3, filingResultRequest.getFilingId());
 
@@ -70,7 +71,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"(status, registry_code, download_url, stream_timepoint) " +
 					"VALUES (?, ?, ?, ?)";
 			PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-			statement.setString(1, "pending");
+			statement.setString(1, FilingStatus.PENDING.toString());
 			statement.setString(2, newFilingRequest.getRegistryCode());
 			statement.setString(3, newFilingRequest.getDownloadUrl());
 			if (newFilingRequest.getStreamTimepoint() == null) {
@@ -162,8 +163,9 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 
 	public List<Filing> getPendingFilings() {
 		try (Connection connection = getInitializedConnection(true)) {
-			String sql = "SELECT * FROM filings WHERE status = 'pending'";
+			String sql = "SELECT * FROM filings WHERE status = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, FilingStatus.PENDING.toString());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
 		} catch (SQLException e) {

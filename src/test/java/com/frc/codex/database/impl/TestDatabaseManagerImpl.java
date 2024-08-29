@@ -13,6 +13,7 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.google.common.collect.ImmutableList;
 
@@ -27,7 +28,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public void applyFilingResult(FilingResultRequest filingResultRequest) {
 		Filing newFiling = copyFiling(filingResultRequest.getFilingId())
-				.status(filingResultRequest.getStatus())
+				.status(filingResultRequest.getStatus().toString())
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);
@@ -37,7 +38,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		Filing filing = Filing.builder()
 				.filingId(UUID.randomUUID().toString())
 				.discoveredDate(new Date())
-				.status("pending")
+				.status(FilingStatus.PENDING.toString())
 				.registryCode(newFilingRequest.getRegistryCode())
 				.downloadUrl(newFilingRequest.getDownloadUrl())
 				.streamTimepoint(newFilingRequest.getStreamTimepoint())
@@ -72,7 +73,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public List<Filing> getPendingFilings() {
 		return filings.values().stream()
-				.filter(f -> f.getStatus().equals("pending"))
+				.filter(f -> f.getStatus().equals(FilingStatus.PENDING.toString()))
 				.collect(ImmutableList.toImmutableList());
 	}
 

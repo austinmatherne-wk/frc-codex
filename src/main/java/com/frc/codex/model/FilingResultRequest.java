@@ -25,8 +25,8 @@ public class FilingResultRequest {
 		return stubViewerUrl;
 	}
 
-	public String getStatus() {
-		return success ? "completed" : "failed";
+	public FilingStatus getStatus() {
+		return success ? FilingStatus.COMPLETED : FilingStatus.FAILED;
 	}
 
 	public static class Builder {
