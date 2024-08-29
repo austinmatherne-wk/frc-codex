@@ -49,7 +49,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"stub_viewer_url = ? " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, "completed");
+			statement.setString(1, filingResultRequest.getStatus());
 			statement.setString(2, filingResultRequest.getStubViewerUrl());
 			statement.setObject(3, filingResultRequest.getFilingId());
 

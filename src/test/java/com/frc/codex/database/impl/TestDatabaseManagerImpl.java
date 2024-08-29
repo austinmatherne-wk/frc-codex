@@ -27,7 +27,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public void applyFilingResult(FilingResultRequest filingResultRequest) {
 		Filing newFiling = copyFiling(filingResultRequest.getFilingId())
-				.status("completed")
+				.status(filingResultRequest.getStatus())
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);

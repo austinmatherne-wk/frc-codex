@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -141,9 +142,11 @@ public class QueueManagerImpl implements QueueManager {
 			for(Message message : messages) {
 				UUID filingId = UUID.fromString(message.body());
 				String stubViewerUrl = message.messageAttributes().get("stubViewerUrl").stringValue();
+				boolean success = Objects.equals(message.messageAttributes().get("success").stringValue(), "true");
 				FilingResultRequest filingResultRequest = FilingResultRequest.builder()
 						.filingId(filingId)
 						.stubViewerUrl(stubViewerUrl)
+						.success(success)
 						.build();
 				if (callback.apply(filingResultRequest)) {
 					sqsClient.deleteMessage(builder -> builder
