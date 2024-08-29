@@ -30,6 +30,8 @@ import com.frc.codex.model.NewFilingRequest;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
+	private static final int CHA_LIMIT = 5;
+	private static final int FCA_LIMIT = 5;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final DatabaseManager databaseManager;
@@ -54,6 +56,13 @@ public class IndexerImpl implements Indexer {
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.queueManager = queueManager;
+	}
+
+	/*
+	 * @return true if the registry has reached its filing limit.
+	 */
+	private boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
+		return databaseManager.getRegistryCount(registryCode) >= limit;
 	}
 
 	public String getStatus() {
@@ -124,6 +133,9 @@ public class IndexerImpl implements Indexer {
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouse() throws IOException {
 		LOG.info("Starting Companies House indexing at " + System.currentTimeMillis() / 1000);
+		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CHA_LIMIT)) {
+			return;
+		}
 		Function<String, Boolean> callback = (String filing) -> {
 			if (filing == null || filing.length() <= 1) {
 				// The stream emits blank "heartbeat" lines.
@@ -135,6 +147,10 @@ public class IndexerImpl implements Indexer {
 			} catch (JsonProcessingException e) {
 				LOG.error("Failed to process filing event.", e);
 				return false; // Stop streaming
+			}
+			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CHA_LIMIT)) {
+				LOG.info("Reached Companies House filing limit.");
+				return false;
 			}
 			if (companiesHouseSessionStartTimepoint == null) {
 				companiesHouseSessionStartTimepoint = timepoint;
@@ -157,6 +173,9 @@ public class IndexerImpl implements Indexer {
 	public void indexFca() {
 		fcaSessionLastStartedDate = new Date();
 		LOG.info("Starting FCA indexing at " + fcaSessionLastStartedDate);
+		if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
+			return;
+		}
 		Date latestSubmittedDate = databaseManager.getLatestFcaFilingDate(new Date(new Date().getTime() - 30L * 24 * 60 * 60 * 1000));
 		List<FcaFiling> filings = fcaClient.fetchAllSinceDate(latestSubmittedDate);
 		for (FcaFiling filing : filings) {
@@ -167,6 +186,10 @@ public class IndexerImpl implements Indexer {
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
 				continue;
+			}
+			if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
+				LOG.info("Reached FCA filing limit.");
+				break;
 			}
 			UUID filingId = databaseManager.createFiling(newFilingRequest);
 			LOG.info("Created FCA filing for {}: {}", filing.downloadUrl(), filingId);

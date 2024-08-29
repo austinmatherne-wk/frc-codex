@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
@@ -165,6 +166,19 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			PreparedStatement statement = connection.prepareStatement(sql);
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public long getRegistryCount(RegistryCode registryCode) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT COUNT(*) FROM filings WHERE registry_code = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, registryCode.toString());
+			ResultSet resultSet = statement.executeQuery();
+			resultSet.next();
+			return resultSet.getLong(1);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
