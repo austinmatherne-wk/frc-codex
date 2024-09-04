@@ -97,20 +97,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		return filingUrls;
 	}
 
-	public List<String> streamFilings(long maxMs) throws IOException {
-		List<String> lines = new ArrayList<>();
-		long startTimestampMs = System.currentTimeMillis();
-		long endTimestampMs = startTimestampMs + maxMs;
-		Function<String, Boolean> callback = (String line) -> {
-			lines.add(line);
-			long currentTimestampMs = System.currentTimeMillis();
-			return currentTimestampMs < endTimestampMs;
-		};
-		stream.streamFilings(callback);
-		return lines;
-	}
-
-	public void streamFilings(Function<String, Boolean> callback) throws IOException {
-		stream.streamFilings(callback);
+	public void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException {
+		stream.streamFilings(timepoint, callback);
 	}
 }

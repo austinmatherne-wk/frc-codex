@@ -1,9 +1,11 @@
 package com.frc.codex.filingindex.controller;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -15,14 +17,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseClientImpl;
-import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseConfigImpl;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
+import com.frc.codex.indexer.Indexer;
+import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 
 @Controller
@@ -30,15 +32,21 @@ public class AdminController {
 	private final CompaniesHouseClient companiesHouseClient;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
+	private final Indexer indexer;
+	private final QueueManager queueManager;
 
 	public AdminController(
-			FilingIndexProperties properties,
+			CompaniesHouseClient companiesHouseClient,
 			DatabaseManager databaseManager,
-			FcaClient fcaClient
+			FcaClient fcaClient,
+			Indexer indexer,
+			QueueManager queueManager
 	) {
-		this.companiesHouseClient = new CompaniesHouseClientImpl(new CompaniesHouseConfigImpl(properties));
+		this.companiesHouseClient = companiesHouseClient;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
+		this.indexer = indexer;
+		this.queueManager = queueManager;
 	}
 
 	/**
@@ -58,32 +66,24 @@ public class AdminController {
 	}
 
 	/**
-	 * This endpoint demonstrates the Companies House client functionality
-	 * by capturing at least 10 seconds and at least 1 event from the
-	 * filing stream.
-	 */
-	@GetMapping("/admin/smoketest/companieshouse/stream")
-	public String smokeTestFilingStreamPage(Model model) {
-		String stream;
-		try {
-			stream = String.join("\n", this.companiesHouseClient.streamFilings(10 * 1000));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		model.addAttribute("stream", stream);
-		return "admin/smoketest/companieshouse/stream";
-	}
-
-	/**
 	 * This endpoint demonstrates the database client functionality
 	 * by loading filing data from the database.
 	 */
 	@GetMapping("/admin/smoketest/database")
-	public String smokeTestDatabase(Model model) {
-		List<Filing> filings = this.databaseManager.listFilings();
-		model.addAttribute("filings", filings);
-		model.addAttribute("newFilingRequest", new NewFilingRequest());
-		return "admin/smoketest/database";
+	public ModelAndView smokeTestDatabasePage() {
+		ModelAndView model = new ModelAndView("admin/smoketest/database");
+		List<Filing> pendingFilings = this.databaseManager.getFilingsByStatus(FilingStatus.PENDING);
+		List<Filing> queuedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.QUEUED);
+		List<Filing> unprocessedFilings = Stream.concat(pendingFilings.stream(), queuedFilings.stream()).toList();
+		model.addObject("unprocessedFilings", unprocessedFilings);
+		List<Filing> failedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.FAILED);
+		model.addObject("failedFilings", failedFilings);
+		List<Filing> completedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
+		model.addObject("completedFilings", completedFilings);
+		model.addObject("newFilingRequest", new NewFilingRequest());
+		boolean healthy = completedFilings.size() > 0 && failedFilings.size() == 0;
+		model.setStatus(healthy ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
+		return model;
 	}
 
 	/**
@@ -91,12 +91,25 @@ public class AdminController {
 	 * by loading filing data from the database.
 	 */
 	@PostMapping("/admin/smoketest/database")
-	public String smokeTestDatabaseSubmit(
-			@ModelAttribute NewFilingRequest newFilingRequest,
-			Model model
+	public ModelAndView smokeTestDatabaseSubmit(
+			@ModelAttribute NewFilingRequest newFilingRequest
 	) {
 		this.databaseManager.createFiling(newFilingRequest);
-		return smokeTestDatabase(model);
+		return smokeTestDatabasePage();
+	}
+
+	/**
+	 * This endpoint demonstrates progress of the indexer by showing
+	 * its progress in discovering filings.
+	 */
+	@GetMapping("/admin/smoketest/indexer")
+	public ModelAndView smokeTestIndexerPage() {
+		ModelAndView model = new ModelAndView("admin/smoketest/indexer");
+		String indexerStatus = indexer.getStatus();
+		model.addObject("indexerStatus", indexerStatus);
+		boolean healthy = indexerStatus.contains("Healthy");
+		model.setStatus(healthy ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
+		return model;
 	}
 
 	/*
@@ -104,7 +117,7 @@ public class AdminController {
 	 * by loading the last week's worth of filings.
 	 */
 	@GetMapping("/admin/smoketest/fca")
-	public ModelAndView smokeTestCompanyPage() {
+	public ModelAndView smokeTestFcaPage() {
 		ModelAndView model = new ModelAndView("admin/smoketest/fca");
 		Date sinceDate = new Date(new Date().getTime() - 30L * 24 * 60 * 60 * 1000);
 		List<FcaFiling> filings = this.fcaClient.fetchAllSinceDate(sinceDate);
@@ -112,6 +125,18 @@ public class AdminController {
 		model.addObject("filings", filings);
 		boolean healthy = filings.size() > 0;
 		model.setStatus(healthy ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
+		return model;
+	}
+
+	/*
+	 * This endpoint demonstrates progress of the indexer and processor by showing
+	 * statistics of the associated SQS queues.
+	 */
+	@GetMapping("/admin/smoketest/queue")
+	public ModelAndView smokeTestSqsPage() {
+		ModelAndView model = new ModelAndView("admin/smoketest/queue");
+		String queueStatus = queueManager.getStatus();
+		model.addObject("queueStatus", queueStatus);
 		return model;
 	}
 }

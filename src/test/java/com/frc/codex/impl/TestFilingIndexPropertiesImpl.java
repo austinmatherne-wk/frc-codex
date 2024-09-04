@@ -10,6 +10,22 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("test")
 public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
+	public String awsAccessKeyId() {
+		return "AWS_ACCESS_KEY_ID";
+	}
+
+	public String awsHost() {
+		return "http://localhost:8087/jobs";
+	}
+
+	public String awsRegion() {
+		return "eu-west-2";
+	}
+
+	public String awsSecretAccessKey() {
+		return "AWS_SECRET_ACCESS_KEY";
+	}
+
 	public String companiesHouseDocumentApiBaseUrl() {
 		return "http://localhost:8085";
 	}

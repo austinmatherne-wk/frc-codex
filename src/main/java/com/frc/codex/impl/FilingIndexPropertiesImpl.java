@@ -16,6 +16,10 @@ import com.zaxxer.hikari.HikariConfig;
 @Component
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
+	private static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+	private static final String AWS_HOST = "AWS_HOST";
+	private static final String AWS_REGION = "AWS_REGION";
+	private static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_REST_API_KEY = "COMPANIES_HOUSE_REST_API_KEY";
@@ -27,7 +31,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
+	private static final String SQS_RESULTS_QUEUE_URL = "SQS_RESULTS_QUEUE_URL";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
+	private final String awsAccessKeyId;
+	private final String awsSecretAccessKey;
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
 	private final String companiesHouseRestApiKey;
@@ -39,13 +46,37 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
+	private final String awsHost;
+	private final String awsRegion;
+
 
 	public FilingIndexPropertiesImpl() {
+		awsHost = requireNonNull(System.getenv(AWS_HOST));
+		awsRegion = requireNonNull(System.getenv(AWS_REGION));
+
 		companiesHouseDocumentApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
 		companiesHouseStreamApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_STREAM_API_BASE_URL));
 
+		dbUrl = requireNonNull(System.getenv(DB_URL));
+		dbUsername = requireNonNull(System.getenv(DB_USERNAME));
+		dbPassword = requireNonNull(System.getenv(DB_PASSWORD));
+		dbMaxLifetime = Long.parseLong(requireNonNull(System.getenv(DB_MAX_LIFETIME)));
+
+		fcaDataApiBaseUrl = requireNonNull(System.getenv(FCA_DATA_API_BASE_URL));
+		fcaSearchApiUrl = requireNonNull(System.getenv(FCA_SEARCH_API_URL));
+
 		Properties secrets = getSecrets();
+		if (secrets.containsKey(AWS_ACCESS_KEY_ID)) {
+			awsAccessKeyId = requireNonNull(secrets.getProperty(AWS_ACCESS_KEY_ID));
+		} else {
+			awsAccessKeyId = requireNonNull(System.getenv(AWS_ACCESS_KEY_ID));
+		}
+		if (secrets.containsKey(AWS_SECRET_ACCESS_KEY)) {
+			awsSecretAccessKey = requireNonNull(secrets.getProperty(AWS_SECRET_ACCESS_KEY));
+		} else {
+			awsSecretAccessKey = requireNonNull(System.getenv(AWS_SECRET_ACCESS_KEY));
+		}
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
 			companiesHouseRestApiKey = requireNonNull(secrets.getProperty(COMPANIES_HOUSE_REST_API_KEY));
 		} else {
@@ -56,14 +87,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		} else {
 			companiesHouseStreamApiKey = requireNonNull(System.getenv(COMPANIES_HOUSE_STREAM_API_KEY));
 		}
-
-		dbUrl = requireNonNull(System.getenv(DB_URL));
-		dbUsername = requireNonNull(System.getenv(DB_USERNAME));
-		dbPassword = requireNonNull(System.getenv(DB_PASSWORD));
-		dbMaxLifetime = Long.parseLong(requireNonNull(System.getenv(DB_MAX_LIFETIME)));
-
-		fcaDataApiBaseUrl = requireNonNull(System.getenv(FCA_DATA_API_BASE_URL));
-		fcaSearchApiUrl = requireNonNull(System.getenv(FCA_SEARCH_API_URL));
 	}
 
 	private static Properties getSecrets() {
@@ -80,6 +103,22 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public String awsAccessKeyId() {
+		return awsAccessKeyId;
+	}
+
+	public String awsHost() {
+		return awsHost;
+	}
+
+	public String awsRegion() {
+		return awsRegion;
+	}
+
+	public String awsSecretAccessKey() {
+		return awsSecretAccessKey;
 	}
 
 	public String companiesHouseDocumentApiBaseUrl() {

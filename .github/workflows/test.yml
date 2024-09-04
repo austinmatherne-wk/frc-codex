@@ -53,14 +53,19 @@ jobs:
         run: |
           ./dev/env-compose.sh
       - name: "Test"
+        # dependabot can not access secrets, which is required for these tests to pass
+        # Quick workaround is to not run the tests, but we could implement solutions described here:
+        # https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-797125425
+        if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: |
+          sleep 60
           curl -i --fail http://localhost:8080/
           curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
-          curl -i --fail -X POST localhost:8080/admin/smoketest/database \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "registryCode=reg1&downloadUrl=dl1"
           curl -i --fail http://localhost:8080/admin/smoketest/fca
+          curl -i --fail http://localhost:8080/admin/smoketest/indexer
+          curl -i --fail http://localhost:8080/admin/smoketest/queue
+          curl -i --fail http://localhost:8080/admin/smoketest/database
 
       - uses: actions/upload-artifact@v4
         if: always()

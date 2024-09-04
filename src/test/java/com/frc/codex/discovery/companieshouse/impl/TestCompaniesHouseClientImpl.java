@@ -1,5 +1,6 @@
 package com.frc.codex.discovery.companieshouse.impl;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,11 +30,7 @@ public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
 		return null;
 	}
 
-	public List<String> streamFilings(long maxMs) {
-		return null;
-	}
-
-	public void streamFilings(Function<String, Boolean> callback) {
+	public void streamFilings(Long timepoint, Function<String, Boolean> callback) {
 
 	}
 }

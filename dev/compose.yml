@@ -10,6 +10,10 @@ services:
       test: curl localhost:8080/health --fail || exit 1
       timeout: 2s
     environment:
+      AWS_ACCESS_KEY_ID: "AWS_ACCESS_KEY_ID"
+      AWS_HOST: "http://localstack.localhost:4566"
+      AWS_REGION: "eu-west-2"
+      AWS_SECRET_ACCESS_KEY: "AWS_SECRET_ACCESS_KEY"
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
@@ -45,14 +49,15 @@ services:
       test: curl localstack:4566/health || exit 1
       timeout: 4s
     environment:
-      SERVICES: sqs
-      DEBUG: 1
+      SQS_REGION_NAME: "eu-west-2"
     ports:
       - 4566:4566
     networks:
       default:
         aliases:
           - localstack.localhost
+    volumes:
+      - ./localstack.sh:/etc/localstack/init/ready.d/script.sh
   postgres:
     image: postgres:13
     healthcheck:
