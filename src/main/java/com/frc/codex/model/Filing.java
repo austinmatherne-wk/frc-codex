@@ -104,6 +104,10 @@ public class Filing {
 		return oimJsonUrl;
 	}
 
+	public String getViewerLink() {
+		return "view/" + filingId.toString() + "/" + stubViewerUrl;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
