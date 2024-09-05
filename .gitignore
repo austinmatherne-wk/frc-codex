@@ -5,4 +5,5 @@ Pipfile
 Pipfile.lock
 dev/logs
 frc-codex-server.secrets
+_HTTP_CACHE
 **/__pycache__
