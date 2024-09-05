@@ -3,10 +3,10 @@ package com.frc.codex.discovery.companieshouse.impl;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,7 +25,8 @@ import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 @Component
 @Profile("application")
 public class CompaniesHouseClientImpl implements CompaniesHouseClient {
-	private static final Set<String> IGNORED_CONTENT_TYPES = Set.of("application/pdf");
+	private static final Set<String> ACCEPTED_CONTENT_TYPES = Set.of("application/xml", "application/xhtml+xml");
+	private static final Set<String> IGNORED_CONTENT_TYPES = Set.of("application/pdf", "application/json", "text/csv");
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseClientImpl.class);
 	private final CompaniesHouseConfig config;
 	public final CompaniesHouseDocumentClient document;
@@ -74,9 +75,14 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 				if (IGNORED_CONTENT_TYPES.contains(key)) {
 					continue;
 				}
+				if (!ACCEPTED_CONTENT_TYPES.contains(key)) {
+					LOG.error("Unexpected content type: {}", key);
+					continue;
+				}
 				// `contentType` query parameter is only added to indicate which content type is available at the URL
 				// It is not a functional use of the Companies House Documents API.
-				filingUrls.add(config.documentApiBaseUrl() + "/document/" + documentId + "/content?contentType=" + key);
+				String contentType = URLEncoder.encode(key, StandardCharsets.UTF_8);
+				filingUrls.add(config.documentApiBaseUrl() + "/document/" + documentId + "/content?contentType=" + contentType);
 			}
 		}
 		return filingUrls;
