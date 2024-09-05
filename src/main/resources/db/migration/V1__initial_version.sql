@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS filings (
     document_date DATE,
     stream_timepoint BIGINT,
     -- Result assets
+    error TEXT,
+    logs TEXT,
     stub_viewer_url VARCHAR(500),
     oim_csv_url VARCHAR(500),
     oim_json_url VARCHAR(500),

@@ -55,11 +55,16 @@ public class QueueManagerImpl implements QueueManager {
 						.stringValue(filing.getDownloadUrl())
 						.dataType("String")
 						.build();
+				MessageAttributeValue registryCode = MessageAttributeValue.builder()
+						.stringValue(filing.getRegistryCode())
+						.dataType("String")
+						.build();
 				SendMessageRequest request = SendMessageRequest.builder()
 						.queueUrl(queueUrl)
 						.messageBody(filing.getFilingId().toString())
 						.messageAttributes(Map.of(
-								"downloadUrl", downloadUrl
+								"DownloadUrl", downloadUrl,
+								"RegistryCode", registryCode
 						))
 						.build();
 				SendMessageResponse response = sqsClient.sendMessage(request);
@@ -141,12 +146,21 @@ public class QueueManagerImpl implements QueueManager {
 			List<Message> messages = sqsClient.receiveMessage(receiveMessageRequest).messages();
 			LOG.info("Received results messages: {}", messages.size());
 			for(Message message : messages) {
-				UUID filingId = UUID.fromString(message.body());
-				String stubViewerUrl = message.messageAttributes().get("stubViewerUrl").stringValue();
-				boolean success = Objects.equals(message.messageAttributes().get("success").stringValue(), "true");
+				boolean success = Objects.equals(message.messageAttributes().get("Success").stringValue(), "true");
+				String error = null;
+				String viewerEntrypoint = null;
+				if (!success) {
+					error = message.messageAttributes().get("Error").stringValue();
+				} else {
+					viewerEntrypoint = message.messageAttributes().get("ViewerEntrypoint").stringValue();
+				}
+				UUID filingId = UUID.fromString(message.messageAttributes().get("FilingId").stringValue());
+				String logs = message.body();
 				FilingResultRequest filingResultRequest = FilingResultRequest.builder()
+						.error(error)
 						.filingId(filingId)
-						.stubViewerUrl(stubViewerUrl)
+						.logs(logs)
+						.stubViewerUrl(viewerEntrypoint)
 						.success(success)
 						.build();
 				if (callback.apply(filingResultRequest)) {

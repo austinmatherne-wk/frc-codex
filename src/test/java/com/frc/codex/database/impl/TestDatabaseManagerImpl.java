@@ -29,6 +29,8 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 	public void applyFilingResult(FilingResultRequest filingResultRequest) {
 		Filing newFiling = copyFiling(filingResultRequest.getFilingId())
 				.status(filingResultRequest.getStatus().toString())
+				.error(filingResultRequest.getError())
+				.logs(filingResultRequest.getLogs())
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);
@@ -91,7 +93,9 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.status(filing.getStatus())
 				.registryCode(filing.getRegistryCode())
 				.downloadUrl(filing.getDownloadUrl())
-				.streamTimepoint(filing.getStreamTimepoint());
+				.streamTimepoint(filing.getStreamTimepoint())
+				.error(filing.getError())
+				.logs(filing.getLogs());
 	}
 
 	private void updateFiling(Filing filing) {
