@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.frc.codex.database.DatabaseManager;
@@ -30,11 +29,6 @@ public class HomeController {
 	}
 
 	@GetMapping("/")
-	public ModelAndView indexPage() {
-		return indexPage(new SearchFilingsRequest());
-	}
-
-	@PostMapping("/")
 	public ModelAndView indexPage(@ModelAttribute SearchFilingsRequest searchFilingsRequest) {
 		searchFilingsRequest.setStatus(FilingStatus.COMPLETED.toString());
 		List<Filing> filings;
