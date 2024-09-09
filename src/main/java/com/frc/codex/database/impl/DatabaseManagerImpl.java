@@ -332,25 +332,26 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				conditions.add("status = ?");
 				parameters.add(searchFilingsRequest.getStatus());
 			}
-			String sql = "SELECT * ";
+			StringBuilder sqlBuilder = new StringBuilder("SELECT * ");
 			if (selects.size() > 0) {
-				sql += ", ";
-				sql += String.join(", ", selects);
+				sqlBuilder.append(", ");
+				sqlBuilder.append(String.join(", ", selects));
 			}
-			sql += " FROM filings ";
+			sqlBuilder.append(" FROM filings ");
 			if (queries.size() > 0) {
-				sql += ", ";
-				sql += String.join(", ", queries);
+				sqlBuilder.append(", ");
+				sqlBuilder.append(String.join(", ", queries));
 			}
-			if (parameters.size() > 0) {
-				sql += " WHERE ";
-				sql += String.join(" AND ", conditions);
+			if (conditions.size() > 0) {
+				sqlBuilder.append(" WHERE ");
+				sqlBuilder.append(String.join(" AND ", conditions));
 			}
 			if (orderBys.size() > 0) {
-				sql += " ORDER BY ";
-				sql += String.join(", ", orderBys.reversed());
+				sqlBuilder.append(" ORDER BY ");
+				sqlBuilder.append(String.join(", ", orderBys));
 			}
-			sql += " LIMIT 10;";
+			sqlBuilder.append(" LIMIT 10;");
+			String sql = sqlBuilder.toString();
 			PreparedStatement statement = connection.prepareStatement(sql);
 			LOGGER.info("Executing filing search SQL with parameters ({}): {}", String.join(", ", parameters), sql);
 			for (int i = 0; i < parameters.size(); i++) {
