@@ -311,8 +311,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			List<String> parameters = new ArrayList<>();
 			List<String> orderBys = new ArrayList<>() {
 				{
-					add("filing_id DESC");
 					add("filing_date DESC");
+					add("filing_id");
 				}
 			};
 			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyName())) {
@@ -320,7 +320,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				queries.add("websearch_to_tsquery(?) query");
 				conditions.add("query @@ to_tsvector('english', company_name)");
 				parameters.add(searchFilingsRequest.getCompanyName());
-				orderBys.add("rank DESC");
+				orderBys.add(0, "rank DESC");
 			}
 			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyNumber())) {
 				conditions.add("company_number = ?");
@@ -344,10 +344,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				sqlBuilder.append(" WHERE ");
 				sqlBuilder.append(String.join(" AND ", conditions));
 			}
-			if (orderBys.size() > 0) {
-				sqlBuilder.append(" ORDER BY ");
-				sqlBuilder.append(String.join(", ", orderBys));
-			}
+			sqlBuilder.append(" ORDER BY ");
+			sqlBuilder.append(String.join(", ", orderBys));
 			sqlBuilder.append(" LIMIT 10;");
 			String sql = sqlBuilder.toString();
 			PreparedStatement statement = connection.prepareStatement(sql);
