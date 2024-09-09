@@ -38,9 +38,15 @@ services:
       test: exit 0 # TODO: Improve healthcheck
       timeout: 1s
     environment:
+      SECRETS_FILEPATH: '/run/secrets/frc-codex-server.secrets'
       SQS_ENDPOINT_URL: 'http://localstack.localhost:4566'
       SQS_QUEUE_NAME: 'frc_codex_processor_queue'
       SQS_REGION_NAME: 'eu-west-2'
+      S3_ENDPOINT_URL: 'http://localstack.localhost:4566'
+      S3_BUCKET_NAME: 'frc-codex-results'
+      S3_REGION_NAME: 'eu-west-2'
+    secrets:
+      - frc-codex-server.secrets
   localstack:
     image: localstack/localstack:3.4.0
     healthcheck:
@@ -49,6 +55,8 @@ services:
       test: curl localstack:4566/health || exit 1
       timeout: 4s
     environment:
+      S3_BUCKET_NAME: frc-codex-results
+      S3_REGION_NAME: "eu-west-2"
       SQS_REGION_NAME: "eu-west-2"
     ports:
       - 4566:4566

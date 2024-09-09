@@ -10,38 +10,10 @@ on:
       - "**"
 
 jobs:
-  build-processor:
-    uses: ./.github/workflows/build-processor.yml
-
-  build-server:
-    uses: ./.github/workflows/build-server.yml
-
   test:
-    needs: [build-processor, build-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Download processor
-        uses: actions/download-artifact@v4
-        with:
-          name: frc-codex-processor
-          path: /tmp
-      - name: Load processor
-        run: |
-          docker load --input /tmp/frc-codex-processor.tar
-          docker image ls -a  
-
-      - name: Download server
-        uses: actions/download-artifact@v4
-        with:
-          name: frc-codex-server
-          path: /tmp
-      - name: Load server
-        run: |
-          docker load --input /tmp/frc-codex-server.tar
-          docker image ls -a  
-
       - name: "Secrets"
         shell: bash
         run: |
@@ -51,7 +23,7 @@ jobs:
         timeout-minutes: 5
         shell: bash
         run: |
-          ./dev/env-compose.sh
+          ./dev/env-setup.sh
       - name: "Test"
         # dependabot can not access secrets, which is required for these tests to pass
         # Quick workaround is to not run the tests, but we could implement solutions described here:

@@ -17,6 +17,8 @@ public class Filing {
 	private final Date filingDate;
 	private final Date documentDate;
 	private final Long streamTimepoint;
+	private final String error;
+	private final String logs;
 	private final String stubViewerUrl;
 	private final String oimCsvUrl;
 	private final String oimJsonUrl;
@@ -35,6 +37,8 @@ public class Filing {
 		this.filingDate = b.filingDate;
 		this.documentDate = b.documentDate;
 		this.streamTimepoint = b.streamTimepoint;
+		this.error = b.error;
+		this.logs = b.logs;
 		this.stubViewerUrl = b.stubViewerUrl;
 		this.oimCsvUrl = b.oimCsvUrl;
 		this.oimJsonUrl = b.oimJsonUrl;
@@ -92,6 +96,14 @@ public class Filing {
 		return streamTimepoint;
 	}
 
+	public String getError() {
+		return error;
+	}
+
+	public String getLogs() {
+		return logs;
+	}
+
 	public String getStubViewerUrl() {
 		return stubViewerUrl;
 	}
@@ -102,6 +114,10 @@ public class Filing {
 
 	public String getOimJsonUrl() {
 		return oimJsonUrl;
+	}
+
+	public String getViewerLink() {
+		return "view/" + filingId.toString() + "/" + stubViewerUrl;
 	}
 
 	public static Builder builder() {
@@ -122,6 +138,8 @@ public class Filing {
 		private Date filingDate;
 		private Date documentDate;
 		private Long streamTimepoint;
+		private String error;
+		private String logs;
 		private String stubViewerUrl;
 		private String oimCsvUrl;
 		private String oimJsonUrl;
@@ -192,6 +210,16 @@ public class Filing {
 
 		public Builder streamTimepoint(Long streamTimepoint) {
 			this.streamTimepoint = streamTimepoint;
+			return this;
+		}
+
+		public Builder error(String error) {
+			this.error = error;
+			return this;
+		}
+
+		public Builder logs(String logs) {
+			this.logs = logs;
 			return this;
 		}
 

@@ -46,13 +46,17 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	public void applyFilingResult(FilingResultRequest filingResultRequest) {
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "UPDATE filings SET " +
+					"error = ?, " +
+					"logs = ?, " +
 					"status = ?, " +
 					"stub_viewer_url = ? " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, filingResultRequest.getStatus().toString());
-			statement.setString(2, filingResultRequest.getStubViewerUrl());
-			statement.setObject(3, filingResultRequest.getFilingId());
+			statement.setString(1, filingResultRequest.getError());
+			statement.setString(2, filingResultRequest.getLogs());
+			statement.setString(3, filingResultRequest.getStatus().toString());
+			statement.setString(4, filingResultRequest.getStubViewerUrl());
+			statement.setObject(5, filingResultRequest.getFilingId());
 
 			int affectedRows = statement.executeUpdate();
 			if (affectedRows == 0) {

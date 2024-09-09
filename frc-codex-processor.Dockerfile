@@ -1,11 +1,14 @@
 FROM python:3.12
 
-ADD requirements.txt /
-ADD processor /processor
+COPY requirements.txt /
+COPY processor /processor
 
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-USER nobody
+USER root
+RUN mkdir _HTTP_CACHE
+RUN chown -R nobody _HTTP_CACHE
 
-CMD ["python3", "-m", "processor.process"]
+USER nobody
+CMD ["python3", "-m", "processor.run"]
