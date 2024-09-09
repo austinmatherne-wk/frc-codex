@@ -1,6 +1,10 @@
 package com.frc.codex.indexer.impl;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +35,7 @@ import com.frc.codex.model.NewFilingRequest;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
+	private static final DateTimeFormatter CHA_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final int CHA_LIMIT = 5;
 	private static final int FCA_LIMIT = 5;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
@@ -102,16 +107,32 @@ public class IndexerImpl implements Indexer {
 		if (!"filing-history".equals(resourceKind)) {
 			return timepoint;
 		}
+		String eventType = event.get("type").asText();
+		if (!"changed".equals(eventType)) {
+			// Only other possible value is "deleted".
+			return timepoint;
+		}
+		JsonNode data = filing.get("data");
+		JsonNode dateNode = data.get("date");
+		LocalDateTime filingDate = null;
+		if (dateNode != null) {
+			String dateStr = dateNode.asText();
+			try {
+				filingDate = LocalDate.parse(dateStr, CHA_JSON_DATE_FORMAT).atStartOfDay();
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to parse date: " + dateStr, e);
+			}
+		}
 		String resourceUri = filing.get("resource_uri").asText();
 		String[] resourceUriSplit = resourceUri.split("/");
 		String companyNumber = resourceUriSplit[2];
 		String resourceId = filing.get("resource_id").asText();
-		String eventType = event.get("type").asText();
-		String publishedAt = event.get("published_at").asText();
 		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber, resourceId);
 		for (String filingUrl : filingUrls) {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();
+			newFilingRequest.setCompanyNumber(companyNumber);
 			newFilingRequest.setDownloadUrl(filingUrl);
+			newFilingRequest.setFilingDate(filingDate);
 			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
 			newFilingRequest.setStreamTimepoint(timepoint);
 			if (databaseManager.filingExists(newFilingRequest)) {
@@ -177,10 +198,14 @@ public class IndexerImpl implements Indexer {
 		if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
 			return;
 		}
-		Date latestSubmittedDate = databaseManager.getLatestFcaFilingDate(new Date(new Date().getTime() - 30L * 24 * 60 * 60 * 1000));
+		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(
+				LocalDateTime.now().minusDays(30)
+		);
 		List<FcaFiling> filings = fcaClient.fetchAllSinceDate(latestSubmittedDate);
 		for (FcaFiling filing : filings) {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();
+			newFilingRequest.setCompanyName(filing.companyName());
+			newFilingRequest.setCompanyNumber(filing.lei());
 			newFilingRequest.setDownloadUrl(filing.downloadUrl());
 			newFilingRequest.setFilingDate(filing.submittedDate());
 			newFilingRequest.setRegistryCode(RegistryCode.FCA.toString());

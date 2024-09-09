@@ -5,8 +5,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -33,6 +39,8 @@ import jakarta.annotation.PostConstruct;
 @Profile("application")
 public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseManagerImpl.class);
+	public static final Calendar TIMEZONE_UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
 	private final boolean dbMigrateAsync;
 	private final DataSource readDataSource;
 	private final DataSource writeDataSource;
@@ -49,14 +57,21 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"error = ?, " +
 					"logs = ?, " +
 					"status = ?, " +
-					"stub_viewer_url = ? " +
+					"stub_viewer_url = ?, " +
+					"company_name = COALESCE(company_name, ?), " +
+					"company_number = COALESCE(company_number, ?), " +
+					"document_date = COALESCE(document_date, ?) " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, filingResultRequest.getError());
-			statement.setString(2, filingResultRequest.getLogs());
-			statement.setString(3, filingResultRequest.getStatus().toString());
-			statement.setString(4, filingResultRequest.getStubViewerUrl());
-			statement.setObject(5, filingResultRequest.getFilingId());
+			int i = 0;
+			statement.setString(++i, filingResultRequest.getError());
+			statement.setString(++i, filingResultRequest.getLogs());
+			statement.setString(++i, filingResultRequest.getStatus().toString());
+			statement.setString(++i, filingResultRequest.getStubViewerUrl());
+			statement.setString(++i, filingResultRequest.getCompanyName());
+			statement.setString(++i, filingResultRequest.getCompanyNumber());
+			statement.setTimestamp(++i, getTimestamp(filingResultRequest.getDocumentDate()), TIMEZONE_UTC);
+			statement.setObject(++i, filingResultRequest.getFilingId());
 
 			int affectedRows = statement.executeUpdate();
 			if (affectedRows == 0) {
@@ -72,17 +87,21 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		UUID filingId;
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "INSERT INTO filings " +
-					"(status, registry_code, download_url, stream_timepoint) " +
-					"VALUES (?, ?, ?, ?)";
+					"(status, registry_code, download_url, filing_date, stream_timepoint, company_name, company_number) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-			statement.setString(1, FilingStatus.PENDING.toString());
-			statement.setString(2, newFilingRequest.getRegistryCode());
-			statement.setString(3, newFilingRequest.getDownloadUrl());
+			int i = 0;
+			statement.setString(++i, FilingStatus.PENDING.toString());
+			statement.setString(++i, newFilingRequest.getRegistryCode());
+			statement.setString(++i, newFilingRequest.getDownloadUrl());
+			statement.setTimestamp(++i, getTimestamp(newFilingRequest.getFilingDate()), TIMEZONE_UTC);
 			if (newFilingRequest.getStreamTimepoint() == null) {
-				statement.setNull(4, java.sql.Types.BIGINT);
+				statement.setNull(++i, java.sql.Types.BIGINT);
 			} else {
-				statement.setLong(4, newFilingRequest.getStreamTimepoint());
+				statement.setLong(++i, newFilingRequest.getStreamTimepoint());
 			}
+			statement.setString(++i, newFilingRequest.getCompanyName());
+			statement.setString(++i, newFilingRequest.getCompanyNumber());
 
 			int affectedRows = statement.executeUpdate();
 			if (affectedRows == 0) {
@@ -132,14 +151,14 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
-	public Date getLatestFcaFilingDate(Date defaultDate) {
+	public LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate) {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT MAX(filing_date) FROM filings WHERE registry_code = 'FCA'";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			ResultSet resultSet = statement.executeQuery();
-			Date result = null;
+			LocalDateTime result = null;
 			if (resultSet.next()) {
-				result = resultSet.getDate(1);
+				result = getLocalDateTime(resultSet.getTimestamp(1));
 			}
 			if (result == null) {
 				return defaultDate;
@@ -217,12 +236,26 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
+	private LocalDateTime getLocalDateTime(Timestamp timestamp) {
+		if (timestamp == null) {
+			return null;
+		}
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp.getTime()), ZoneOffset.UTC);
+	}
+
+	private Timestamp getTimestamp(LocalDateTime localDateTime) {
+		if (localDateTime == null) {
+			return null;
+		}
+		return new Timestamp(localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+	}
+
 	public List<Filing> getFilings(ResultSet resultSet) throws SQLException {
 		ImmutableList.Builder<Filing> results = ImmutableList.builder();
 		while (resultSet.next()) {
 			results.add(Filing.builder()
 					.filingId(resultSet.getString("filing_id"))
-					.discoveredDate(resultSet.getDate("discovered_date"))
+					.discoveredDate(resultSet.getTimestamp("discovered_date"))
 					.status(resultSet.getString("status"))
 					.registryCode(resultSet.getString("registry_code"))
 					.downloadUrl(resultSet.getString("download_url"))
@@ -231,8 +264,12 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					.lei(resultSet.getString("lei"))
 					.filename(resultSet.getString("filename"))
 					.filingType(resultSet.getString("filing_type"))
-					.filingDate(resultSet.getDate("filing_date"))
-					.documentDate(resultSet.getDate("document_date"))
+					.filingDate(getLocalDateTime(
+							resultSet.getTimestamp("filing_date", TIMEZONE_UTC)
+					))
+					.documentDate(getLocalDateTime(
+							resultSet.getTimestamp("document_date", TIMEZONE_UTC)
+					))
 					.streamTimepoint(resultSet.getLong("stream_timepoint"))
 					.stubViewerUrl(resultSet.getString("stub_viewer_url"))
 					.oimCsvUrl(resultSet.getString("oim_csv_url"))

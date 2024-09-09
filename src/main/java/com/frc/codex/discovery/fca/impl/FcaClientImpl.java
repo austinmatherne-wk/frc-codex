@@ -1,7 +1,8 @@
 package com.frc.codex.discovery.fca.impl;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,8 +29,8 @@ import com.frc.codex.discovery.fca.FcaFiling;
 @Component
 @Profile("application")
 public class FcaClientImpl implements FcaClient {
-	private static final SimpleDateFormat INCOMING_JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	private static final SimpleDateFormat OUTGOING_JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	private static final DateTimeFormatter INCOMING_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private static final DateTimeFormatter OUTGOING_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private final Logger LOG = LoggerFactory.getLogger(FcaClientImpl.class);
 	private final String dataApiBaseUrl;
 	private final int pageSize;
@@ -49,7 +50,7 @@ public class FcaClientImpl implements FcaClient {
 	 * @param page The page number to fetch.
 	 * @return The JSON request body.
 	 */
-	private String buildJson(Date sinceDate, int page) {
+	private String buildJson(LocalDateTime sinceDate, int page) {
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("from", this.pageSize * (page - 1));
 		node.put("size", this.pageSize);
@@ -72,7 +73,7 @@ public class FcaClientImpl implements FcaClient {
 	 * @param sinceDate The date to fetch filings since.
 	 * @return A list of FCA filings.
 	 */
-	public List<FcaFiling> fetchAllSinceDate(Date sinceDate) {
+	public List<FcaFiling> fetchAllSinceDate(LocalDateTime sinceDate) {
 		List<FcaFiling> filings = new ArrayList<>();
 		int page = 1;
 		boolean more = true;
@@ -92,7 +93,7 @@ public class FcaClientImpl implements FcaClient {
 	 * @param filings The list to add fetched filings to.
 	 * @return true if there are more pages to fetch.
 	 */
-	private boolean fetchPage(Date sinceDate, int page, List<FcaFiling> filings) {
+	private boolean fetchPage(LocalDateTime sinceDate, int page, List<FcaFiling> filings) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 		String body = buildJson(sinceDate, page);
@@ -127,20 +128,21 @@ public class FcaClientImpl implements FcaClient {
 			String downloadLink = source.get("download_link").asText();
 			String sequenceId = source.get("seq_id").asText();
 			String submittedDateStr = source.get("submitted_date").asText();
-			Date submittedDate;
-			try {
-				submittedDate = INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr);
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
+			String companyName = source.get("company").asText();
+			String lei = source.get("lei").asText();
+			LocalDateTime submittedDate = LocalDateTime.from(
+					INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr)
+			);
 			String[] downloadLinkSplit = downloadLink.split("/");
 			String filename = downloadLinkSplit[downloadLinkSplit.length - 1];
 			String downloadUrl = this.dataApiBaseUrl + downloadLink;
 			String infoUrl = this.dataApiBaseUrl + source.get("html_link").asText();
 			filings.add(new FcaFiling(
-					filename,
+					companyName,
 					downloadUrl,
+					filename,
 					infoUrl,
+					lei,
 					sequenceId,
 					submittedDate
 			));

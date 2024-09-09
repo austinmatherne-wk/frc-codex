@@ -1,6 +1,6 @@
 package com.frc.codex.database;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public interface DatabaseManager {
 	boolean filingExists(NewFilingRequest newFilingRequest);
 	Filing getFiling(UUID filingId);
 	List<Filing> getFilingsByStatus(FilingStatus status);
-	Date getLatestFcaFilingDate(Date defaultDate);
+	LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate);
 	Long getLatestStreamTimepoint(Long defaultTimepoint);
 	long getRegistryCount(RegistryCode registryCode);
 	void updateFilingStatus(UUID filingId, String status);

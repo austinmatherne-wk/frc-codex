@@ -1,6 +1,8 @@
 package com.frc.codex.database.impl;
 
-import java.util.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +41,9 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 	public UUID createFiling(NewFilingRequest newFilingRequest) {
 		Filing filing = Filing.builder()
 				.filingId(UUID.randomUUID().toString())
-				.discoveredDate(new Date())
+				.companyName(newFilingRequest.getCompanyName())
+				.companyNumber(newFilingRequest.getCompanyNumber())
+				.discoveredDate(Timestamp.from(Instant.now()))
 				.status(FilingStatus.PENDING.toString())
 				.registryCode(newFilingRequest.getRegistryCode())
 				.downloadUrl(newFilingRequest.getDownloadUrl())
@@ -58,11 +62,11 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		return filings.get(filingId);
 	}
 
-	public Date getLatestFcaFilingDate(Date defaultDate) {
+	public LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate) {
 		return filings.values().stream()
 				.filter(f -> f.getRegistryCode().equals("FCA"))
 				.map(Filing::getFilingDate)
-				.max(Date::compareTo)
+				.max(LocalDateTime::compareTo)
 				.orElse(defaultDate);
 	}
 
@@ -89,6 +93,8 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		Filing filing = getFiling(filingId);
 		return Filing.builder()
 				.filingId(filing.getFilingId().toString())
+				.companyName(filing.getCompanyName())
+				.companyNumber(filing.getCompanyNumber())
 				.discoveredDate(filing.getDiscoveredDate())
 				.status(filing.getStatus())
 				.registryCode(filing.getRegistryCode())

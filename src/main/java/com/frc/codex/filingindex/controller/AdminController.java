@@ -1,5 +1,6 @@
 package com.frc.codex.filingindex.controller;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -119,7 +120,7 @@ public class AdminController {
 	@GetMapping("/admin/smoketest/fca")
 	public ModelAndView smokeTestFcaPage() {
 		ModelAndView model = new ModelAndView("admin/smoketest/fca");
-		Date sinceDate = new Date(new Date().getTime() - 30L * 24 * 60 * 60 * 1000);
+		LocalDateTime sinceDate = LocalDateTime.now().minusDays(30);
 		List<FcaFiling> filings = this.fcaClient.fetchAllSinceDate(sinceDate);
 		model.addObject("sinceDate", sinceDate);
 		model.addObject("filings", filings);
