@@ -68,7 +68,6 @@ class IxbrlViewerWorker(Worker):
             entrypointFile=str(target_path),
             # TODO: Enable this when we have taxonomy packages provided
             # internetConnectivity='offline',
-            keepOpen=True,
             logFormat="[%(messageCode)s] %(message)s - %(file)s",
             logFile='logToBuffer',
             pluginOptions={
