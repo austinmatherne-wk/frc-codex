@@ -323,8 +323,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				orderBys.add("rank DESC");
 			}
 			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyNumber())) {
-				conditions.add("company_number LIKE ?");
-				parameters.add("%" + searchFilingsRequest.getCompanyNumber() + "%");
+				conditions.add("company_number = ?");
+				parameters.add(searchFilingsRequest.getCompanyNumber());
 			}
 			if (!StringUtils.isEmpty(searchFilingsRequest.getStatus())) {
 				conditions.add("status = ?");
