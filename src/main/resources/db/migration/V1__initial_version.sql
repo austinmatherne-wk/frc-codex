@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS filings (
     download_url VARCHAR(500) NOT NULL,
     -- Fields that may or may not be known before processing
     company_name VARCHAR(100),
-    lei VARCHAR(20),
     company_number VARCHAR(20),
     filename VARCHAR(255),
     filing_type VARCHAR(20),
@@ -29,4 +28,3 @@ CREATE TABLE IF NOT EXISTS filings (
 );
 CREATE INDEX company_name_idx ON filings (company_name);
 CREATE INDEX company_number_idx ON filings (company_number);
-CREATE INDEX lei_idx ON filings (lei);

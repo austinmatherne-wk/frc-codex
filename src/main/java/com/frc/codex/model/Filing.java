@@ -13,7 +13,6 @@ public class Filing {
 	private final String downloadUrl;
 	private final String companyName;
 	private final String companyNumber;
-	private final String lei;
 	private final String filename;
 	private final String filingType;
 	private final LocalDateTime filingDate;
@@ -33,7 +32,6 @@ public class Filing {
 		this.downloadUrl = b.downloadUrl;
 		this.companyName = b.companyName;
 		this.companyNumber = b.companyNumber;
-		this.lei = b.lei;
 		this.filename = b.filename;
 		this.filingType = b.filingType;
 		this.filingDate = b.filingDate;
@@ -72,10 +70,6 @@ public class Filing {
 
 	public String getCompanyNumber() {
 		return companyNumber;
-	}
-
-	public String getLei() {
-		return lei;
 	}
 
 	public String getFilename() {
@@ -134,7 +128,6 @@ public class Filing {
 		private String downloadUrl;
 		private String companyName;
 		private String companyNumber;
-		private String lei;
 		private String filename;
 		private String filingType;
 		private LocalDateTime filingDate;
@@ -182,11 +175,6 @@ public class Filing {
 
 		public Builder companyNumber(String companyNumber) {
 			this.companyNumber = companyNumber;
-			return this;
-		}
-
-		public Builder lei(String lei) {
-			this.lei = lei;
 			return this;
 		}
 

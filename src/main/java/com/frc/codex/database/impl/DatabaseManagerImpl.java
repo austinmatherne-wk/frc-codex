@@ -261,7 +261,6 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					.downloadUrl(resultSet.getString("download_url"))
 					.companyNumber(resultSet.getString("company_number"))
 					.companyName(resultSet.getString("company_name"))
-					.lei(resultSet.getString("lei"))
 					.filename(resultSet.getString("filename"))
 					.filingType(resultSet.getString("filing_type"))
 					.filingDate(getLocalDateTime(
