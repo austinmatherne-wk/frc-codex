@@ -1,3 +1,4 @@
+import datetime
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Iterable
@@ -14,6 +15,9 @@ class JobMessage:
 
 @dataclass(frozen=True)
 class ResultMessage:
+    company_name: str | None
+    company_number: str | None
+    document_date: datetime.datetime | None
     error: str | None
     filing_id: str
     logs: str
