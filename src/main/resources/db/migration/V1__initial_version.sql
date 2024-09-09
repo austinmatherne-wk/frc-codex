@@ -27,4 +27,5 @@ CREATE TABLE IF NOT EXISTS filings (
     PRIMARY KEY (filing_id)
 );
 CREATE INDEX company_name_idx ON filings (company_name);
+CREATE INDEX company_name_tsv_idx ON filings USING GIN (to_tsvector('english', company_name));
 CREATE INDEX company_number_idx ON filings (company_number);

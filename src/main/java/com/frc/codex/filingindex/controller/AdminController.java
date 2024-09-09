@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.fca.FcaClient;
@@ -34,6 +36,7 @@ public class AdminController {
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
 	private final Indexer indexer;
+	private final FilingIndexProperties properties;
 	private final QueueManager queueManager;
 
 	public AdminController(
@@ -41,13 +44,33 @@ public class AdminController {
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			Indexer indexer,
+			FilingIndexProperties properties,
 			QueueManager queueManager
 	) {
 		this.companiesHouseClient = companiesHouseClient;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.indexer = indexer;
+		this.properties = properties;
 		this.queueManager = queueManager;
+	}
+
+	@GetMapping("/admin")
+	public String indexPage(Model model) {
+		model.addAttribute("awsAccessKeyId", !StringUtils.isEmpty(properties.awsAccessKeyId()));
+		model.addAttribute("awsHost", properties.awsHost());
+		model.addAttribute("awsRegion", properties.awsRegion());
+		model.addAttribute("awsSecretAccessKey", !StringUtils.isEmpty(properties.awsSecretAccessKey()));
+		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
+		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
+		model.addAttribute("chRestApiKey", !StringUtils.isEmpty(properties.companiesHouseRestApiKey()));
+		model.addAttribute("chStreamApiKey", !StringUtils.isEmpty(properties.companiesHouseStreamApiKey()));
+		model.addAttribute("chStreamUrl", properties.companiesHouseStreamApiBaseUrl());
+		model.addAttribute("fcaDataApiBaseUrl", properties.fcaDataApiBaseUrl());
+		model.addAttribute("fcaSearchApiUrl", properties.fcaSearchApiUrl());
+		List<Filing> filings = databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
+		model.addAttribute("filings", filings);
+		return "admin/index";
 	}
 
 	/**

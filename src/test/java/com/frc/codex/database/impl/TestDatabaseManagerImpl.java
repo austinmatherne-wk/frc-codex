@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.SearchFilingsRequest;
 import com.google.common.collect.ImmutableList;
 
 @Component
@@ -87,6 +89,23 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		return filings.values().stream()
 				.filter(f -> f.getRegistryCode().equals(registryCode.toString()))
 				.count();
+	}
+
+	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
+		Stream<Filing> results = filings.values().stream();
+		if (searchFilingsRequest.getCompanyName() != null) {
+			List<String> terms = List.of(searchFilingsRequest.getCompanyName().split(" "));
+			for(String term : terms) {
+				results = results.filter(f -> f.getCompanyName().contains(term));
+			}
+		}
+		if (searchFilingsRequest.getCompanyNumber() != null) {
+			results = results.filter(f -> f.getCompanyNumber().equals(searchFilingsRequest.getCompanyNumber()));
+		}
+		if (searchFilingsRequest.getStatus() != null) {
+			results = results.filter(f -> f.getStatus().equals(searchFilingsRequest.getStatus()));
+		}
+		return results.collect(ImmutableList.toImmutableList());
 	}
 
 	private Filing.Builder copyFiling(UUID filingId) {

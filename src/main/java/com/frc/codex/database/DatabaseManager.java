@@ -9,6 +9,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.SearchFilingsRequest;
 
 public interface DatabaseManager {
 	void applyFilingResult(FilingResultRequest filingResultRequest);
@@ -19,5 +20,6 @@ public interface DatabaseManager {
 	LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate);
 	Long getLatestStreamTimepoint(Long defaultTimepoint);
 	long getRegistryCount(RegistryCode registryCode);
+	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
 }

@@ -4,26 +4,24 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.thymeleaf.util.StringUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
 
-import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingStatus;
+import com.frc.codex.model.SearchFilingsRequest;
 
 @Controller
 public class HomeController {
 	private final DatabaseManager databaseManager;
-	private final FilingIndexProperties properties;
 
 	public HomeController(
-			DatabaseManager databaseManager,
-			FilingIndexProperties properties
+			DatabaseManager databaseManager
 	) {
 		this.databaseManager = databaseManager;
-		this.properties = properties;
 	}
 
 	@GetMapping("/health")
@@ -32,21 +30,31 @@ public class HomeController {
 	}
 
 	@GetMapping("/")
-	public String indexPage(Model model) {
-		model.addAttribute("awsAccessKeyId", !StringUtils.isEmpty(properties.awsAccessKeyId()));
-		model.addAttribute("awsHost", properties.awsHost());
-		model.addAttribute("awsRegion", properties.awsRegion());
-		model.addAttribute("awsSecretAccessKey", !StringUtils.isEmpty(properties.awsSecretAccessKey()));
-		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
-		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
-		model.addAttribute("chRestApiKey", !StringUtils.isEmpty(properties.companiesHouseRestApiKey()));
-		model.addAttribute("chStreamApiKey", !StringUtils.isEmpty(properties.companiesHouseStreamApiKey()));
-		model.addAttribute("chStreamUrl", properties.companiesHouseStreamApiBaseUrl());
-		model.addAttribute("fcaDataApiBaseUrl", properties.fcaDataApiBaseUrl());
-		model.addAttribute("fcaSearchApiUrl", properties.fcaSearchApiUrl());
-		List<Filing> filings = databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
-		model.addAttribute("filings", filings);
-		return "index";
+	public ModelAndView indexPage() {
+		return indexPage(new SearchFilingsRequest());
+	}
+
+	@PostMapping("/")
+	public ModelAndView indexPage(@ModelAttribute SearchFilingsRequest searchFilingsRequest) {
+		searchFilingsRequest.setStatus(FilingStatus.COMPLETED.toString());
+		List<Filing> filings;
+		String message;
+		if (searchFilingsRequest.isEmpty()) {
+			filings = null;
+			message = "Please provide at least one search criterion.";
+		} else {
+			filings = databaseManager.searchFilings(searchFilingsRequest);
+			if (filings.isEmpty()) {
+				message = "No filings matched your search criteria.";
+			} else {
+				message = null;
+			}
+		}
+		ModelAndView model = new ModelAndView("index");
+		model.addObject("filings", filings);
+		model.addObject("message", message);
+		model.addObject("searchFilingsRequest", searchFilingsRequest);
+		return model;
 	}
 
 	@GetMapping("/error")

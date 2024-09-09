@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
@@ -30,6 +31,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.SearchFilingsRequest;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -298,6 +300,66 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	public void close() throws Exception {
 		try (AutoCloseable closeWriteDataSource = ((Closeable) writeDataSource)) {
 			((Closeable) readDataSource).close();
+		}
+	}
+
+	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
+		try (Connection connection = getInitializedConnection(true)) {
+			List<String> selects = new ArrayList<>();
+			List<String> queries = new ArrayList<>();
+			List<String> conditions = new ArrayList<>();
+			List<String> parameters = new ArrayList<>();
+			List<String> orderBys = new ArrayList<>() {
+				{
+					add("filing_id DESC");
+					add("filing_date DESC");
+				}
+			};
+			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyName())) {
+				selects.add("ts_rank(to_tsvector('english', company_name), query) as rank");
+				queries.add("to_tsquery(?) query");
+				String companyNameQuery = searchFilingsRequest.getCompanyName()
+						.replace(" ", " & ");
+				conditions.add("query @@ to_tsvector('english', company_name)");
+				parameters.add(companyNameQuery);
+				orderBys.add("rank DESC");
+			}
+			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyNumber())) {
+				conditions.add("company_number LIKE ?");
+				parameters.add("%" + searchFilingsRequest.getCompanyNumber() + "%");
+			}
+			if (!StringUtils.isEmpty(searchFilingsRequest.getStatus())) {
+				conditions.add("status = ?");
+				parameters.add(searchFilingsRequest.getStatus());
+			}
+			String sql = "SELECT * ";
+			if (selects.size() > 0) {
+				sql += ", ";
+				sql += String.join(", ", selects);
+			}
+			sql += " FROM filings ";
+			if (queries.size() > 0) {
+				sql += ", ";
+				sql += String.join(", ", queries);
+			}
+			if (parameters.size() > 0) {
+				sql += " WHERE ";
+				sql += String.join(" AND ", conditions);
+			}
+			if (orderBys.size() > 0) {
+				sql += " ORDER BY ";
+				sql += String.join(", ", orderBys.reversed());
+			}
+			sql += " LIMIT 10;";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			LOGGER.info("Executing filing search SQL with parameters ({}): {}", String.join(", ", parameters), sql);
+			for (int i = 0; i < parameters.size(); i++) {
+				statement.setObject(i + 1, parameters.get(i));
+			}
+			ResultSet resultSet = statement.executeQuery();
+			return getFilings(resultSet);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
