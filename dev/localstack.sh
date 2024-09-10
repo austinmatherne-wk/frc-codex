@@ -7,5 +7,7 @@ echo "Initializing localstack SQS: frc_codex_results"
 awslocal sqs create-queue --queue-name frc_codex_results --region "$SQS_REGION_NAME"
 
 # Create S3 Bucket
-echo "Initializing localstack S3: $S3_BUCKET_NAME"
-awslocal s3 mb "s3://$S3_BUCKET_NAME" --region "$S3_REGION_NAME"
+echo "Initializing localstack S3 bucket: $S3_HTTP_CACHE_BUCKET_NAME"
+awslocal s3 mb "s3://$S3_HTTP_CACHE_BUCKET_NAME" --region "$S3_REGION_NAME"
+echo "Initializing localstack S3 bucket: $S3_RESULTS_BUCKET_NAME"
+awslocal s3 mb "s3://$S3_RESULTS_BUCKET_NAME" --region "$S3_REGION_NAME"

@@ -42,7 +42,8 @@ services:
       SQS_QUEUE_NAME: 'frc_codex_processor_queue'
       SQS_REGION_NAME: 'eu-west-2'
       S3_ENDPOINT_URL: 'http://localstack.localhost:4566'
-      S3_BUCKET_NAME: 'frc-codex-results'
+      S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
+      S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
       S3_REGION_NAME: 'eu-west-2'
     secrets:
       - frc-codex-server.secrets
@@ -54,7 +55,8 @@ services:
       test: curl localstack:4566/health || exit 1
       timeout: 4s
     environment:
-      S3_BUCKET_NAME: frc-codex-results
+      S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
+      S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
       S3_REGION_NAME: "eu-west-2"
       SQS_REGION_NAME: "eu-west-2"
     ports:
