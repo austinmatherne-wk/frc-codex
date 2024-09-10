@@ -72,3 +72,7 @@ class ProcessorOptions:
     @cached_property
     def sqs_wait_time(self):
         return os.getenv('SQS_WAIT_TIME', 20)
+
+    @cached_property
+    def sync_interval_seconds(self):
+        return os.getenv('SYNC_INTERVAL_SECONDS', 0)

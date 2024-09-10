@@ -47,6 +47,8 @@ services:
       S3_REGION_NAME: 'eu-west-2'
     secrets:
       - frc-codex-server.secrets
+    volumes:
+      - ../tmp:/tmp
   localstack:
     image: localstack/localstack:3.4.0
     healthcheck:

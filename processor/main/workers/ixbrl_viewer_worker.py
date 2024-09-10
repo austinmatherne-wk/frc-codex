@@ -34,6 +34,9 @@ class IxbrlViewerResult:
 
 class IxbrlViewerWorker(Worker):
 
+    def __init__(self, cache_directory: Path):
+        self._cache_directory = cache_directory
+
     def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
         packages = list(DEFAULT_TAXONOMY_PACKAGES)
         for parent in target_path.parents:
@@ -69,9 +72,11 @@ class IxbrlViewerWorker(Worker):
 
     def _generate_viewer(self, target_path: Path, viewer_directory: Path, packages: list[str]) -> IxbrlViewerResult:
         runtime_options = RuntimeOptions(
-            cacheDirectory='./_HTTP_CACHE',
+            cacheDirectory=str(self._cache_directory),
             disablePersistentConfig=True,
             entrypointFile=str(target_path),
+            internetLogDownloads=True,
+            internetRecheck='never',
             keepOpen=True,
             logFormat="[%(messageCode)s] %(message)s - %(file)s",
             logFile='logToBuffer',
