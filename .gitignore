@@ -7,3 +7,7 @@ dev/logs
 frc-codex-server.secrets
 _HTTP_CACHE
 **/__pycache__
+node_modules
+package-lock.json
+src/main/resources/static/assets
+govuk-frontend.**
