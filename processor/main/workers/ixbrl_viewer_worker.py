@@ -11,6 +11,12 @@ from arelle.api.Session import Session  # type: ignore
 from processor.base.queue_manager import JobMessage
 from processor.base.worker import Worker, WorkerResult
 
+DEFAULT_TAXONOMY_PACKAGES = [
+    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip",
+    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2020.zip",
+    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2021.zip",
+    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2022.zip",
+]
 VIEWER_HTML_FILENAME = 'ixbrlviewer.html'
 
 
@@ -29,10 +35,10 @@ class IxbrlViewerResult:
 class IxbrlViewerWorker(Worker):
 
     def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
-        packages = []
+        packages = list(DEFAULT_TAXONOMY_PACKAGES)
         for parent in target_path.parents:
             if zipfile.is_zipfile(parent):
-                packages.append(parent)
+                packages.append(str(parent))
                 break
         result = self._generate_viewer(target_path, viewer_directory, packages)
         if not result.success:
@@ -61,15 +67,15 @@ class IxbrlViewerWorker(Worker):
             return next(iter(facts)).xValue
         return None
 
-    def _generate_viewer(self, target_path: Path, viewer_directory: Path, packages: list[Path]) -> IxbrlViewerResult:
+    def _generate_viewer(self, target_path: Path, viewer_directory: Path, packages: list[str]) -> IxbrlViewerResult:
         runtime_options = RuntimeOptions(
             cacheDirectory='./_HTTP_CACHE',
             disablePersistentConfig=True,
             entrypointFile=str(target_path),
-            # TODO: Enable this when we have taxonomy packages provided
-            # internetConnectivity='offline',
+            keepOpen=True,
             logFormat="[%(messageCode)s] %(message)s - %(file)s",
             logFile='logToBuffer',
+            packages=packages,
             pluginOptions={
                 'saveViewerDest': str(viewer_directory),
                 'useStubViewer': True,
@@ -78,7 +84,6 @@ class IxbrlViewerWorker(Worker):
             },
             plugins='ixbrl-viewer',
             strictOptions=False,
-            packages=[str(package) for package in packages],
         )
         with Session() as session:
             success = session.run(runtime_options)
