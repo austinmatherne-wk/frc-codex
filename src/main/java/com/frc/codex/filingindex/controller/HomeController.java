@@ -50,9 +50,4 @@ public class HomeController {
 		model.addObject("searchFilingsRequest", searchFilingsRequest);
 		return model;
 	}
-
-	@GetMapping("/error")
-	public String errorPage() {
-		return "error";
-	}
 }
