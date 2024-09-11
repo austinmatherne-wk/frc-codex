@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 import tempfile
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ from processor.processor import Processor
 from processor.processor_options import ProcessorOptions
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s] %(message)s')
 
 
 def _run_processor(processor_options: ProcessorOptions, cache_directory: Path, next_sync_ts: datetime) -> None:
@@ -38,19 +39,37 @@ def main():
         cache_manager = MainCacheManager(processor_options, cache_zip_path)
         cache_zip_downloaded = cache_manager.download()
 
-        temp_dir = tempfile.TemporaryDirectory()
-        cache_directory = Path(temp_dir.name)
+        processor_count = multiprocessing.cpu_count()
+        if processor_options.maximum_processors > 0:
+            processor_count = min(processor_count, processor_options.maximum_processors)
+
+        temp_directories = {}
+        for i in range(processor_count):
+            temp_directories[i] = tempfile.TemporaryDirectory()
+
+        temp_directory_paths = [Path(temp_dir.name) for temp_dir in temp_directories.values()]
         if cache_zip_downloaded:
-            cache_manager.extract([cache_directory])
+            cache_manager.extract(temp_directory_paths)
 
         try:
             while True:
                 next_sync_ts = datetime.now() + timedelta(seconds=processor_options.sync_interval_seconds)
-                logger.info("Running processor. Next sync at: %s", next_sync_ts)
-                _run_processor(processor_options, cache_directory, next_sync_ts)
-                # Processor stopped to allow for syncing
+                logger.info("Running processors. Next sync at: %s", next_sync_ts)
+                processes = []
+                for i, temp_dir in temp_directories.items():
+                    cache_directory = Path(temp_dir.name)
+                    process = multiprocessing.Process(
+                        target=_run_processor,
+                        args=(processor_options, cache_directory, next_sync_ts)
+                    )
+                    process.name = f'Processor-{i}'
+                    process.start()
+                    processes.append(process)
+                for process in processes:
+                    process.join()
+                # Processors stopped to allow for syncing
                 try:
-                    paths_added = cache_manager.sync([cache_directory])
+                    paths_added = cache_manager.sync(temp_directory_paths)
                     if paths_added:
                         cache_manager.upload()
                     else:
@@ -58,7 +77,8 @@ def main():
                 except Exception:
                     logger.exception('An unexpected error occurred while syncing the cache.')
         finally:
-            temp_dir.cleanup()
+            for temp_dir in temp_directories.values():
+                temp_dir.cleanup()
 
 
 if __name__ == '__main__':

@@ -33,13 +33,13 @@ class MainQueueManager(QueueManager):
                  of the message and metadata and custom attributes.
         """
         try:
-            logger.info("Waiting for messages...")
+            logger.debug("Waiting for messages...")
             messages = self._jobs_queue.receive_messages(
                 MessageAttributeNames=["All"],
                 MaxNumberOfMessages=self._max_number,
                 WaitTimeSeconds=self._wait_time,
             )
-            logger.info("Received %s message(s).", len(messages))
+            logger.debug("Received %s message(s).", len(messages))
             for message in messages:
                 attributes_names = [key for key in message.message_attributes] if message.message_attributes else []
                 logger.info(

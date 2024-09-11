@@ -30,6 +30,10 @@ class ProcessorOptions:
         return self._secrets['COMPANIES_HOUSE_REST_API_KEY']
 
     @cached_property
+    def maximum_processors(self):
+        return int(os.getenv('MAXIMUM_PROCESSORS', 0))
+
+    @cached_property
     def s3_http_cache_bucket_name(self):
         return os.getenv('S3_HTTP_CACHE_BUCKET_NAME')
 
