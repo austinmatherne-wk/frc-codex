@@ -67,6 +67,9 @@ class TestProcessor(TestCase):
         ])
         self.assertEqual(queue_manager.result_messages, [
             ResultMessage(
+                company_name=None,
+                company_number=None,
+                document_date=None,
                 error='',
                 filing_id='filing_id1',
                 logs='logs1',
@@ -74,6 +77,9 @@ class TestProcessor(TestCase):
                 viewer_entrypoint='viewer_entrypoint1',
             ),
             ResultMessage(
+                company_name=None,
+                company_number=None,
+                document_date=None,
                 error='error2',
                 filing_id='filing_id2',
                 logs='logs2',

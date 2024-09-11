@@ -1,12 +1,22 @@
 package com.frc.codex.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class NewFilingRequest {
+	private String companyName;
+	private String companyNumber;
 	private String registryCode;
 	private String downloadUrl;
-	private Date filingDate;
+	private LocalDateTime filingDate;
 	private Long streamTimepoint;
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public String getCompanyNumber() {
+		return companyNumber;
+	}
 
 	public String getRegistryCode() {
 		return registryCode;
@@ -16,12 +26,20 @@ public class NewFilingRequest {
 		return downloadUrl;
 	}
 
-	public Date getFilingDate() {
+	public LocalDateTime getFilingDate() {
 		return filingDate;
 	}
 
 	public Long getStreamTimepoint() {
 		return streamTimepoint;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+
+	public void setCompanyNumber(String companyNumber) {
+		this.companyNumber = companyNumber;
 	}
 
 	public void setRegistryCode(String registryCode) {
@@ -32,7 +50,7 @@ public class NewFilingRequest {
 		this.downloadUrl = downloadUrl;
 	}
 
-	public void setFilingDate(Date filingDate) {
+	public void setFilingDate(LocalDateTime filingDate) {
 		this.filingDate = filingDate;
 	}
 

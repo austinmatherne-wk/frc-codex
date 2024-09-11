@@ -1,21 +1,22 @@
 package com.frc.codex.model;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
 public class Filing {
 	private final UUID filingId;
-	private final Date discoveredDate;
+	private final Timestamp discoveredDate;
 	private final String status;
 	private final String registryCode;
 	private final String downloadUrl;
 	private final String companyName;
 	private final String companyNumber;
-	private final String lei;
 	private final String filename;
 	private final String filingType;
-	private final Date filingDate;
-	private final Date documentDate;
+	private final LocalDateTime filingDate;
+	private final LocalDateTime documentDate;
 	private final Long streamTimepoint;
 	private final String error;
 	private final String logs;
@@ -31,7 +32,6 @@ public class Filing {
 		this.downloadUrl = b.downloadUrl;
 		this.companyName = b.companyName;
 		this.companyNumber = b.companyNumber;
-		this.lei = b.lei;
 		this.filename = b.filename;
 		this.filingType = b.filingType;
 		this.filingDate = b.filingDate;
@@ -48,7 +48,7 @@ public class Filing {
 		return filingId;
 	}
 
-	public Date getDiscoveredDate() {
+	public Timestamp getDiscoveredDate() {
 		return discoveredDate;
 	}
 
@@ -72,10 +72,6 @@ public class Filing {
 		return companyNumber;
 	}
 
-	public String getLei() {
-		return lei;
-	}
-
 	public String getFilename() {
 		return filename;
 	}
@@ -84,11 +80,11 @@ public class Filing {
 		return filingType;
 	}
 
-	public Date getFilingDate() {
+	public LocalDateTime getFilingDate() {
 		return filingDate;
 	}
 
-	public Date getDocumentDate() {
+	public LocalDateTime getDocumentDate() {
 		return documentDate;
 	}
 
@@ -126,17 +122,16 @@ public class Filing {
 
 	public static class Builder {
 		private UUID filingId;
-		private Date discoveredDate;
+		private Timestamp discoveredDate;
 		private String status;
 		private String registryCode;
 		private String downloadUrl;
 		private String companyName;
 		private String companyNumber;
-		private String lei;
 		private String filename;
 		private String filingType;
-		private Date filingDate;
-		private Date documentDate;
+		private LocalDateTime filingDate;
+		private LocalDateTime documentDate;
 		private Long streamTimepoint;
 		private String error;
 		private String logs;
@@ -153,7 +148,7 @@ public class Filing {
 			return this;
 		}
 
-		public Builder discoveredDate(Date discoveredDate) {
+		public Builder discoveredDate(Timestamp discoveredDate) {
 			this.discoveredDate = discoveredDate;
 			return this;
 		}
@@ -183,11 +178,6 @@ public class Filing {
 			return this;
 		}
 
-		public Builder lei(String lei) {
-			this.lei = lei;
-			return this;
-		}
-
 		public Builder filename(String filename) {
 			this.filename = filename;
 			return this;
@@ -198,12 +188,12 @@ public class Filing {
 			return this;
 		}
 
-		public Builder filingDate(Date filingDate) {
+		public Builder filingDate(LocalDateTime filingDate) {
 			this.filingDate = filingDate;
 			return this;
 		}
 
-		public Builder documentDate(Date documentDate) {
+		public Builder documentDate(LocalDateTime documentDate) {
 			this.documentDate = documentDate;
 			return this;
 		}

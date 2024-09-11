@@ -69,6 +69,21 @@ class MainQueueManager(QueueManager):
                 'DataType': 'String'
             },
         }
+        if result_message.company_name:
+            message_attributes['CompanyName'] = {
+                'StringValue': result_message.company_name,
+                'DataType': 'String'
+            }
+        if result_message.company_number:
+            message_attributes['CompanyNumber'] = {
+                'StringValue': result_message.company_number,
+                'DataType': 'String'
+            }
+        if result_message.document_date:
+            message_attributes['DocumentDate'] = {
+                'StringValue': result_message.document_date.strftime('%Y-%m-%d'),
+                'DataType': 'String'
+            }
         if result_message.error:
             message_attributes['Error'] = {
                 'StringValue': result_message.error,

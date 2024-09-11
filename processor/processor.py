@@ -57,6 +57,9 @@ class Processor:
             job_message.message_id, job_message.filing_id
         )
         result_message = ResultMessage(
+            company_name=worker_result.company_name,
+            company_number=worker_result.company_number,
+            document_date=worker_result.document_date,
             error=worker_result.error,
             filing_id=job_message.filing_id,
             logs=worker_result.logs,

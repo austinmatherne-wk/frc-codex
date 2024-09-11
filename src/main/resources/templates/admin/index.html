@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FRC CODEx Filing Index</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="container">
+    <h1><a href="/">FRC CODEx Filing Index</a></h1>
+    <h2>Tests</h2>
+    <ul>
+        <li><a href="/nonexistent">Error Page</a></li>
+        <li><a href="/admin/smoketest/companieshouse/company/00324341">Companies House - Company</a></li>
+        <li><a href="/admin/smoketest/database">Database</a></li>
+        <li><a href="/admin/smoketest/fca">FCA</a></li>
+        <li><a href="/admin/smoketest/indexer">Indexer</a></li>
+        <li><a href="/admin/smoketest/queue">Queue</a></li>
+    </ul>
+    <h2>Configuration</h2>
+    <table>
+        <tr>
+            <th>AWS Access Key ID Configured</th>
+            <td th:text="${awsAccessKeyId}">N/A</td>
+        </tr>
+        <tr>
+            <th>AWS Host</th>
+            <td th:text="${awsHost}">N/A</td>
+        </tr>
+        <tr>
+            <th>AWS Region</th>
+            <td th:text="${awsRegion}">N/A</td>
+        </tr>
+        <tr>
+            <th>AWS Secret Access Key Configured</th>
+            <td th:text="${awsSecretAccessKey}">N/A</td>
+        </tr>
+        <tr>
+            <th>Companies House Document API URL</th>
+            <td th:text="${chDocumentUrl}">N/A</td>
+        </tr>
+        <tr>
+            <th>Companies House Information API URL</th>
+            <td th:text="${chInformationUrl}">N/A</td>
+        </tr>
+        <tr>
+            <th>Companies House Stream API URL</th>
+            <td th:text="${chStreamUrl}">N/A</td>
+        </tr>
+        <tr>
+            <th>Companies House REST API Key Configured</th>
+            <td th:text="${chRestApiKey}">N/A</td>
+        </tr>
+        <tr>
+            <th>Companies House Stream API Key Configured</th>
+            <td th:text="${chStreamApiKey}">N/A</td>
+        </tr>
+        <tr>
+            <th>FCA Data API Base URL</th>
+            <td th:text="${fcaDataApiBaseUrl}">N/A</td>
+        </tr>
+        <tr>
+            <th>FCA Search API URL</th>
+            <td th:text="${fcaSearchApiUrl}">N/A</td>
+        </tr>
+    </table>
+    <h2>Viewers</h2>
+    <table>
+        <tr>
+            <th>Filings (<span th:text="(${filings.size()})"></span>)</th>
+            <th>Registry</th>
+            <th></th>
+        </tr>
+        <th:block th:each="filing : ${filings}">
+            <tr>
+                <td th:text="${filing.getFilingId()}">...</td>
+                <td th:text="${filing.getRegistryCode()}">...</td>
+                <td><a th:href="${filing.getViewerLink()}">Viewer</a></td>
+            </tr>
+        </th:block>
+    </table>
+</div>
+</body>
+</html>

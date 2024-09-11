@@ -1,6 +1,6 @@
 package com.frc.codex.database;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +9,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.SearchFilingsRequest;
 
 public interface DatabaseManager {
 	void applyFilingResult(FilingResultRequest filingResultRequest);
@@ -16,8 +17,9 @@ public interface DatabaseManager {
 	boolean filingExists(NewFilingRequest newFilingRequest);
 	Filing getFiling(UUID filingId);
 	List<Filing> getFilingsByStatus(FilingStatus status);
-	Date getLatestFcaFilingDate(Date defaultDate);
+	LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate);
 	Long getLatestStreamTimepoint(Long defaultTimepoint);
 	long getRegistryCount(RegistryCode registryCode);
+	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
 }

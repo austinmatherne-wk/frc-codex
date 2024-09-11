@@ -1,12 +1,14 @@
 package com.frc.codex.discovery.fca;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public record FcaFiling(
-		String filename,
+		String companyName,
 		String downloadUrl,
+		String filename,
 		String infoUrl,
+		String lei,
 		String sequenceId,
-		Date submittedDate
+		LocalDateTime submittedDate
 ) {
 }

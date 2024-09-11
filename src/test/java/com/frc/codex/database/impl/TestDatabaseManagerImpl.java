@@ -1,10 +1,13 @@
 package com.frc.codex.database.impl;
 
-import java.util.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.SearchFilingsRequest;
 import com.google.common.collect.ImmutableList;
 
 @Component
@@ -39,7 +43,9 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 	public UUID createFiling(NewFilingRequest newFilingRequest) {
 		Filing filing = Filing.builder()
 				.filingId(UUID.randomUUID().toString())
-				.discoveredDate(new Date())
+				.companyName(newFilingRequest.getCompanyName())
+				.companyNumber(newFilingRequest.getCompanyNumber())
+				.discoveredDate(Timestamp.from(Instant.now()))
 				.status(FilingStatus.PENDING.toString())
 				.registryCode(newFilingRequest.getRegistryCode())
 				.downloadUrl(newFilingRequest.getDownloadUrl())
@@ -58,11 +64,11 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		return filings.get(filingId);
 	}
 
-	public Date getLatestFcaFilingDate(Date defaultDate) {
+	public LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate) {
 		return filings.values().stream()
 				.filter(f -> f.getRegistryCode().equals("FCA"))
 				.map(Filing::getFilingDate)
-				.max(Date::compareTo)
+				.max(LocalDateTime::compareTo)
 				.orElse(defaultDate);
 	}
 
@@ -85,10 +91,29 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.count();
 	}
 
+	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
+		Stream<Filing> results = filings.values().stream();
+		if (searchFilingsRequest.getCompanyName() != null) {
+			List<String> terms = List.of(searchFilingsRequest.getCompanyName().split(" "));
+			for(String term : terms) {
+				results = results.filter(f -> f.getCompanyName().contains(term));
+			}
+		}
+		if (searchFilingsRequest.getCompanyNumber() != null) {
+			results = results.filter(f -> f.getCompanyNumber().equals(searchFilingsRequest.getCompanyNumber()));
+		}
+		if (searchFilingsRequest.getStatus() != null) {
+			results = results.filter(f -> f.getStatus().equals(searchFilingsRequest.getStatus()));
+		}
+		return results.collect(ImmutableList.toImmutableList());
+	}
+
 	private Filing.Builder copyFiling(UUID filingId) {
 		Filing filing = getFiling(filingId);
 		return Filing.builder()
 				.filingId(filing.getFilingId().toString())
+				.companyName(filing.getCompanyName())
+				.companyNumber(filing.getCompanyNumber())
 				.discoveredDate(filing.getDiscoveredDate())
 				.status(filing.getStatus())
 				.registryCode(filing.getRegistryCode())

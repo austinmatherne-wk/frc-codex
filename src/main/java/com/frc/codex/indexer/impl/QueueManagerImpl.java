@@ -2,6 +2,10 @@ package com.frc.codex.indexer.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +36,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @Component
 public class QueueManagerImpl implements QueueManager {
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
+	private static final DateTimeFormatter MESSAGE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final FilingIndexProperties properties;
 	private final Region awsRegion;
 
@@ -129,6 +134,11 @@ public class QueueManagerImpl implements QueueManager {
 		return status.toString();
 	}
 
+	private String getMessageAttribute(Message message, String key) {
+		MessageAttributeValue attribute = message.messageAttributes().get(key);
+		return attribute == null ? null : attribute.stringValue();
+	}
+
 	/*
 	 * Retrieves messages from the results queue.
 	 */
@@ -146,17 +156,27 @@ public class QueueManagerImpl implements QueueManager {
 			List<Message> messages = sqsClient.receiveMessage(receiveMessageRequest).messages();
 			LOG.info("Received results messages: {}", messages.size());
 			for(Message message : messages) {
-				boolean success = Objects.equals(message.messageAttributes().get("Success").stringValue(), "true");
+				boolean success = Objects.equals(getMessageAttribute(message, "Success"), "true");
 				String error = null;
 				String viewerEntrypoint = null;
 				if (!success) {
-					error = message.messageAttributes().get("Error").stringValue();
+					error = getMessageAttribute(message, "Error");
 				} else {
-					viewerEntrypoint = message.messageAttributes().get("ViewerEntrypoint").stringValue();
+					viewerEntrypoint = getMessageAttribute(message, "ViewerEntrypoint");
 				}
-				UUID filingId = UUID.fromString(message.messageAttributes().get("FilingId").stringValue());
+				String companyName = getMessageAttribute(message, "CompanyName");
+				String companyNumber = getMessageAttribute(message, "CompanyNumber");
+				String documentDateStr = getMessageAttribute(message, "DocumentDate");
+				LocalDateTime documentDate = null;
+				if (documentDateStr != null) {
+					documentDate = LocalDate.parse(documentDateStr, MESSAGE_DATE_FORMAT).atStartOfDay();
+				}
+				UUID filingId = UUID.fromString(Objects.requireNonNull(getMessageAttribute(message, "FilingId")));
 				String logs = message.body();
 				FilingResultRequest filingResultRequest = FilingResultRequest.builder()
+						.companyName(companyName)
+						.companyNumber(companyNumber)
+						.documentDate(documentDate)
 						.error(error)
 						.filingId(filingId)
 						.logs(logs)
