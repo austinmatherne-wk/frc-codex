@@ -34,8 +34,8 @@ class HomeControllerTest {
 
 	@Test
 	void notFoundPage() {
-		assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/nonexistent",
-				String.class)).contains("An unexpected error occurred.");
+		assertThat(this.restTemplate.getForEntity("http://localhost:" + port + "/nonexistent",
+				String.class).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(404));
 	}
 
 }

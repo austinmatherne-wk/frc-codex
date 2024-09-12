@@ -22,7 +22,8 @@ dependencies {
 	implementation 'com.google.guava:guava:33.3.0-jre'
 	implementation 'com.zaxxer:HikariCP:5.1.0'
 	implementation 'org.flywaydb:flyway-core:10.17.3'
-	implementation 'org.postgresql:postgresql:42.3.3'
+	implementation 'org.flywaydb:flyway-database-postgresql:10.17.3'
+	implementation 'org.postgresql:postgresql:42.7.4'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:3.3.3'
 	implementation 'org.springframework.boot:spring-boot-starter-web:3.3.3'
 	implementation 'software.amazon.awssdk:sqs:2.27.14'
@@ -33,4 +34,33 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.register('npmInstall', Exec) {
+	description = 'Run npm install.'
+	commandLine 'npm', 'install'
+}
+
+tasks.register('copyNodeModules', Copy) {
+	dependsOn 'npmInstall'
+	description = 'Copy node_modules assets.'
+	into "src/main/resources/static"
+	into("/") {
+		from "node_modules/govuk-frontend/dist/govuk/govuk-frontend.min.css"
+		from "node_modules/govuk-frontend/dist/govuk/govuk-frontend.min.js"
+	}
+	into("assets") {
+		from "node_modules/govuk-frontend/dist/govuk/assets/manifest.json"
+	}
+	into("assets/fonts") {
+		from "node_modules/govuk-frontend/dist/govuk/assets/fonts"
+	}
+	into("assets/images") {
+		from "node_modules/govuk-frontend/dist/govuk/assets/images"
+	}
+
+}
+
+tasks.named('processResources') {
+	dependsOn 'copyNodeModules'
 }

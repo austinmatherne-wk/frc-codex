@@ -2,10 +2,12 @@ package com.frc.codex.model;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
 
 public class Filing {
+	private static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final UUID filingId;
 	private final Timestamp discoveredDate;
 	private final String status;
@@ -42,6 +44,10 @@ public class Filing {
 		this.stubViewerUrl = b.stubViewerUrl;
 		this.oimCsvUrl = b.oimCsvUrl;
 		this.oimJsonUrl = b.oimJsonUrl;
+	}
+
+	public String displayFilingDate() {
+		return DISPLAY_DATE_FORMAT.format(filingDate);
 	}
 
 	public UUID getFilingId() {

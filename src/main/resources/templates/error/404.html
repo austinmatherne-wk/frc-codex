@@ -46,67 +46,21 @@
     </div>
 </header>
 <div class="govuk-width-container">
-    <div class="govuk-phase-banner">
-        <p class="govuk-phase-banner__content">
-            <strong class="govuk-tag govuk-phase-banner__content__tag">
-                Alpha
-            </strong>
-            <span class="govuk-phase-banner__text">
-          This is a new service – your <a class="govuk-link" href="#">feedback</a> will help us to improve it.
-        </span>
-        </p>
-    </div>
-    <main class="govuk-main-wrapper" id="main-content">
-        <h1 class="govuk-heading-l">Search Filings</h1>
-        <form action="#" th:action="@{/}" th:object="${searchFilingsRequest}" method="get">
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="company-name">
-                    Company Name
-                </label>
-                <input class="govuk-input" id="company-name" type="text" th:field="*{companyName}">
+    <main class="govuk-main-wrapper govuk-main-wrapper--l" id="main-content" role="main">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">Page not found</h1>
+                <p class="govuk-body">
+                    If you typed the web address, check it is correct.
+                </p>
+                <p class="govuk-body">
+                    If you pasted the web address, check you copied the entire address.
+                </p>
+                <p class="govuk-body">
+                    If the web address is correct or you selected a link or button, <a href="#" class="govuk-link">contact us</a> if you need assistance.
+                </p>
             </div>
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="company-number">
-                    Company Number
-                </label>
-                <div id="company-number-hint" class="govuk-hint">
-                    CRN (Company Registration Number) or LEI (Legal Entity Identifier)
-                </div>
-                <input class="govuk-input" id="company-number" type="text" th:field="*{companyNumber}">
-            </div>
-            <div class="govuk-button-group">
-                <button type="reset" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                    Reset form
-                </button>
-                <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
-                    Search
-                </button>
-            </div>
-        </form>
-        <p th:if="${message != null}" class="govuk-body">
-            <i th:text="${message}"></i>
-        </p>
-        <table th:if="${filings != null && filings.size() > 0}" class="govuk-table govuk-table--small-text-until-tablet">
-            <caption class="govuk-table__caption govuk-table__caption--m">Results</caption>
-            <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-                <th scope="col" class="govuk-table__header">Company Name</th>
-                <th scope="col" class="govuk-table__header">Company Number</th>
-                <th scope="col" class="govuk-table__header">Date Filed</th>
-                <th scope="col" class="govuk-table__header"></th>
-            </tr>
-            </thead>
-            <tbody class="govuk-table__body">
-            <th:block th:each="filing : ${filings}">
-                <tr class="govuk-table__row" th:title="${filing.getFilingId()}">
-                    <td class="govuk-table__cell" th:text="${filing.getCompanyName()}">...</td>
-                    <td class="govuk-table__cell" th:text="${filing.getCompanyNumber()}">...</td>
-                    <td class="govuk-table__cell" th:text="${filing.displayFilingDate()}">...</td>
-                    <td class="govuk-table__cell"><a th:href="${filing.getViewerLink()}">View</a></td>
-                </tr>
-            </th:block>
-            </tbody>
-        </table>
+        </div>
     </main>
 </div>
 <footer class="govuk-footer">
