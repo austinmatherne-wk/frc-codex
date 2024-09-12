@@ -308,7 +308,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			List<String> selects = new ArrayList<>();
 			List<String> queries = new ArrayList<>();
 			List<String> conditions = new ArrayList<>();
-			List<String> parameters = new ArrayList<>();
+			List<Object> parameters = new ArrayList<>();
 			List<String> orderBys = new ArrayList<>() {
 				{
 					add("filing_date DESC");
@@ -346,10 +346,10 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			}
 			sqlBuilder.append(" ORDER BY ");
 			sqlBuilder.append(String.join(", ", orderBys));
-			sqlBuilder.append(" LIMIT 10;");
+			sqlBuilder.append(" LIMIT ?;");
+			parameters.add(Math.max(1, searchFilingsRequest.getLimit()));
 			String sql = sqlBuilder.toString();
 			PreparedStatement statement = connection.prepareStatement(sql);
-			LOGGER.info("Executing filing search SQL with parameters ({}): {}", String.join(", ", parameters), sql);
 			for (int i = 0; i < parameters.size(); i++) {
 				statement.setObject(i + 1, parameters.get(i));
 			}

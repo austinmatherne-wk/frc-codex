@@ -69,4 +69,12 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 	public boolean isDbMigrateAsync() {
 		return false;
 	}
+
+	public long maximumSearchResults() {
+		return 100;
+	}
+
+	public long searchPageSize() {
+		return 10;
+	}
 }

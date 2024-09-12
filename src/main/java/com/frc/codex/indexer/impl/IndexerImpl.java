@@ -1,7 +1,6 @@
 package com.frc.codex.indexer.impl;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,8 +34,8 @@ import com.frc.codex.model.NewFilingRequest;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
-	private static final DateTimeFormatter CHA_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final int CHA_LIMIT = 5;
+	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final int CH_LIMIT = 5;
 	private static final int FCA_LIMIT = 5;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
@@ -118,7 +117,7 @@ public class IndexerImpl implements Indexer {
 		if (dateNode != null) {
 			String dateStr = dateNode.asText();
 			try {
-				filingDate = LocalDate.parse(dateStr, CHA_JSON_DATE_FORMAT).atStartOfDay();
+				filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to parse date: " + dateStr, e);
 			}
@@ -155,7 +154,7 @@ public class IndexerImpl implements Indexer {
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouse() throws IOException {
 		LOG.info("Starting Companies House indexing at " + System.currentTimeMillis() / 1000);
-		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CHA_LIMIT)) {
+		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
 			return;
 		}
 		Function<String, Boolean> callback = (String filing) -> {
@@ -170,7 +169,7 @@ public class IndexerImpl implements Indexer {
 				LOG.error("Failed to process filing event.", e);
 				return false; // Stop streaming
 			}
-			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CHA_LIMIT)) {
+			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
 				LOG.info("Reached Companies House filing limit.");
 				return false;
 			}

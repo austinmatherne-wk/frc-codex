@@ -17,7 +17,6 @@ services:
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
-      DB_MAX_LIFETIME: "300"
       DB_PASSWORD: "frc_codex"
       DB_URL: "jdbc:postgresql://postgres.localhost:5432/frc_codex"
       DB_USERNAME: "frc_codex"
