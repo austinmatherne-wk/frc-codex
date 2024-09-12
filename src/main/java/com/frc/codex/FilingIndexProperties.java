@@ -16,5 +16,7 @@ public interface FilingIndexProperties {
 	String fcaSearchApiUrl();
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isDbMigrateAsync();
+	long maximumSearchResults();
+	long searchPageSize();
 }
 

@@ -31,7 +31,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
-	private static final String SQS_RESULTS_QUEUE_URL = "SQS_RESULTS_QUEUE_URL";
+	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
+	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private final String awsAccessKeyId;
 	private final String awsSecretAccessKey;
@@ -48,48 +49,65 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String fcaSearchApiUrl;
 	private final String awsHost;
 	private final String awsRegion;
+	private final long maximumSearchResults;
+	private final long searchPageSize;
 
 
 	public FilingIndexPropertiesImpl() {
-		awsHost = requireNonNull(System.getenv(AWS_HOST));
-		awsRegion = requireNonNull(System.getenv(AWS_REGION));
+		awsHost = requireNonNull(getEnv(AWS_HOST));
+		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
-		companiesHouseDocumentApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
-		companiesHouseInformationApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
-		companiesHouseStreamApiBaseUrl = requireNonNull(System.getenv(COMPANIES_HOUSE_STREAM_API_BASE_URL));
+		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
+		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
+		companiesHouseStreamApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_STREAM_API_BASE_URL));
 
-		dbUrl = requireNonNull(System.getenv(DB_URL));
-		dbUsername = requireNonNull(System.getenv(DB_USERNAME));
-		dbPassword = requireNonNull(System.getenv(DB_PASSWORD));
-		dbMaxLifetime = Long.parseLong(requireNonNull(System.getenv(DB_MAX_LIFETIME)));
+		dbUrl = requireNonNull(getEnv(DB_URL));
+		dbUsername = requireNonNull(getEnv(DB_USERNAME));
+		dbPassword = requireNonNull(getEnv(DB_PASSWORD));
+		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300")));
 
-		fcaDataApiBaseUrl = requireNonNull(System.getenv(FCA_DATA_API_BASE_URL));
-		fcaSearchApiUrl = requireNonNull(System.getenv(FCA_SEARCH_API_URL));
+		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
+		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
+
+		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
+		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
 
 		Properties secrets = getSecrets();
 		if (secrets.containsKey(AWS_ACCESS_KEY_ID)) {
 			awsAccessKeyId = requireNonNull(secrets.getProperty(AWS_ACCESS_KEY_ID));
 		} else {
-			awsAccessKeyId = requireNonNull(System.getenv(AWS_ACCESS_KEY_ID));
+			awsAccessKeyId = requireNonNull(getEnv(AWS_ACCESS_KEY_ID));
 		}
 		if (secrets.containsKey(AWS_SECRET_ACCESS_KEY)) {
 			awsSecretAccessKey = requireNonNull(secrets.getProperty(AWS_SECRET_ACCESS_KEY));
 		} else {
-			awsSecretAccessKey = requireNonNull(System.getenv(AWS_SECRET_ACCESS_KEY));
+			awsSecretAccessKey = requireNonNull(getEnv(AWS_SECRET_ACCESS_KEY));
 		}
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
 			companiesHouseRestApiKey = requireNonNull(secrets.getProperty(COMPANIES_HOUSE_REST_API_KEY));
 		} else {
-			companiesHouseRestApiKey = requireNonNull(System.getenv(COMPANIES_HOUSE_REST_API_KEY));
+			companiesHouseRestApiKey = requireNonNull(getEnv(COMPANIES_HOUSE_REST_API_KEY));
 		}
 		if (secrets.containsKey(COMPANIES_HOUSE_STREAM_API_KEY)) {
 			companiesHouseStreamApiKey = requireNonNull(secrets.getProperty(COMPANIES_HOUSE_STREAM_API_KEY));
 		} else {
-			companiesHouseStreamApiKey = requireNonNull(System.getenv(COMPANIES_HOUSE_STREAM_API_KEY));
+			companiesHouseStreamApiKey = requireNonNull(getEnv(COMPANIES_HOUSE_STREAM_API_KEY));
 		}
 	}
 
-	private static Properties getSecrets() {
+	private String getEnv(String name) {
+		return System.getenv(name);
+	}
+
+	private String getEnv(String name, String defaultValue) {
+		String value = getEnv(name);
+		if (value == null) {
+			return defaultValue;
+		}
+		return value;
+	}
+
+	private Properties getSecrets() {
 		try {
 			Properties properties = new Properties();
 			File file = new File(SECRETS_FILEPATH);
@@ -164,5 +182,13 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public boolean isDbMigrateAsync() {
 		return false;
+	}
+
+	public long maximumSearchResults() {
+		return maximumSearchResults;
+	}
+
+	public long searchPageSize() {
+		return searchPageSize;
 	}
 }
