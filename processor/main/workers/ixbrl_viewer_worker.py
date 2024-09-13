@@ -39,8 +39,12 @@ class IxbrlViewerWorker(Worker):
 
     def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
         packages = list(DEFAULT_TAXONOMY_PACKAGES)
+        report_path = None
         for parent in target_path.parents:
-            if zipfile.is_zipfile(parent):
+            if parent.name == 'report':
+                report_path = parent
+                continue
+            if report_path and zipfile.is_zipfile(parent):
                 packages.append(str(parent))
                 break
         result = self._generate_viewer(target_path, viewer_directory, packages)
