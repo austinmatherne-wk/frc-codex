@@ -5,7 +5,7 @@ from pathlib import Path
 class CacheManager:
 
     @abstractmethod
-    def download(self) -> bool:
+    def download(self, backup_path: Path | None = None) -> bool:
         pass
 
     @abstractmethod

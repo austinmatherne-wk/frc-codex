@@ -13,6 +13,9 @@ from processor.main.main_worker_factory import MainWorkerFactory
 from processor.processor import Processor
 from processor.processor_options import ProcessorOptions
 
+
+BACKUP_CACHE_ZIP_PATH = Path('/tmp/_HTTP_CACHE.zip')
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s] %(message)s')
 
@@ -60,7 +63,7 @@ def main():
     with tempfile.TemporaryDirectory() as global_dir:
         cache_zip_path = Path(global_dir) / '_HTTP_CACHE.zip'
         cache_manager = MainCacheManager(processor_options, cache_zip_path)
-        cache_zip_downloaded = cache_manager.download()
+        cache_zip_downloaded = cache_manager.download(backup_path=BACKUP_CACHE_ZIP_PATH)
 
         processor_count = _get_processor_count(processor_options)
 

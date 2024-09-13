@@ -11,7 +11,6 @@ from processor.base.cache_manager import CacheManager
 from processor.processor_options import ProcessorOptions
 
 
-BACKUP_CACHE_ZIP_PATH = Path('/tmp/_HTTP_CACHE.zip')
 CACHE_IGNORE_SUFFIXES = {'.lock', '.zip', '.tmp', '.DS_Store'}
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class MainCacheManager(CacheManager):
         )
         return head['LastModified']
 
-    def download(self) -> bool:
+    def download(self, backup_path: Path | None = None) -> bool:
         """
         Download the HTTP cache from S3. If the cache is not found on S3, a backup cache is used, if it exists.
         :return: Whether a cache was downloaded (or copied from backup)
@@ -72,10 +71,10 @@ class MainCacheManager(CacheManager):
             if e.response['Error']['Code'] != '404':
                 return False
             logger.info("HTTP cache not found on S3")
-            if not BACKUP_CACHE_ZIP_PATH.exists():
+            if not backup_path or not backup_path.exists():
                 return False
-            logger.info("Copying backup cache from %s", BACKUP_CACHE_ZIP_PATH)
-            shutil.copyfile(BACKUP_CACHE_ZIP_PATH, self._cache_zip_path)
+            logger.info("Copying backup cache from %s", backup_path)
+            shutil.copyfile(backup_path, self._cache_zip_path)
         with zipfile.ZipFile(self._cache_zip_path, 'r') as zip_file:
             logger.debug("Initial HTTP cache: \n%s", '\n'.join(zip_file.namelist()))
         return True
