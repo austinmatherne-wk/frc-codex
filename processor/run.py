@@ -60,7 +60,7 @@ def main():
     secrets_filepath = os.getenv('SECRETS_FILEPATH')
     processor_options = ProcessorOptions(secrets_filepath)
 
-    with tempfile.TemporaryDirectory() as global_dir:
+    with tempfile.TemporaryDirectory(prefix='shared-cache_') as global_dir:
         cache_zip_path = Path(global_dir) / '_HTTP_CACHE.zip'
         cache_manager = MainCacheManager(processor_options, cache_zip_path)
         cache_zip_downloaded = cache_manager.download(backup_path=BACKUP_CACHE_ZIP_PATH)
@@ -69,7 +69,7 @@ def main():
 
         temp_directories = {}
         for i in range(processor_count):
-            temp_directories[i] = tempfile.TemporaryDirectory()
+            temp_directories[i] = tempfile.TemporaryDirectory(prefix=f'processor-cache-{i}_')
 
         temp_directory_paths = [Path(temp_dir.name) for temp_dir in temp_directories.values()]
         if cache_zip_downloaded:

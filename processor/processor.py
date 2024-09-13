@@ -80,7 +80,7 @@ class Processor:
 
     def _process_filing(self, job_message: JobMessage) -> WorkerResult:
         try:
-            with tempfile.TemporaryDirectory() as temp_dir:
+            with tempfile.TemporaryDirectory(prefix='ixbrl-viewer_') as temp_dir:
                 temp_dir_path = Path(temp_dir)
                 # Download filing
                 target_path, namelist = self._download_filing(job_message, temp_dir_path)
