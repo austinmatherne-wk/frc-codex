@@ -17,6 +17,29 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s] %(message)s')
 
 
+def _get_processor_count(processor_options: ProcessorOptions) -> int:
+    cpu_count = multiprocessing.cpu_count()
+    maximum_processors = max(0, processor_options.maximum_processors)
+    if maximum_processors == 0:
+        logger.info(
+            "Processor count set to CPU count of %s.",
+            cpu_count
+        )
+        return cpu_count
+    if maximum_processors <= cpu_count:
+        logger.info(
+            "Processor count limited to %s by maximum_processors option.",
+            maximum_processors
+        )
+        return maximum_processors
+    logger.warning(
+        "Value of %s for maximum_processors option exceeded CPU count of %s. "
+        "Using CPU count instead.",
+        maximum_processors, cpu_count
+    )
+    return cpu_count
+
+
 def _run_processor(processor_options: ProcessorOptions, cache_directory: Path, next_sync_ts: datetime) -> None:
     processor = Processor(
         download_manager=MainDownloadManager(processor_options),
@@ -39,9 +62,7 @@ def main():
         cache_manager = MainCacheManager(processor_options, cache_zip_path)
         cache_zip_downloaded = cache_manager.download()
 
-        processor_count = multiprocessing.cpu_count()
-        if processor_options.maximum_processors > 0:
-            processor_count = min(processor_count, processor_options.maximum_processors)
+        processor_count = _get_processor_count(processor_options)
 
         temp_directories = {}
         for i in range(processor_count):
