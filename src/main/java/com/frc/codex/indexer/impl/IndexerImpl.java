@@ -1,14 +1,21 @@
 package com.frc.codex.indexer.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
@@ -34,16 +42,19 @@ import com.frc.codex.model.NewFilingRequest;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
+	private static final DateTimeFormatter CHA_FILENAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final int CH_LIMIT = 5;
+	private static final int CHA_LIMIT = 5;
 	private static final int FCA_LIMIT = 5;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
+	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
 	private final QueueManager queueManager;
 
-
+	private final Pattern companiesHouseFilenamePattern;
 	private int companiesHouseSessionFilingCount;
 	private Date companiesHouseStreamLastOpenedDate;
 	private Long companiesHouseSessionLatestTimepoint;
@@ -53,14 +64,19 @@ public class IndexerImpl implements Indexer {
 
 	public IndexerImpl(
 			CompaniesHouseClient companiesHouseClient,
+			CompaniesHouseHistoryClient companiesHouseHistoryClient,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			QueueManager queueManager
 	) {
 		this.companiesHouseClient = companiesHouseClient;
+		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.queueManager = queueManager;
+		this.companiesHouseFilenamePattern = Pattern.compile(
+				"Prod\\d+_\\d+_([a-zA-Z0-9]+)_(\\d{8})\\.html"
+		);
 	}
 
 	/*
@@ -183,6 +199,77 @@ public class IndexerImpl implements Indexer {
 		this.companiesHouseStreamLastOpenedDate = new Date();
 		this.companiesHouseClient.streamFilings(startTimepoint, callback);
 		LOG.info("Completed Companies House indexing at " + System.currentTimeMillis() / 1000);
+	}
+
+	private void processCompaniesHouseArchive(URI uri) {
+		boolean completed = true;
+		LOG.info("Downloading archive: {}", uri);
+		String name = new File(uri.getPath()).getName();
+		File tempFile;
+		try {
+			tempFile = File.createTempFile(name, ".zip");
+			tempFile.deleteOnExit();
+			this.companiesHouseHistoryClient.downloadArchive(uri, tempFile.toPath());
+		} catch (IOException e) {
+			LOG.error("Failed to download archive: {}", uri, e);
+			return;
+		}
+		LOG.info("Downloaded archive: {}", tempFile.toPath());
+
+		List<String> arcnames;
+		try (ZipFile zipFile = new ZipFile(tempFile)) {
+			arcnames = zipFile.stream()
+					.map(ZipEntry::getName)
+					.sorted()
+					.toList();
+		} catch (Exception e) {
+			LOG.error("Failed to get arcnames for archive: {}", uri, e);
+			return;
+		}
+		LOG.info("Found arcnames: {}", arcnames.size());
+
+		// Example: Prod223_3785_13056435_20240331.html
+		for (String arcname : arcnames) {
+			Matcher matcher = companiesHouseFilenamePattern.matcher(arcname);
+			if (!matcher.matches()) {
+				LOG.error("Found invalid archive entry in {}: {}", uri, arcname);
+				completed = false;
+				continue;
+			}
+			String companyNumber = matcher.group(1);
+			String dateStr = matcher.group(2);
+			LocalDateTime filingDate = LocalDate.parse(dateStr, CHA_FILENAME_DATE_FORMAT).atStartOfDay();
+			String downloadUrl = uri + "?filename=" + arcname;
+			NewFilingRequest newFilingRequest = new NewFilingRequest();
+			newFilingRequest.setCompanyNumber(companyNumber);
+			newFilingRequest.setDownloadUrl(downloadUrl);
+			newFilingRequest.setFilingDate(filingDate);
+			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE_ARCHIVE.toString());
+			if (databaseManager.filingExists(newFilingRequest)) {
+				LOG.info("Skipping existing CHA filing: {}", downloadUrl);
+				continue;
+			}
+			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+				return;
+			}
+			UUID filingId = this.databaseManager.createFiling(newFilingRequest);
+			LOG.info("Created CHA filing for {}: {}", downloadUrl, filingId);
+		}
+		// TODO: If completed, store record of download to prevent reprocessing
+	}
+
+	@Scheduled(fixedDelay = 30 * 60 * 1000)
+	public void indexCompaniesHouseHistory() {
+		List<URI> downloadLinks = new ArrayList<>();
+		downloadLinks.addAll(this.companiesHouseHistoryClient.getDailyDownloadLinks());
+		downloadLinks.addAll(this.companiesHouseHistoryClient.getMonthlyDownloadLinks());
+		downloadLinks.addAll(this.companiesHouseHistoryClient.getArchiveDownloadLinks());
+		for (URI uri : downloadLinks) {
+			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+				return;
+			}
+			processCompaniesHouseArchive(uri);
+		}
 	}
 
 	/*

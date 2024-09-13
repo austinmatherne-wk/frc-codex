@@ -2,7 +2,12 @@ package com.frc.codex.discovery.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -46,6 +51,21 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 	}
 
 	@Override
+	public void downloadArchive(URI uri, Path outputFilePath) throws IOException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(List.of(MediaType.APPLICATION_OCTET_STREAM));
+		HttpEntity<String> entity = new HttpEntity<>(null, headers);
+		ResponseEntity<byte[]> response = restTemplate.exchange(
+				uri,
+				HttpMethod.GET,
+				entity,
+				byte[].class
+		);
+		byte[] body = requireNonNull(response.getBody());
+		Files.write(outputFilePath, body);
+	}
+
+	@Override
 	public List<URI> getArchiveDownloadLinks() {
 		return scrapeMatchingHrefs(DOWNLOAD_ARCHIVE_PAGE_URL, archiveHrefPattern);
 	}
@@ -78,14 +98,6 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 				entity,
 				String.class
 		);
-		if (response.getStatusCode() != HttpStatus.OK) {
-			LOG.error("Failed to fetch page (Status: {}): {}", response.getStatusCode(), uri);
-			return List.of();
-		}
-		if (!response.hasBody()) {
-			LOG.error("Failed to fetch page (No body): {}", uri);
-			return List.of();
-		}
 		String body = requireNonNull(response.getBody());
 		Matcher matcher = hrefPattern.matcher(body);
 		List<String> matches = new ArrayList<>();
