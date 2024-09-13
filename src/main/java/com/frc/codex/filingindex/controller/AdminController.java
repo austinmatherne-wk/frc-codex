@@ -1,5 +1,6 @@
 package com.frc.codex.filingindex.controller;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
@@ -33,6 +35,7 @@ import com.frc.codex.model.NewFilingRequest;
 @Controller
 public class AdminController {
 	private final CompaniesHouseClient companiesHouseClient;
+	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
 	private final Indexer indexer;
@@ -41,6 +44,7 @@ public class AdminController {
 
 	public AdminController(
 			CompaniesHouseClient companiesHouseClient,
+			CompaniesHouseHistoryClient companiesHouseHistoryClient,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			Indexer indexer,
@@ -48,6 +52,7 @@ public class AdminController {
 			QueueManager queueManager
 	) {
 		this.companiesHouseClient = companiesHouseClient;
+		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.indexer = indexer;
@@ -87,6 +92,19 @@ public class AdminController {
 		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber);
 		model.addAttribute("filingUrls", String.join("\n", filingUrls));
 		return "admin/smoketest/companieshouse/company";
+	}
+
+	@GetMapping("/admin/smoketest/companieshouse/history")
+	public String smokeTestHistoryPage(
+			Model model
+	) {
+		List<URI> dailyLinks = this.companiesHouseHistoryClient.getDailyDownloadLinks();
+		List<URI> monthlyLinks = this.companiesHouseHistoryClient.getMonthlyDownloadLinks();
+		List<URI> archiveLinks = this.companiesHouseHistoryClient.getArchiveDownloadLinks();
+		model.addAttribute("dailyLinks", dailyLinks);
+		model.addAttribute("monthlyLinks", monthlyLinks);
+		model.addAttribute("archiveLinks", archiveLinks);
+		return "admin/smoketest/companieshouse/history";
 	}
 
 	/**

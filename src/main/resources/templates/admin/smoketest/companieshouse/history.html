@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FRC CODEx Filing Index</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="container">
+    <h1><a href="/">FRC CODEx Filing Index</a></h1>
+    <h2>Companies House Bulk Downloads</h2>
+    <h3>Daily</h3>
+    <ul>
+        <th:block th:each="link : ${dailyLinks}">
+            <li>
+                <a th:href="${link}" th:text="${link}"></a>
+            </li>
+        </th:block>
+    </ul>
+    <h3>Monthly</h3>
+    <ul>
+        <th:block th:each="link : ${monthlyLinks}">
+            <li>
+                <a th:href="${link}" th:text="${link}"></a>
+            </li>
+        </th:block>
+    </ul>
+    <h3>Archive</h3>
+    <ul>
+        <th:block th:each="link : ${archiveLinks}">
+            <li>
+                <a th:href="${link}" th:text="${link}"></a>
+            </li>
+        </th:block>
+    </ul>
+</div>
+</body>
+</html>
