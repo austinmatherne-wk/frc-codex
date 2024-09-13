@@ -47,6 +47,7 @@ jobs:
           sleep 60
           curl -i --fail http://localhost:8080/
           curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
+          curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/history
           curl -i --fail http://localhost:8080/admin/smoketest/fca
           curl -i --fail http://localhost:8080/admin/smoketest/indexer
           curl -i --fail http://localhost:8080/admin/smoketest/queue
