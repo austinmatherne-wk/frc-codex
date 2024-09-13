@@ -1,3 +1,4 @@
+import datetime
 import logging
 import shutil
 import zipfile
@@ -19,30 +20,54 @@ logger = logging.getLogger(__name__)
 class MainCacheManager(CacheManager):
 
     def __init__(self, processor_options: ProcessorOptions, cache_zip_path: Path):
-        self._processor_options = processor_options
         self._cache_zip_path = cache_zip_path
         self._s3_client = boto3.client(
             's3',
-            endpoint_url=self._processor_options.s3_endpoint_url,
-            region_name=self._processor_options.s3_region_name,
-            aws_access_key_id=self._processor_options.aws_access_key_id,
-            aws_secret_access_key=self._processor_options.aws_secret_access_key,
+            endpoint_url=processor_options.s3_endpoint_url,
+            region_name=processor_options.s3_region_name,
+            aws_access_key_id=processor_options.aws_access_key_id,
+            aws_secret_access_key=processor_options.aws_secret_access_key,
         )
+        self._bucket_name = processor_options.s3_http_cache_bucket_name
+        self._cache_last_modified = None
+
+    def _get_modified_timestamp(self) -> datetime.datetime:
+        head = self._s3_client.head_object(
+            Bucket=self._bucket_name, Key=self._cache_zip_path.name
+        )
+        return head['LastModified']
 
     def download(self) -> bool:
         """
         Download the HTTP cache from S3. If the cache is not found on S3, a backup cache is used, if it exists.
         :return: Whether a cache was downloaded (or copied from backup)
         """
-        bucket_name = self._processor_options.s3_http_cache_bucket_name
         s3_path = self._cache_zip_path.name
-        logger.info("Downloading HTTP cache: (%s) from %s: %s", self._cache_zip_path, bucket_name, s3_path)
         try:
+            # Check if cache download is required based on modified timestamp.
+            cache_last_modified = self._get_modified_timestamp()
+            if not self._cache_last_modified:
+                logger.info("Initial cache download required.")
+            else:
+                if cache_last_modified <= self._cache_last_modified:
+                    logger.info("HTTP cache is up to date.")
+                    return False
+                else:
+                    logger.info(
+                        "HTTP cache modified at %s since %s.",
+                        cache_last_modified, self._cache_last_modified
+                    )
+
+            logger.info(
+                "Downloading HTTP cache last modified at %s: (%s) from %s: %s",
+                cache_last_modified, self._cache_zip_path, self._bucket_name, s3_path
+            )
             self._s3_client.download_file(
-                bucket_name,
+                self._bucket_name,
                 s3_path,
                 self._cache_zip_path
             )
+            self._cache_last_modified = cache_last_modified
         except ClientError as e:
             if e.response['Error']['Code'] != '404':
                 return False
@@ -97,13 +122,12 @@ class MainCacheManager(CacheManager):
         Upload the updated cache zip to S3.
         :return:
         """
-        bucket_name = self._processor_options.s3_http_cache_bucket_name
         s3_path = self._cache_zip_path.name
         with zipfile.ZipFile(self._cache_zip_path, 'r') as zip_file:
             new_namelist = zip_file.namelist()
         logger.debug("Files in updated cache: %s", '\n'.join(new_namelist))
         logger.info(
             "Added files to cache. Uploading HTTP cache: (%s) to %s: %s",
-            self._cache_zip_path, bucket_name, s3_path
+            self._cache_zip_path, self._bucket_name, s3_path
         )
-        self._s3_client.upload_file(str(self._cache_zip_path), bucket_name, s3_path)
+        self._s3_client.upload_file(str(self._cache_zip_path), self._bucket_name, s3_path)

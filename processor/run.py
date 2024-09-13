@@ -93,8 +93,8 @@ def main():
                     paths_added = cache_manager.sync(temp_directory_paths)
                     if paths_added:
                         cache_manager.upload()
-                    else:
-                        logger.info("No cache changes to sync.")
+                    elif cache_manager.download():
+                        cache_manager.extract(temp_directory_paths)
                 except Exception:
                     logger.exception('An unexpected error occurred while syncing the cache.')
         finally:
