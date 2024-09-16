@@ -30,8 +30,16 @@ class ProcessorOptions:
         return self._secrets['COMPANIES_HOUSE_REST_API_KEY']
 
     @cached_property
-    def s3_bucket_name(self):
-        return os.getenv('S3_BUCKET_NAME')
+    def maximum_processors(self):
+        return int(os.getenv('MAXIMUM_PROCESSORS', 0))
+
+    @cached_property
+    def s3_http_cache_bucket_name(self):
+        return os.getenv('S3_HTTP_CACHE_BUCKET_NAME')
+
+    @cached_property
+    def s3_results_bucket_name(self):
+        return os.getenv('S3_RESULTS_BUCKET_NAME')
 
     @cached_property
     def s3_endpoint_url(self):
@@ -68,3 +76,7 @@ class ProcessorOptions:
     @cached_property
     def sqs_wait_time(self):
         return os.getenv('SQS_WAIT_TIME', 20)
+
+    @cached_property
+    def sync_interval_seconds(self):
+        return os.getenv('SYNC_INTERVAL_SECONDS', 0)

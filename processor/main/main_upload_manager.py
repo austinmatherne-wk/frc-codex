@@ -21,7 +21,7 @@ class MainUploadManager(UploadManager):
         )
 
     def upload_files(self, filing_id: str, viewer_directory: Path) -> None:
-        bucket_name = self._processor_options.s3_bucket_name
+        bucket_name = self._processor_options.s3_results_bucket_name
         for viewer_file in viewer_directory.iterdir():
             if not viewer_file.is_file():
                 continue
