@@ -28,7 +28,7 @@ class MainCacheManager(CacheManager):
             aws_secret_access_key=processor_options.aws_secret_access_key,
         )
         self._bucket_name = processor_options.s3_http_cache_bucket_name
-        self._cache_last_modified = None
+        self._cache_last_modified: datetime.datetime | None = None
 
     def _get_modified_timestamp(self) -> datetime.datetime:
         head = self._s3_client.head_object(
