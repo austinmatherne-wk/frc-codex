@@ -6,7 +6,6 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +37,7 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
+import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 
 @Component
 @Profile("application")
@@ -169,10 +169,10 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouse() throws IOException {
-		LOG.info("Starting Companies House indexing at " + System.currentTimeMillis() / 1000);
 		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
 			return;
 		}
+		LOG.info("Starting Companies House indexing at " + System.currentTimeMillis() / 1000);
 		Function<String, Boolean> callback = (String filing) -> {
 			if (filing == null || filing.length() <= 1) {
 				// The stream emits blank "heartbeat" lines.
@@ -201,13 +201,20 @@ public class IndexerImpl implements Indexer {
 		LOG.info("Completed Companies House indexing at " + System.currentTimeMillis() / 1000);
 	}
 
-	private void processCompaniesHouseArchive(URI uri) {
+	private void processCompaniesHouseArchive(URI uri, String archiveType) {
+		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+			return;
+		}
+		String filename = new File(uri.getPath()).getName();
+		if (databaseManager.companiesHouseArchiveExists(filename)) {
+			LOG.debug("Skipping existing CHA archive: {}", uri);
+			return;
+		}
 		boolean completed = true;
 		LOG.info("Downloading archive: {}", uri);
-		String name = new File(uri.getPath()).getName();
 		File tempFile;
 		try {
-			tempFile = File.createTempFile(name, ".zip");
+			tempFile = File.createTempFile(filename, ".zip");
 			tempFile.deleteOnExit();
 			this.companiesHouseHistoryClient.downloadArchive(uri, tempFile.toPath());
 		} catch (IOException e) {
@@ -255,20 +262,33 @@ public class IndexerImpl implements Indexer {
 			UUID filingId = this.databaseManager.createFiling(newFilingRequest);
 			LOG.info("Created CHA filing for {}: {}", downloadUrl, filingId);
 		}
-		// TODO: If completed, store record of download to prevent reprocessing
+		if (completed) {
+			CompaniesHouseArchive archive = CompaniesHouseArchive.builder()
+					.filename(filename)
+					.uri(uri)
+					.archiveType(archiveType)
+					.build();
+			databaseManager.createCompaniesHouseArchive(archive);
+		}
 	}
 
 	@Scheduled(fixedDelay = 30 * 60 * 1000)
 	public void indexCompaniesHouseHistory() {
-		List<URI> downloadLinks = new ArrayList<>();
-		downloadLinks.addAll(this.companiesHouseHistoryClient.getDailyDownloadLinks());
-		downloadLinks.addAll(this.companiesHouseHistoryClient.getMonthlyDownloadLinks());
-		downloadLinks.addAll(this.companiesHouseHistoryClient.getArchiveDownloadLinks());
+		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+			return;
+		}
+		List<URI> downloadLinks;
+		downloadLinks = companiesHouseHistoryClient.getDailyDownloadLinks();
 		for (URI uri : downloadLinks) {
-			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
-				return;
-			}
-			processCompaniesHouseArchive(uri);
+			processCompaniesHouseArchive(uri, "daily");
+		}
+		downloadLinks = companiesHouseHistoryClient.getMonthlyDownloadLinks();
+		for (URI uri : downloadLinks) {
+			processCompaniesHouseArchive(uri, "monthly");
+		}
+		downloadLinks = companiesHouseHistoryClient.getArchiveDownloadLinks();
+		for (URI uri : downloadLinks) {
+			processCompaniesHouseArchive(uri, "archive");
 		}
 	}
 

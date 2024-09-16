@@ -92,7 +92,7 @@ class Processor:
                     return WorkerResult(
                         error=f'Target path could not be determined in filing from {namelist}.'
                     )
-                logger.info(f'Using target path: %s', target_path)
+                logger.info('Using target path: %s', target_path)
                 # Prepare directory for viewer files
                 viewer_directory = temp_dir_path / 'viewer'
                 viewer_directory.mkdir()

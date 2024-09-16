@@ -32,6 +32,7 @@ import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.frc.codex.model.SearchFilingsRequest;
+import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -80,6 +81,41 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				throw new SQLException("Updating filing result failed, no rows affected.");
 			}
 			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean companiesHouseArchiveExists(String filename) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT filename FROM ch_archives " +
+					"WHERE filename = ? " +
+					"LIMIT 1";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setObject(1, filename);
+			ResultSet resultSet = statement.executeQuery();
+			return resultSet.next();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public String createCompaniesHouseArchive(CompaniesHouseArchive archive) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "INSERT INTO ch_archives " +
+					"(filename, uri, archive_type) " +
+					"VALUES (?, ?, ?)";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			int i = 0;
+			statement.setString(++i, archive.getFilename());
+			statement.setString(++i, archive.getUri().toString());
+			statement.setString(++i, archive.getArchiveType());
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Creating filing failed, no rows affected.");
+			}
+			connection.commit();
+			return archive.getFilename();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

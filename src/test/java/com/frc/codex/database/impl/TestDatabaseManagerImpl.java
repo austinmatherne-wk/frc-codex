@@ -19,14 +19,17 @@ import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.frc.codex.model.SearchFilingsRequest;
+import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 import com.google.common.collect.ImmutableList;
 
 @Component
 @Profile("test")
 public class TestDatabaseManagerImpl implements DatabaseManager {
+	private final Map<String, CompaniesHouseArchive> companiesHouseArchives;
 	private final Map<UUID, Filing> filings;
 
 	public TestDatabaseManagerImpl() {
+		this.companiesHouseArchives = new HashMap<>();
 		this.filings = new HashMap<>();
 	}
 
@@ -38,6 +41,21 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);
+	}
+
+	public boolean companiesHouseArchiveExists(String filename) {
+		return companiesHouseArchives.containsKey(filename);
+	}
+
+	public String createCompaniesHouseArchive(CompaniesHouseArchive archive) {
+		CompaniesHouseArchive archiveCopy = CompaniesHouseArchive.builder()
+				.filename(archive.getFilename())
+				.uri(archive.getUri())
+				.archiveType(archive.getArchiveType())
+				.completedDate(Timestamp.from(Instant.now()))
+				.build();
+		companiesHouseArchives.put(archiveCopy.getFilename(), archiveCopy);
+		return archiveCopy.getFilename();
 	}
 
 	public UUID createFiling(NewFilingRequest newFilingRequest) {
