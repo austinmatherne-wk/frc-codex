@@ -326,6 +326,22 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				conditions.add("company_number = ?");
 				parameters.add(searchFilingsRequest.getCompanyNumber());
 			}
+			if (searchFilingsRequest.getMinDocumentDate() != null) {
+				conditions.add("document_date >= ?");
+				parameters.add(searchFilingsRequest.getMinDocumentDate());
+			}
+			if (searchFilingsRequest.getMinFilingDate() != null) {
+				conditions.add("filing_date >= ?");
+				parameters.add(searchFilingsRequest.getMinFilingDate());
+			}
+			if (searchFilingsRequest.getMaxDocumentDate() != null) {
+				conditions.add("document_date <= ?");
+				parameters.add(searchFilingsRequest.getMaxDocumentDate());
+			}
+			if (searchFilingsRequest.getMaxFilingDate() != null) {
+				conditions.add("filing_date >= ?");
+				parameters.add(searchFilingsRequest.getMaxFilingDate());
+			}
 			if (!StringUtils.isEmpty(searchFilingsRequest.getStatus())) {
 				conditions.add("status = ?");
 				parameters.add(searchFilingsRequest.getStatus());
