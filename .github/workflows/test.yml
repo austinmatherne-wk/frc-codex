@@ -45,12 +45,19 @@ jobs:
         shell: bash
         run: |
           sleep 60
+          echo "Test homepage"
           curl -i --fail http://localhost:8080/
+          echo "Test CH API client"
           curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
+          echo "Test CH archive client"
           curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/history
+          echo "Test FCA API"
           curl -i --fail http://localhost:8080/admin/smoketest/fca
+          echo "Test indexer page"
           curl -i --fail http://localhost:8080/admin/smoketest/indexer
+          echo "Test queue page"
           curl -i --fail http://localhost:8080/admin/smoketest/queue
+          echo "Test database page"
           curl -i --fail http://localhost:8080/admin/smoketest/database
 
       - uses: actions/upload-artifact@v4
