@@ -46,6 +46,10 @@ public class Filing {
 		this.oimJsonUrl = b.oimJsonUrl;
 	}
 
+	public String displayDocumentDate() {
+		return DISPLAY_DATE_FORMAT.format(documentDate);
+	}
+
 	public String displayFilingDate() {
 		return DISPLAY_DATE_FORMAT.format(filingDate);
 	}
