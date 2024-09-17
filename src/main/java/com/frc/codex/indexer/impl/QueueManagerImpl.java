@@ -165,6 +165,7 @@ public class QueueManagerImpl implements QueueManager {
 					viewerEntrypoint = getMessageAttribute(message, "ViewerEntrypoint");
 				}
 				String companyName = getMessageAttribute(message, "CompanyName");
+				companyName = companyName == null ? null : companyName.toUpperCase();
 				String companyNumber = getMessageAttribute(message, "CompanyNumber");
 				String documentDateStr = getMessageAttribute(message, "DocumentDate");
 				LocalDateTime documentDate = null;
