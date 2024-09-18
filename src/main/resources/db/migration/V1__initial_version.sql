@@ -29,3 +29,13 @@ CREATE TABLE IF NOT EXISTS filings (
 CREATE INDEX company_name_idx ON filings (company_name);
 CREATE INDEX company_name_tsv_idx ON filings USING GIN (to_tsvector('english', company_name));
 CREATE INDEX company_number_idx ON filings (company_number);
+
+CREATE TABLE IF NOT EXISTS ch_archives (
+    filename varchar(500) NOT NULL,
+    uri varchar(500) NOT NULL,
+    archive_type varchar(10),
+    completed_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (filename)
+);
+CREATE INDEX ch_archives_idx ON ch_archives (filename);

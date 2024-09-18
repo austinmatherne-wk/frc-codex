@@ -10,9 +10,12 @@ import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.frc.codex.model.SearchFilingsRequest;
+import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 
 public interface DatabaseManager {
 	void applyFilingResult(FilingResultRequest filingResultRequest);
+	boolean companiesHouseArchiveExists(String filename);
+	String createCompaniesHouseArchive(CompaniesHouseArchive archive);
 	UUID createFiling(NewFilingRequest newFilingRequest);
 	boolean filingExists(NewFilingRequest newFilingRequest);
 	Filing getFiling(UUID filingId);

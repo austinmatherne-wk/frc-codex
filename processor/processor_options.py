@@ -25,6 +25,10 @@ class ProcessorOptions:
     def aws_secret_access_key(self):
         return LOCAL_AWS_SECRET_ACCESS_KEY
 
+    @cached_property
+    def companies_house_history_directory(self):
+        return os.getenv('COMPANIES_HOUSE_HISTORY_DIRECTORY', '/tmp/cha')
+
     @property
     def companies_house_rest_api_key(self):
         return self._secrets['COMPANIES_HOUSE_REST_API_KEY']
