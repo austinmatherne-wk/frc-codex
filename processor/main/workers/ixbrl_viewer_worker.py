@@ -91,7 +91,7 @@ class IxbrlViewerWorker(Worker):
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
             },
-            plugins='ixbrl-viewer',
+            plugins='/processor/plugins/iXBRLViewerPlugin',
             strictOptions=False,
         )
         with Session() as session:
