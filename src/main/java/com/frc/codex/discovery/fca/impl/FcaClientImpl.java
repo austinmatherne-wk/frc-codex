@@ -129,6 +129,7 @@ public class FcaClientImpl implements FcaClient {
 			String sequenceId = source.get("seq_id").asText();
 			String submittedDateStr = source.get("submitted_date").asText();
 			String companyName = source.get("company").asText();
+			companyName = companyName.toUpperCase();
 			String lei = source.get("lei").asText();
 			LocalDateTime submittedDate = LocalDateTime.from(
 					INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr)
