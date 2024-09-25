@@ -24,10 +24,12 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RestController
 public class ViewController {
+	private final FilingIndexProperties properties;
 	private final S3ClientBuilder s3ClientBuilder;
 	public ViewController(
 			FilingIndexProperties properties
 	) {
+		this.properties = properties;
 		Region awsRegion = Region.of(properties.awsRegion());
 		AwsBasicCredentials credentials = AwsBasicCredentials.create(
 				properties.awsAccessKeyId(),
@@ -55,7 +57,7 @@ public class ViewController {
 	) throws IOException {
 		String key = jobId + "/" + assetKey;
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-				.bucket("frc-codex-results")
+				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
 		try (S3Client s3 = s3ClientBuilder.build()) {

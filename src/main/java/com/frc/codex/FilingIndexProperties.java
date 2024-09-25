@@ -17,6 +17,7 @@ public interface FilingIndexProperties {
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isDbMigrateAsync();
 	long maximumSearchResults();
+	String s3ResultsBucketName();
 	long searchPageSize();
 	String sqsJobsQueueName();
 	String sqsResultsQueueName();

@@ -32,6 +32,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
+	private static final String S3_RESULTS_BUCKET_NAME = "S3_RESULTS_BUCKET_NAME";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
@@ -52,6 +53,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String awsHost;
 	private final String awsRegion;
 	private final long maximumSearchResults;
+	private final String s3ResultsBucketName;
 	private final long searchPageSize;
 	private final String sqsJobsQueueName;
 	private final String sqsResultsQueueName;
@@ -76,6 +78,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
 
+		s3ResultsBucketName = requireNonNull(getEnv(S3_RESULTS_BUCKET_NAME));
 		sqsJobsQueueName = requireNonNull(getEnv(SQS_JOBS_QUEUE_NAME));
 		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
 
@@ -193,6 +196,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public long maximumSearchResults() {
 		return maximumSearchResults;
+	}
+
+	public String s3ResultsBucketName() {
+		return s3ResultsBucketName;
 	}
 
 	public long searchPageSize() {
