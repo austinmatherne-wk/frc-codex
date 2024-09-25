@@ -55,11 +55,11 @@ class ProcessorOptions:
 
     @cached_property
     def sqs_jobs_queue_name(self):
-        return 'frc_codex_jobs'
+        return os.getenv('SQS_JOBS_QUEUE_NAME')
 
     @cached_property
     def sqs_results_queue_name(self):
-        return 'frc_codex_results'
+        return os.getenv('SQS_RESULTS_QUEUE_NAME')
 
     @cached_property
     def sqs_endpoint_url(self):

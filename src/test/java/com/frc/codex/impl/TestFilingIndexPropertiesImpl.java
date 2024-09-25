@@ -77,4 +77,12 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 	public long searchPageSize() {
 		return 10;
 	}
+
+	public String sqsJobsQueueName() {
+		return "frc_codex_jobs";
+	}
+
+	public String sqsResultsQueueName() {
+		return "frc_codex_results";
+	}
 }

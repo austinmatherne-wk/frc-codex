@@ -34,6 +34,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
+	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
+	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
 	private final String awsAccessKeyId;
 	private final String awsSecretAccessKey;
 	private final String companiesHouseDocumentApiBaseUrl;
@@ -51,6 +53,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final long searchPageSize;
+	private final String sqsJobsQueueName;
+	private final String sqsResultsQueueName;
 
 
 	public FilingIndexPropertiesImpl() {
@@ -71,6 +75,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
+
+		sqsJobsQueueName = requireNonNull(getEnv(SQS_JOBS_QUEUE_NAME));
+		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
 
 		Properties secrets = getSecrets();
 		if (secrets.containsKey(AWS_ACCESS_KEY_ID)) {
@@ -190,5 +197,13 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public long searchPageSize() {
 		return searchPageSize;
+	}
+
+	public String sqsJobsQueueName() {
+		return sqsJobsQueueName;
+	}
+
+	public String sqsResultsQueueName() {
+		return sqsResultsQueueName;
 	}
 }

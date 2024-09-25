@@ -22,6 +22,8 @@ services:
       DB_USERNAME: "frc_codex"
       FCA_DATA_API_BASE_URL: "https://data.fca.org.uk/artefacts/"
       FCA_SEARCH_API_URL: "https://api.data.fca.org.uk/search?index=fca-nsm-searchdata"
+      SQS_JOBS_QUEUE_NAME: "frc_codex_jobs"
+      SQS_RESULTS_QUEUE_NAME: "frc_codex_results"
     secrets:
       - frc-codex-server.secrets
     ports:
@@ -45,6 +47,8 @@ services:
       S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
       S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
       S3_REGION_NAME: 'eu-west-2'
+      SQS_JOBS_QUEUE_NAME: 'frc_codex_jobs'
+      SQS_RESULTS_QUEUE_NAME: 'frc_codex_results'
     secrets:
       - frc-codex-server.secrets
     volumes:

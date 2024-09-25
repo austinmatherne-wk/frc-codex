@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 class MainQueueManager(QueueManager):
 
     def __init__(self, processor_options: ProcessorOptions):
-        self._jobs_queue = MainQueueManager._get_queue('frc_codex_jobs', processor_options)
-        self._results_queue = MainQueueManager._get_queue('frc_codex_results', processor_options)
+        self._jobs_queue = MainQueueManager._get_queue(processor_options.sqs_jobs_queue_name, processor_options)
+        self._results_queue = MainQueueManager._get_queue(processor_options.sqs_results_queue_name, processor_options)
         self._max_number = processor_options.sqs_max_messages
         self._wait_time = processor_options.sqs_wait_time
 

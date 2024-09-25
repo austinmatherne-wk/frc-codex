@@ -18,4 +18,6 @@ public interface FilingIndexProperties {
 	boolean isDbMigrateAsync();
 	long maximumSearchResults();
 	long searchPageSize();
+	String sqsJobsQueueName();
+	String sqsResultsQueueName();
 }

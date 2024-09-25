@@ -51,7 +51,7 @@ public class QueueManagerImpl implements QueueManager {
 	public void addJobs(List<Filing> filings, Consumer<Filing> callback) {
 		try (SqsClient sqsClient = getSqsClient()) {
 			String queueUrl = sqsClient
-					.getQueueUrl(builder -> builder.queueName("frc_codex_jobs"))
+					.getQueueUrl(builder -> builder.queueName(properties.sqsJobsQueueName()))
 					.queueUrl();
 			for (Filing filing : filings) {
 				String filingId = filing.getFilingId().toString();
@@ -106,7 +106,7 @@ public class QueueManagerImpl implements QueueManager {
 
 	public String getStatus() {
 		StringBuilder status = new StringBuilder();
-		for (String queueName : List.of("frc_codex_jobs", "frc_codex_results")) {
+		for (String queueName : List.of(properties.sqsJobsQueueName(), properties.sqsResultsQueueName())) {
 			try (SqsClient sqsClient = getSqsClient()) {
 				status.append(queueName).append(":\n");
 				String queueUrl = sqsClient
