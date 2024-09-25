@@ -40,7 +40,6 @@ services:
       MAXIMUM_PROCESSORS: '4'
       SECRETS_FILEPATH: '/run/secrets/frc-codex-server.secrets'
       SQS_ENDPOINT_URL: 'http://localstack.localhost:4566'
-      SQS_QUEUE_NAME: 'frc_codex_processor_queue'
       SQS_REGION_NAME: 'eu-west-2'
       S3_ENDPOINT_URL: 'http://localstack.localhost:4566'
       S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
