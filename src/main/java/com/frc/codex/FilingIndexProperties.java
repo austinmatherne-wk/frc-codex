@@ -19,4 +19,3 @@ public interface FilingIndexProperties {
 	long maximumSearchResults();
 	long searchPageSize();
 }
-

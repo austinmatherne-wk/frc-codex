@@ -106,7 +106,7 @@ public class QueueManagerImpl implements QueueManager {
 
 	public String getStatus() {
 		StringBuilder status = new StringBuilder();
-		for(String queueName : List.of("frc_codex_jobs", "frc_codex_results")) {
+		for (String queueName : List.of("frc_codex_jobs", "frc_codex_results")) {
 			try (SqsClient sqsClient = getSqsClient()) {
 				status.append(queueName).append(":\n");
 				String queueUrl = sqsClient
