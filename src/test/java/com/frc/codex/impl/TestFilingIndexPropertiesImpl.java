@@ -10,10 +10,6 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("test")
 public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
-	public String awsHost() {
-		return "http://localhost:8087/jobs";
-	}
-
 	public String awsRegion() {
 		return "eu-west-2";
 	}

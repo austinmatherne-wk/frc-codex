@@ -105,7 +105,6 @@ class MainQueueManager(QueueManager):
         client = session.resource(
             'sqs',
             region_name=processor_options.sqs_region_name,
-            endpoint_url=processor_options.sqs_endpoint_url
         )
         queue = client.get_queue_by_name(QueueName=queue_name)
         return queue

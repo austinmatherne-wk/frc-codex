@@ -1,7 +1,5 @@
 package com.frc.codex.indexer.impl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -86,14 +84,9 @@ public class QueueManagerImpl implements QueueManager {
 	}
 
 	private SqsClient getSqsClient() {
-		try {
-			return SqsClient.builder()
-					.endpointOverride(new URI(properties.awsHost()))
-					.region(awsRegion)
-					.build();
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		return SqsClient.builder()
+				.region(awsRegion)
+				.build();
 	}
 
 	public String getStatus() {

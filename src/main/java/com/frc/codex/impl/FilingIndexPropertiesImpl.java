@@ -16,7 +16,6 @@ import com.zaxxer.hikari.HikariConfig;
 @Component
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
-	private static final String AWS_HOST = "AWS_HOST";
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
@@ -46,7 +45,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
-	private final String awsHost;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -56,7 +54,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 
 	public FilingIndexPropertiesImpl() {
-		awsHost = requireNonNull(getEnv(AWS_HOST));
 		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
@@ -117,10 +114,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public String awsHost() {
-		return awsHost;
 	}
 
 	public String awsRegion() {

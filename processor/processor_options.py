@@ -35,10 +35,6 @@ class ProcessorOptions:
         return os.getenv('S3_RESULTS_BUCKET_NAME')
 
     @cached_property
-    def s3_endpoint_url(self):
-        return os.getenv('S3_ENDPOINT_URL')
-
-    @cached_property
     def s3_region_name(self):
         return os.getenv('S3_REGION_NAME')
 
@@ -49,10 +45,6 @@ class ProcessorOptions:
     @cached_property
     def sqs_results_queue_name(self):
         return os.getenv('SQS_RESULTS_QUEUE_NAME')
-
-    @cached_property
-    def sqs_endpoint_url(self):
-        return os.getenv('SQS_ENDPOINT_URL')
 
     @cached_property
     def sqs_region_name(self):

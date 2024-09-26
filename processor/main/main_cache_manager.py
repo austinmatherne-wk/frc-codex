@@ -22,7 +22,6 @@ class MainCacheManager(CacheManager):
         self._cache_zip_path = cache_zip_path
         self._s3_client = boto3.client(
             's3',
-            endpoint_url=processor_options.s3_endpoint_url,
             region_name=processor_options.s3_region_name,
         )
         self._bucket_name = processor_options.s3_http_cache_bucket_name

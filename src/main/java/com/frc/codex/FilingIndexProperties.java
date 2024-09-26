@@ -3,7 +3,6 @@ package com.frc.codex;
 import com.zaxxer.hikari.HikariConfig;
 
 public interface FilingIndexProperties {
-	String awsHost();
 	String awsRegion();
 	String companiesHouseDocumentApiBaseUrl();
 	String companiesHouseInformationApiBaseUrl();

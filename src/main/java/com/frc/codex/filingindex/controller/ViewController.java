@@ -1,8 +1,6 @@
 package com.frc.codex.filingindex.controller;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.ResponseEntity;
@@ -29,14 +27,9 @@ public class ViewController {
 	) {
 		this.properties = properties;
 		Region awsRegion = Region.of(properties.awsRegion());
-		try {
-			this.s3ClientBuilder = S3Client.builder()
-					.endpointOverride(new URI(properties.awsHost()))
-					.forcePathStyle(true)
-					.region(awsRegion);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		this.s3ClientBuilder = S3Client.builder()
+				.forcePathStyle(true)
+				.region(awsRegion);
 	}
 
 	/**
