@@ -145,7 +145,7 @@ public class QueueManagerImpl implements QueueManager {
 	public void processResults(Function<FilingResultRequest, Boolean> callback) {
 		try (SqsClient sqsClient = getSqsClient()) {
 			String queueUrl = sqsClient
-					.getQueueUrl(builder -> builder.queueName("frc_codex_results"))
+					.getQueueUrl(builder -> builder.queueName(properties.sqsResultsQueueName()))
 					.queueUrl();
 			ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
 					.queueUrl(queueUrl)
