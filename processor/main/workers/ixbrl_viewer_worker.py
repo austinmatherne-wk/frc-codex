@@ -41,7 +41,7 @@ class IxbrlViewerWorker(Worker):
         packages = list(DEFAULT_TAXONOMY_PACKAGES)
         report_path = None
         for parent in target_path.parents:
-            if parent.name == 'report':
+            if parent.name == 'reports':
                 report_path = parent
                 continue
             if report_path and zipfile.is_zipfile(parent):
