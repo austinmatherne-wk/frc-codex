@@ -47,10 +47,16 @@ public class Filing {
 	}
 
 	public String displayDocumentDate() {
+		if (documentDate == null) {
+			return "";
+		}
 		return DISPLAY_DATE_FORMAT.format(documentDate);
 	}
 
 	public String displayFilingDate() {
+		if (filingDate == null) {
+			return "";
+		}
 		return DISPLAY_DATE_FORMAT.format(filingDate);
 	}
 
