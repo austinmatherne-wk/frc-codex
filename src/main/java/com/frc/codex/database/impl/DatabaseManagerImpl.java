@@ -354,7 +354,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyName())) {
 				selects.add("ts_rank(to_tsvector('english', company_name), query) as rank");
 				queries.add("websearch_to_tsquery(?) query");
-				conditions.add("query @@ to_tsvector('english', company_name)");
+				conditions.add("to_tsvector('english', company_name) @@ query");
 				parameters.add(searchFilingsRequest.getCompanyName());
 				orderBys.add(0, "rank DESC");
 			}
