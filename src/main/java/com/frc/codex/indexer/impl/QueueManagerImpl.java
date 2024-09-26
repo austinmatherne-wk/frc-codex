@@ -2,7 +2,6 @@ package com.frc.codex.indexer.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,8 +21,6 @@ import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -89,15 +86,10 @@ public class QueueManagerImpl implements QueueManager {
 	}
 
 	private SqsClient getSqsClient() {
-		AwsBasicCredentials credentials = AwsBasicCredentials.create(
-				properties.awsAccessKeyId(),
-				properties.awsSecretAccessKey()
-		);
 		try {
 			return SqsClient.builder()
 					.endpointOverride(new URI(properties.awsHost()))
 					.region(awsRegion)
-					.credentialsProvider(StaticCredentialsProvider.create(credentials))
 					.build();
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);

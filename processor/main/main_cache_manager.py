@@ -24,8 +24,6 @@ class MainCacheManager(CacheManager):
             's3',
             endpoint_url=processor_options.s3_endpoint_url,
             region_name=processor_options.s3_region_name,
-            aws_access_key_id=processor_options.aws_access_key_id,
-            aws_secret_access_key=processor_options.aws_secret_access_key,
         )
         self._bucket_name = processor_options.s3_http_cache_bucket_name
         self._cache_last_modified: datetime.datetime | None = None

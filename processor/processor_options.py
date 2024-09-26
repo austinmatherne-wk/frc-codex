@@ -1,9 +1,6 @@
 import os
 from functools import cached_property
 
-LOCAL_AWS_ACCESS_KEY_ID = 'local_aws_access_key'
-LOCAL_AWS_SECRET_ACCESS_KEY = 'local_aws_secret_key'
-
 
 class ProcessorOptions:
 
@@ -16,14 +13,6 @@ class ProcessorOptions:
                     line.split('=') for line in f.readlines()
                 ]
             }
-
-    @property
-    def aws_access_key_id(self):
-        return LOCAL_AWS_ACCESS_KEY_ID
-
-    @property
-    def aws_secret_access_key(self):
-        return LOCAL_AWS_SECRET_ACCESS_KEY
 
     @cached_property
     def companies_house_history_directory(self):

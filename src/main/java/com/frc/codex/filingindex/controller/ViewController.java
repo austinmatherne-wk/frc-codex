@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.frc.codex.FilingIndexProperties;
 
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -31,16 +29,11 @@ public class ViewController {
 	) {
 		this.properties = properties;
 		Region awsRegion = Region.of(properties.awsRegion());
-		AwsBasicCredentials credentials = AwsBasicCredentials.create(
-				properties.awsAccessKeyId(),
-				properties.awsSecretAccessKey()
-		);
 		try {
 			this.s3ClientBuilder = S3Client.builder()
 					.endpointOverride(new URI(properties.awsHost()))
 					.forcePathStyle(true)
-					.region(awsRegion)
-					.credentialsProvider(StaticCredentialsProvider.create(credentials));
+					.region(awsRegion);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

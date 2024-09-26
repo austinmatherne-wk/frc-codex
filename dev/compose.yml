@@ -10,10 +10,10 @@ services:
       test: curl localhost:8080/health --fail || exit 1
       timeout: 2s
     environment:
-      AWS_ACCESS_KEY_ID: "AWS_ACCESS_KEY_ID"
+      AWS_ACCESS_KEY_ID: "local_aws_access_key_id"
       AWS_HOST: "http://localstack.localhost:4566"
       AWS_REGION: "eu-west-2"
-      AWS_SECRET_ACCESS_KEY: "AWS_SECRET_ACCESS_KEY"
+      AWS_SECRET_ACCESS_KEY: "local_aws_secret_access_key"
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
@@ -40,6 +40,8 @@ services:
       test: exit 0 # TODO: Improve healthcheck
       timeout: 1s
     environment:
+      AWS_ACCESS_KEY_ID: 'local_aws_access_key_id'
+      AWS_SECRET_ACCESS_KEY: 'local_aws_secret_access_key'
       MAXIMUM_PROCESSORS: '4'
       SECRETS_FILEPATH: '/run/secrets/frc-codex-server.secrets'
       SQS_ENDPOINT_URL: 'http://localstack.localhost:4566'

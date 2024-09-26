@@ -105,8 +105,6 @@ class MainQueueManager(QueueManager):
         client = session.resource(
             'sqs',
             region_name=processor_options.sqs_region_name,
-            aws_access_key_id=processor_options.aws_access_key_id,
-            aws_secret_access_key=processor_options.aws_secret_access_key,
             endpoint_url=processor_options.sqs_endpoint_url
         )
         queue = client.get_queue_by_name(QueueName=queue_name)
