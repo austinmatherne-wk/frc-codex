@@ -172,7 +172,7 @@ public class IndexerImpl implements Indexer {
 		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
 			return;
 		}
-		LOG.info("Starting Companies House indexing at " + System.currentTimeMillis() / 1000);
+		LOG.info("Starting Companies House indexing at {}", System.currentTimeMillis() / 1000);
 		Function<String, Boolean> callback = (String filing) -> {
 			if (filing == null || filing.length() <= 1) {
 				// The stream emits blank "heartbeat" lines.
@@ -198,7 +198,7 @@ public class IndexerImpl implements Indexer {
 		long startTimepoint = this.databaseManager.getLatestStreamTimepoint(null);
 		this.companiesHouseStreamLastOpenedDate = new Date();
 		this.companiesHouseClient.streamFilings(startTimepoint, callback);
-		LOG.info("Completed Companies House indexing at " + System.currentTimeMillis() / 1000);
+		LOG.info("Completed Companies House indexing at {}", System.currentTimeMillis() / 1000);
 	}
 
 	private void processCompaniesHouseArchive(URI uri, String archiveType) {
@@ -300,7 +300,7 @@ public class IndexerImpl implements Indexer {
 	@Scheduled(fixedDelay = 60 * 60 * 1000)
 	public void indexFca() {
 		fcaSessionLastStartedDate = new Date();
-		LOG.info("Starting FCA indexing at " + fcaSessionLastStartedDate);
+		LOG.info("Starting FCA indexing at {}", fcaSessionLastStartedDate);
 		if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
 			return;
 		}
@@ -327,7 +327,7 @@ public class IndexerImpl implements Indexer {
 			LOG.info("Created FCA filing for {}: {}", filing.downloadUrl(), filingId);
 		}
 		fcaSessionLastEndedDate = new Date();
-		LOG.info("Completed FCA indexing at " + fcaSessionLastEndedDate);
+		LOG.info("Completed FCA indexing at {}", fcaSessionLastEndedDate);
 	}
 
 

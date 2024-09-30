@@ -1,8 +1,5 @@
 package com.frc.codex.indexer.impl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,8 +19,6 @@ import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -51,7 +46,7 @@ public class QueueManagerImpl implements QueueManager {
 	public void addJobs(List<Filing> filings, Consumer<Filing> callback) {
 		try (SqsClient sqsClient = getSqsClient()) {
 			String queueUrl = sqsClient
-					.getQueueUrl(builder -> builder.queueName("frc_codex_jobs"))
+					.getQueueUrl(builder -> builder.queueName(properties.sqsJobsQueueName()))
 					.queueUrl();
 			for (Filing filing : filings) {
 				String filingId = filing.getFilingId().toString();
@@ -89,24 +84,14 @@ public class QueueManagerImpl implements QueueManager {
 	}
 
 	private SqsClient getSqsClient() {
-		AwsBasicCredentials credentials = AwsBasicCredentials.create(
-				properties.awsAccessKeyId(),
-				properties.awsSecretAccessKey()
-		);
-		try {
-			return SqsClient.builder()
-					.endpointOverride(new URI(properties.awsHost()))
-					.region(awsRegion)
-					.credentialsProvider(StaticCredentialsProvider.create(credentials))
-					.build();
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		return SqsClient.builder()
+				.region(awsRegion)
+				.build();
 	}
 
 	public String getStatus() {
 		StringBuilder status = new StringBuilder();
-		for(String queueName : List.of("frc_codex_jobs", "frc_codex_results")) {
+		for (String queueName : List.of(properties.sqsJobsQueueName(), properties.sqsResultsQueueName())) {
 			try (SqsClient sqsClient = getSqsClient()) {
 				status.append(queueName).append(":\n");
 				String queueUrl = sqsClient
@@ -145,7 +130,7 @@ public class QueueManagerImpl implements QueueManager {
 	public void processResults(Function<FilingResultRequest, Boolean> callback) {
 		try (SqsClient sqsClient = getSqsClient()) {
 			String queueUrl = sqsClient
-					.getQueueUrl(builder -> builder.queueName("frc_codex_results"))
+					.getQueueUrl(builder -> builder.queueName(properties.sqsResultsQueueName()))
 					.queueUrl();
 			ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
 					.queueUrl(queueUrl)

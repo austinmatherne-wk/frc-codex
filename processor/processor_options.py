@@ -1,9 +1,6 @@
 import os
 from functools import cached_property
 
-LOCAL_AWS_ACCESS_KEY_ID = 'local_aws_access_key'
-LOCAL_AWS_SECRET_ACCESS_KEY = 'local_aws_secret_key'
-
 
 class ProcessorOptions:
 
@@ -16,14 +13,6 @@ class ProcessorOptions:
                     line.split('=') for line in f.readlines()
                 ]
             }
-
-    @property
-    def aws_access_key_id(self):
-        return LOCAL_AWS_ACCESS_KEY_ID
-
-    @property
-    def aws_secret_access_key(self):
-        return LOCAL_AWS_SECRET_ACCESS_KEY
 
     @cached_property
     def companies_house_history_directory(self):
@@ -46,24 +35,16 @@ class ProcessorOptions:
         return os.getenv('S3_RESULTS_BUCKET_NAME')
 
     @cached_property
-    def s3_endpoint_url(self):
-        return os.getenv('S3_ENDPOINT_URL')
-
-    @cached_property
     def s3_region_name(self):
         return os.getenv('S3_REGION_NAME')
 
     @cached_property
     def sqs_jobs_queue_name(self):
-        return 'frc_codex_jobs'
+        return os.getenv('SQS_JOBS_QUEUE_NAME')
 
     @cached_property
     def sqs_results_queue_name(self):
-        return 'frc_codex_results'
-
-    @cached_property
-    def sqs_endpoint_url(self):
-        return os.getenv('SQS_ENDPOINT_URL')
+        return os.getenv('SQS_RESULTS_QUEUE_NAME')
 
     @cached_property
     def sqs_region_name(self):

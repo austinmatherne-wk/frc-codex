@@ -62,10 +62,7 @@ public class AdminController {
 
 	@GetMapping("/admin")
 	public String indexPage(Model model) {
-		model.addAttribute("awsAccessKeyId", !StringUtils.isEmpty(properties.awsAccessKeyId()));
-		model.addAttribute("awsHost", properties.awsHost());
 		model.addAttribute("awsRegion", properties.awsRegion());
-		model.addAttribute("awsSecretAccessKey", !StringUtils.isEmpty(properties.awsSecretAccessKey()));
 		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
 		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
 		model.addAttribute("chRestApiKey", !StringUtils.isEmpty(properties.companiesHouseRestApiKey()));

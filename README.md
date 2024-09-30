@@ -41,8 +41,6 @@ The preferred method to run any part of the FRC CODEx is using Docker Compose.
 #### Secrets
 To configure secrets for the server and processor, add them in a `frc-codex-server.secrets` file in the root directory. Example:
 ```properties
-AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
 COMPANIES_HOUSE_REST_API_KEY=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 COMPANIES_HOUSE_STREAM_API_KEY=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```

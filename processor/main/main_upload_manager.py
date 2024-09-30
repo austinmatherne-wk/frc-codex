@@ -14,10 +14,7 @@ class MainUploadManager(UploadManager):
         self._processor_options = processor_options
         self._s3_client = boto3.client(
             's3',
-            endpoint_url=processor_options.s3_endpoint_url,
             region_name=processor_options.s3_region_name,
-            aws_access_key_id=processor_options.aws_access_key_id,
-            aws_secret_access_key=processor_options.aws_secret_access_key,
         )
 
     def upload_files(self, filing_id: str, viewer_directory: Path) -> None:

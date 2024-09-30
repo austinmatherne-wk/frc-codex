@@ -10,20 +10,8 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("test")
 public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
-	public String awsAccessKeyId() {
-		return "AWS_ACCESS_KEY_ID";
-	}
-
-	public String awsHost() {
-		return "http://localhost:8087/jobs";
-	}
-
 	public String awsRegion() {
 		return "eu-west-2";
-	}
-
-	public String awsSecretAccessKey() {
-		return "AWS_SECRET_ACCESS_KEY";
 	}
 
 	public String companiesHouseDocumentApiBaseUrl() {
@@ -74,7 +62,19 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return 100;
 	}
 
+	public String s3ResultsBucketName() {
+		return "frc-codex-results";
+	}
+
 	public long searchPageSize() {
 		return 10;
+	}
+
+	public String sqsJobsQueueName() {
+		return "frc_codex_jobs";
+	}
+
+	public String sqsResultsQueueName() {
+		return "frc_codex_results";
 	}
 }

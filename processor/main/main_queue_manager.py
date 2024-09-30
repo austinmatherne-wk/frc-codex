@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 class MainQueueManager(QueueManager):
 
     def __init__(self, processor_options: ProcessorOptions):
-        self._jobs_queue = MainQueueManager._get_queue('frc_codex_jobs', processor_options)
-        self._results_queue = MainQueueManager._get_queue('frc_codex_results', processor_options)
+        self._jobs_queue = MainQueueManager._get_queue(processor_options.sqs_jobs_queue_name, processor_options)
+        self._results_queue = MainQueueManager._get_queue(processor_options.sqs_results_queue_name, processor_options)
         self._max_number = processor_options.sqs_max_messages
         self._wait_time = processor_options.sqs_wait_time
 
@@ -105,9 +105,6 @@ class MainQueueManager(QueueManager):
         client = session.resource(
             'sqs',
             region_name=processor_options.sqs_region_name,
-            aws_access_key_id=processor_options.aws_access_key_id,
-            aws_secret_access_key=processor_options.aws_secret_access_key,
-            endpoint_url=processor_options.sqs_endpoint_url
         )
         queue = client.get_queue_by_name(QueueName=queue_name)
         return queue
