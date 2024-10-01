@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
@@ -41,6 +42,10 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);
+	}
+
+	public boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
+		return false;
 	}
 
 	public boolean companiesHouseArchiveExists(String filename) {
@@ -150,5 +155,21 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.status(status)
 				.build();
 		updateFiling(newFiling);
+	}
+
+	public boolean companyExists(Company company) {
+		return false;
+	}
+
+	public void createCompany(Company company) {
+
+	}
+
+	public void updateCompany(Company company) {
+
+	}
+
+	public List<Company> getIncompleteCompanies(int limit) {
+		return null;
 	}
 }
