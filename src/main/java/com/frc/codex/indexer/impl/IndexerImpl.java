@@ -244,20 +244,15 @@ public class IndexerImpl implements Indexer {
 				continue;
 			}
 			String companyNumber = matcher.group(1);
-			String dateStr = matcher.group(2);
-			LocalDateTime filingDate = LocalDate.parse(dateStr, CHA_FILENAME_DATE_FORMAT).atStartOfDay();
-			String downloadUrl = uri + "?filename=" + arcname;
-			NewFilingRequest newFilingRequest = new NewFilingRequest();
-			newFilingRequest.setCompanyNumber(companyNumber);
-			newFilingRequest.setDownloadUrl(downloadUrl);
-			newFilingRequest.setFilingDate(filingDate);
-			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE_ARCHIVE.toString());
-			if (databaseManager.filingExists(newFilingRequest)) {
-				LOG.info("Skipping existing CHA filing: {}", downloadUrl);
+			Company company = Company.builder()
+					.companyNumber(companyNumber)
+					.build();
+			if (databaseManager.companyExists(company)) {
+				LOG.debug("Skipping existing company: {}", companyNumber);
 				continue;
 			}
-			UUID filingId = this.databaseManager.createFiling(newFilingRequest);
-			LOG.info("Created CHA filing for {}: {}", downloadUrl, filingId);
+			databaseManager.createCompany(company);
+			LOG.info("Created company {}.", companyNumber);
 		}
 		if (completed) {
 			CompaniesHouseArchive archive = CompaniesHouseArchive.builder()
