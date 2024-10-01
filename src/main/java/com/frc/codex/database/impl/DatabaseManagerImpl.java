@@ -27,6 +27,7 @@ import org.thymeleaf.util.StringUtils;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
@@ -279,6 +280,85 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				throw new SQLException("Updating filing status failed, no rows affected.");
 			}
 			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean companyExists(Company company) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT company_number FROM companies WHERE company_number = ? LIMIT 1";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, company.getCompanyNumber());
+			ResultSet resultSet = statement.executeQuery();
+			return resultSet.next();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void createCompany(Company company) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "INSERT INTO companies " +
+					"(company_number, completed_date, company_name) " +
+					"VALUES (?, ?, ?)";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			int i = 0;
+			statement.setString(++i, company.getCompanyNumber());
+			statement.setTimestamp(++i, company.getCompletedDate());
+			statement.setString(++i, company.getCompanyName());
+
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Creating filing failed, no rows affected.");
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void updateCompany(Company company) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "UPDATE companies " +
+					"SET completed_date = COALESCE(completed_date, ?), " +
+					"company_name = COALESCE(company_name, ?) " +
+					"WHERE company_number = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			int i = 0;
+			statement.setTimestamp(++i, company.getCompletedDate());
+			statement.setString(++i, company.getCompanyName());
+			statement.setString(++i, company.getCompanyNumber());
+
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Creating filing failed, no rows affected.");
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<Company> getIncompleteCompanies(int limit) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT * FROM companies " +
+					"WHERE completed_date IS NULL " +
+					"ORDER BY discovered_date " +
+					"LIMIT ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setInt(1, limit);
+			ResultSet resultSet = statement.executeQuery();
+			ImmutableList.Builder<Company> results = ImmutableList.builder();
+			while (resultSet.next()) {
+				results.add(Company.builder()
+						.companyNumber(resultSet.getString("company_number"))
+						.discoveredDate(resultSet.getTimestamp("discovered_date"))
+						.completedDate(resultSet.getTimestamp("completed_date"))
+						.companyName(resultSet.getString("company_name"))
+						.build());
+			}
+			return results.build();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
