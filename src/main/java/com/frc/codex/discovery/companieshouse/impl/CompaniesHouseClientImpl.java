@@ -70,6 +70,8 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		int itemsPerPage = 100;
 		int totalItems = Integer.MAX_VALUE;
 		while (index + itemsPerPage < totalItems) {
+			// TODO: We are able to filter by "category" in the API, but we are not doing so here.
+			// We should investigate if IXBRL filings are limited to certain categories and filter by those.
 			String json = getCompanyFilingHistory(companyNumber, itemsPerPage, index);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode node = mapper.readTree(json);

@@ -3,6 +3,7 @@ package com.frc.codex.indexer.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +36,7 @@ import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.QueueManager;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
@@ -44,9 +46,9 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
-	private static final DateTimeFormatter CHA_FILENAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final int CHA_LIMIT = 5;
+	private static final int COMPANY_BATCH_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
@@ -198,6 +200,37 @@ public class IndexerImpl implements Indexer {
 			this.companiesHouseClient.streamFilings(startTimepoint, callback);
 		} catch (RateLimitException e) {
 			LOG.warn("Rate limit exceeded while streaming CH filings. Resuming later.", e);
+		}
+	}
+
+	@Scheduled(fixedDelay = 30 * 60 * 1000)
+	public void indexFilingsFromCompaniesIndex() throws JsonProcessingException {
+		LOG.info("Indexing filings from companies index.");
+		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANY_BATCH_SIZE);
+		LOG.info("Loaded {} incomplete companies from companies index.", companies.size());
+		for (Company company : companies) {
+			String companyNumber = company.getCompanyNumber();
+			LOG.info("Retrieving filings for company {}.", companyNumber);
+			List<NewFilingRequest> filings = companiesHouseClient.getCompanyFilings(companyNumber);
+			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
+			for (NewFilingRequest filing : filings) {
+				if (databaseManager.filingExists(filing)) {
+					LOG.info("Skipping existing filing: {}", filing.getDownloadUrl());
+					continue;
+				}
+				if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
+					break;
+				}
+				UUID filingId = databaseManager.createFiling(filing);
+				LOG.info("Created CH filing for {}: {}", filing.getDownloadUrl(), filingId);
+
+			}
+			Company updatedCompany = Company.builder()
+					.companyNumber(companyNumber)
+					.completedDate(new Timestamp(System.currentTimeMillis()))
+					.build();
+			databaseManager.updateCompany(updatedCompany);
+			LOG.info("Completed company: {}", companyNumber);
 		}
 	}
 
