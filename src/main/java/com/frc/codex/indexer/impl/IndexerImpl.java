@@ -29,6 +29,7 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
+import com.frc.codex.discovery.companieshouse.RateLimitException;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
@@ -197,8 +198,11 @@ public class IndexerImpl implements Indexer {
 		};
 		long startTimepoint = this.databaseManager.getLatestStreamTimepoint(null);
 		this.companiesHouseStreamLastOpenedDate = new Date();
-		this.companiesHouseClient.streamFilings(startTimepoint, callback);
-		LOG.info("Completed Companies House indexing at {}", System.currentTimeMillis() / 1000);
+		try {
+			this.companiesHouseClient.streamFilings(startTimepoint, callback);
+		} catch (RateLimitException e) {
+			LOG.warn("Rate limit exceeded while streaming CH filings. Resuming later.", e);
+		}
 	}
 
 	private void processCompaniesHouseArchive(URI uri, String archiveType) {
