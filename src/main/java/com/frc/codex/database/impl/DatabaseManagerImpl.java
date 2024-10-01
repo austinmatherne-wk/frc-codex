@@ -41,7 +41,7 @@ import jakarta.annotation.PostConstruct;
 @Component
 @Profile("application")
 public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseManagerImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManagerImpl.class);
 	public static final Calendar TIMEZONE_UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
 	private final boolean dbMigrateAsync;
@@ -84,6 +84,14 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
+		if (limit >= 0 && getRegistryCount(registryCode) >= limit) {
+			LOG.info("Reached limit of {} filings for registry {}.", limit, registryCode);
+			return true;
+		}
+		return false;
 	}
 
 	public boolean companiesHouseArchiveExists(String filename) {
@@ -329,12 +337,12 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	}
 
 	private void migrateImpl() {
-		LOGGER.info("Starting database migrations.");
+		LOG.info("Starting database migrations.");
 		Flyway flyway = Flyway.configure()
 				.dataSource(writeDataSource)
 				.load();
 		flyway.migrate();
-		LOGGER.info("Finished database migrations.");
+		LOG.info("Finished database migrations.");
 	}
 
 	public void close() throws Exception {
