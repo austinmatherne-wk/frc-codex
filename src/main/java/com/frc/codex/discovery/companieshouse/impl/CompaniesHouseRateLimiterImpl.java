@@ -105,7 +105,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 			}
 			long waitTime = rapidRateWindow - (now.getTime() - oldest.getTime());
 			if (waitTime > 0) {
-				LOG.info("Waiting for rapid rate limit: {} ms", waitTime);
+				LOG.debug("Waiting for rapid rate limit: {} ms", waitTime);
 				Thread.sleep(waitTime);
 			}
 		}
@@ -125,6 +125,6 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 			this.reset = new Timestamp(Long.parseLong(reset) * 1000);
 			this.updated = new Timestamp(headers.getDate());
 		}
-		LOG.info("Updated CH rate limit details: url={}, limit={}, remaining={}, reset={}, updated={}", url, this.limit, this.remaining, this.reset, this.updated);
+		LOG.debug("Updated CH rate limit details: url={}, limit={}, remaining={}, reset={}, updated={}", url, this.limit, this.remaining, this.reset, this.updated);
 	}
 }
