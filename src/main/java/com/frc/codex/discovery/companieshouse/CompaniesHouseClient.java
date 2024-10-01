@@ -6,15 +6,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.frc.codex.model.NewFilingRequest;
 
 public interface CompaniesHouseClient {
 	String getCompany(String companyNumber);
-
+	List<NewFilingRequest> getCompanyFilings(String companyNumber) throws JsonProcessingException;
 	Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException;
-
-	String getCompanyFilingHistory(String companyNumber);
-
-	Set<String> getCompanyFilingUrls(String companyNumber) throws JsonProcessingException;
-
 	void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException;
 }

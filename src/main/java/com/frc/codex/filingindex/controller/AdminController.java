@@ -2,10 +2,7 @@ package com.frc.codex.filingindex.controller;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +21,7 @@ import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
+import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseClientImpl;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
@@ -86,8 +84,11 @@ public class AdminController {
 	) throws JsonProcessingException {
 		String company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
-		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber);
-		model.addAttribute("filingUrls", String.join("\n", filingUrls));
+		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber);
+		String filingUrls = filings.stream()
+				.map(NewFilingRequest::getDownloadUrl)
+				.collect(Collectors.joining("\n"));
+		model.addAttribute("filings", filingUrls);
 		return "admin/smoketest/companieshouse/company";
 	}
 
