@@ -1,42 +1,23 @@
 package com.frc.codex.discovery.companieshouse.impl;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.List;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 
 public class CompaniesHouseDocumentClient {
-	private final String baseUrl;
-	private final RestTemplate restTemplate;
-	private final HttpEntity<String> getJsonEntity;
+	private final CompaniesHouseHttpClient httpClient;
 
-	public CompaniesHouseDocumentClient(String baseUrl, String apiKey) {
-		this.baseUrl = requireNonNull(baseUrl);
-		this.restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-		// https://developer-specs.company-information.service.gov.uk/guides/authorisation
-		headers.setBasicAuth(apiKey, "");
-		this.getJsonEntity = new HttpEntity<>("parameters", headers);
-	}
-
-	private String get(String url) {
-		ResponseEntity<String> response = restTemplate.exchange(
-				baseUrl + url,
-				HttpMethod.GET,
-				this.getJsonEntity,
-				String.class
+	public CompaniesHouseDocumentClient(
+			CompaniesHouseRateLimiter rateLimiter,
+			String baseUrl,
+			String apiKey
+	) {
+		this.httpClient = new CompaniesHouseHttpClient(
+				rateLimiter,
+				baseUrl,
+				apiKey
 		);
-		return response.getBody();
 	}
 
 	public String getMetadata(String documentId) {
-		return get("/document/" + documentId);
+		return httpClient.get("/document/" + documentId);
 	}
 }

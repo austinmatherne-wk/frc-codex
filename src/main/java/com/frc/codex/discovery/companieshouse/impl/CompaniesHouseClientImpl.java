@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 
 @Component
 @Profile("application")
@@ -33,10 +34,10 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	public final CompaniesHouseInformationClient information;
 	public final CompaniesHouseStreamClient stream;
 
-	public CompaniesHouseClientImpl(CompaniesHouseConfig config) {
+	public CompaniesHouseClientImpl(CompaniesHouseConfig config, CompaniesHouseRateLimiter rateLimiter) {
 		this.config = requireNonNull(config);
-		this.document = new CompaniesHouseDocumentClient(config.documentApiBaseUrl(), config.restApiKey());
-		this.information = new CompaniesHouseInformationClient(config.informationApiBaseUrl(), config.restApiKey());
+		this.document = new CompaniesHouseDocumentClient(rateLimiter, config.documentApiBaseUrl(), config.restApiKey());
+		this.information = new CompaniesHouseInformationClient(rateLimiter, config.informationApiBaseUrl(), config.restApiKey());
 		this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
 	}
 

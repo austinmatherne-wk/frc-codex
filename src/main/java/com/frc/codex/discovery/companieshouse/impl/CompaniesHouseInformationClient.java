@@ -1,50 +1,30 @@
 package com.frc.codex.discovery.companieshouse.impl;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.List;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 
 public class CompaniesHouseInformationClient {
-	private final String baseUrl;
-	private final RestTemplate restTemplate;
-	private final HttpEntity<String> getJsonEntity;
+	private final CompaniesHouseHttpClient httpClient;
 
-	public CompaniesHouseInformationClient(String baseUrl, String apiKey) {
-		this.baseUrl = requireNonNull(baseUrl);
-		this.restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-		// https://developer-specs.company-information.service.gov.uk/guides/authorisation
-		headers.setBasicAuth(apiKey, "");
-		this.getJsonEntity = new HttpEntity<>("parameters", headers);
-	}
-
-	private String get(String url) {
-		ResponseEntity<String> response = restTemplate.exchange(
-				baseUrl + url,
-				HttpMethod.GET,
-				this.getJsonEntity,
-				String.class
+	public CompaniesHouseInformationClient(
+		CompaniesHouseRateLimiter rateLimiter,
+		String baseUrl,
+		String apiKey
+	) {
+		this.httpClient = new CompaniesHouseHttpClient(
+				rateLimiter,
+				baseUrl,
+				apiKey
 		);
-		return response.getBody();
 	}
-
 	public String getCompany(String companyNumber) {
-		return get("/company/" + companyNumber);
+		return httpClient.get("/company/" + companyNumber);
 	}
 
 	public String getCompanyFiling(String companyNumber, String filingId) {
-		return get("/company/" + companyNumber + "/filing-history/" + filingId);
+		return httpClient.get("/company/" + companyNumber + "/filing-history/" + filingId);
 	}
 
 	public String getCompanyFilingHistory(String companyNumber) {
-		return get("/company/" + companyNumber + "/filing-history");
+		return httpClient.get("/company/" + companyNumber + "/filing-history");
 	}
 }
