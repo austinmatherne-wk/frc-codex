@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:3.3.4"
-	developmentOnly 'org.springframework.boot:spring-boot-devtools:3.3.3'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools:3.3.4'
 	implementation 'com.google.guava:guava:33.3.0-jre'
 	implementation 'com.zaxxer:HikariCP:5.1.0'
 	implementation 'org.flywaydb:flyway-core:10.18.2'
