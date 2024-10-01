@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
@@ -45,14 +46,13 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 public class IndexerImpl implements Indexer {
 	private static final DateTimeFormatter CHA_FILENAME_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final int CH_LIMIT = 5;
 	private static final int CHA_LIMIT = 5;
-	private static final int FCA_LIMIT = 5;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
+	private final FilingIndexProperties properties;
 	private final QueueManager queueManager;
 
 	private final Pattern companiesHouseFilenamePattern;
@@ -64,12 +64,14 @@ public class IndexerImpl implements Indexer {
 	private Date fcaSessionLastEndedDate;
 
 	public IndexerImpl(
+			FilingIndexProperties properties,
 			CompaniesHouseClient companiesHouseClient,
 			CompaniesHouseHistoryClient companiesHouseHistoryClient,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			QueueManager queueManager
 	) {
+		this.properties = properties;
 		this.companiesHouseClient = companiesHouseClient;
 		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
 		this.databaseManager = databaseManager;
@@ -84,7 +86,11 @@ public class IndexerImpl implements Indexer {
 	 * @return true if the registry has reached its filing limit.
 	 */
 	private boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
-		return databaseManager.getRegistryCount(registryCode) >= limit;
+		if (limit >= 0 && databaseManager.getRegistryCount(registryCode) >= limit) {
+			LOG.info("Reached filing limit of {} for registry: {}", limit, registryCode);
+			return true;
+		}
+		return false;
 	}
 
 	public String getStatus() {
@@ -170,7 +176,7 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouse() throws IOException {
-		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
+		if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
 			return;
 		}
 		LOG.info("Starting Companies House indexing at {}", System.currentTimeMillis() / 1000);
@@ -186,8 +192,7 @@ public class IndexerImpl implements Indexer {
 				LOG.error("Failed to process filing event.", e);
 				return false; // Stop streaming
 			}
-			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, CH_LIMIT)) {
-				LOG.info("Reached Companies House filing limit.");
+			if (checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
 				return false;
 			}
 			if (companiesHouseSessionStartTimepoint == null) {
@@ -305,7 +310,7 @@ public class IndexerImpl implements Indexer {
 	public void indexFca() {
 		fcaSessionLastStartedDate = new Date();
 		LOG.info("Starting FCA indexing at {}", fcaSessionLastStartedDate);
-		if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
+		if (checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
 			return;
 		}
 		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(
@@ -323,8 +328,7 @@ public class IndexerImpl implements Indexer {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
 				continue;
 			}
-			if (checkRegistryLimit(RegistryCode.FCA, FCA_LIMIT)) {
-				LOG.info("Reached FCA filing limit.");
+			if (checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
 				break;
 			}
 			UUID filingId = databaseManager.createFiling(newFilingRequest);

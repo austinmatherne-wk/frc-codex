@@ -30,6 +30,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
+	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
+	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
 	private static final String S3_RESULTS_BUCKET_NAME = "S3_RESULTS_BUCKET_NAME";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
@@ -49,6 +51,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
+	private final int filingLimitCompaniesHouse;
+	private final int filingLimitFca;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -74,6 +78,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
+
+		// Limits must be explicitly overridden
+		filingLimitCompaniesHouse = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_COMPANIES_HOUSE, "5")));
+		filingLimitFca = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_FCA, "5")));
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
@@ -161,6 +169,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaSearchApiUrl() {
 		return fcaSearchApiUrl;
+	}
+
+	public int filingLimitCompaniesHouse() {
+		return filingLimitCompaniesHouse;
+	}
+
+	public int filingLimitFca() {
+		return filingLimitFca;
 	}
 
 	public HikariConfig getDatabaseConfig(String poolName) {

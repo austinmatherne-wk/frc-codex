@@ -13,6 +13,8 @@ public interface FilingIndexProperties {
 	String companiesHouseStreamApiKey();
 	String fcaDataApiBaseUrl();
 	String fcaSearchApiUrl();
+	int filingLimitCompaniesHouse();
+	int filingLimitFca();
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isDbMigrateAsync();
 	long maximumSearchResults();
