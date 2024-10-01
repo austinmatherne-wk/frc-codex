@@ -47,8 +47,8 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 @Profile("application")
 public class IndexerImpl implements Indexer {
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final int CHA_LIMIT = 5;
-	private static final int COMPANY_BATCH_SIZE = 100;
+	private static final int COMPANIES_BATCH_SIZE = 100;
+	private static final int COMPANIES_LIMIT = 1000;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
@@ -206,7 +206,7 @@ public class IndexerImpl implements Indexer {
 	@Scheduled(fixedDelay = 30 * 60 * 1000)
 	public void indexFilingsFromCompaniesIndex() throws JsonProcessingException {
 		LOG.info("Indexing filings from companies index.");
-		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANY_BATCH_SIZE);
+		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANIES_BATCH_SIZE);
 		LOG.info("Loaded {} incomplete companies from companies index.", companies.size());
 		for (Company company : companies) {
 			String companyNumber = company.getCompanyNumber();
@@ -235,12 +235,12 @@ public class IndexerImpl implements Indexer {
 	}
 
 	private void processCompaniesHouseArchive(URI uri, String archiveType) {
-		if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+		if (databaseManager.checkCompaniesLimit(COMPANIES_LIMIT)) {
 			return;
 		}
 		String filename = new File(uri.getPath()).getName();
 		if (databaseManager.companiesHouseArchiveExists(filename)) {
-			LOG.debug("Skipping existing CHA archive: {}", uri);
+			LOG.debug("Skipping existing CH archive: {}", uri);
 			return;
 		}
 		boolean completed = true;
@@ -299,7 +299,7 @@ public class IndexerImpl implements Indexer {
 
 	@Scheduled(fixedDelay = 30 * 60 * 1000)
 	public void indexCompaniesFromCompaniesHouseArchives() {
-		if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE_ARCHIVE, CHA_LIMIT)) {
+		if (databaseManager.checkCompaniesLimit(COMPANIES_LIMIT)) {
 			return;
 		}
 		List<URI> downloadLinks;

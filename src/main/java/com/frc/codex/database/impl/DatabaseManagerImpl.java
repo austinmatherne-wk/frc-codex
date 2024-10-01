@@ -87,6 +87,14 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
+	public boolean checkCompaniesLimit(int limit) {
+		if (limit >= 0 && getIncompleteCompaniesCount() >= limit) {
+			LOG.info("Reached limit of {} incomplete companies.", limit);
+			return true;
+		}
+		return false;
+	}
+
 	public boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
 		if (limit >= 0 && getRegistryCount(registryCode) >= limit) {
 			LOG.info("Reached limit of {} filings for registry {}.", limit, registryCode);
@@ -240,6 +248,18 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			statement.setString(1, status.toString());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private long getIncompleteCompaniesCount() {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT COUNT(*) FROM companies WHERE completed_date IS NULL";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			ResultSet resultSet = statement.executeQuery();
+			resultSet.next();
+			return resultSet.getLong(1);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

@@ -15,6 +15,7 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 
 public interface DatabaseManager {
 	void applyFilingResult(FilingResultRequest filingResultRequest);
+	boolean checkCompaniesLimit(int companiesLimit);
 	boolean checkRegistryLimit(RegistryCode registryCode, int limit);
 	boolean companiesHouseArchiveExists(String filename);
 	String createCompaniesHouseArchive(CompaniesHouseArchive archive);
