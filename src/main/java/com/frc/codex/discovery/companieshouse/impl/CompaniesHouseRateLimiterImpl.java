@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 
 @Component
@@ -19,18 +20,19 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 	private static final String HEADER_RATE_REMAINING = "X-Ratelimit-Remain";
 	private static final String HEADER_RATE_RESET = "X-Ratelimit-Reset";
 	private static final Logger LOG = LoggerFactory.getLogger(CompaniesHouseRateLimiterImpl.class);
-	private static final int RAPID_RATE_LIMIT = 20; // 600 requests per 5 minutes = 2 requests / second = 20 requests / 10 seconds
-	private static final int RAPID_RATE_WINDOW = 10 * 1000; // 10 seconds
-
 
 	private long limit;
 	private long remaining;
 	private Timestamp updated;
 	private final Queue<Timestamp> timestamps;
+	private final int rapidRateLimit;
+	private final int rapidRateWindow;
 	private Timestamp reset;
 	private Timestamp lastRejection;
 
-	public CompaniesHouseRateLimiterImpl() {
+	public CompaniesHouseRateLimiterImpl(CompaniesHouseConfig config) {
+		this.rapidRateLimit = config.rapidRateLimit();
+		this.rapidRateWindow = config.rapidRateWindow();
 		this.timestamps = new ConcurrentLinkedQueue<>();
 	}
 
@@ -88,7 +90,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		timestamps.add(now);
 
 		// Remove timestamps older than one minute
-		Timestamp oneMinuteAgo = new Timestamp(now.getTime() - RAPID_RATE_WINDOW);
+		Timestamp oneMinuteAgo = new Timestamp(now.getTime() - rapidRateWindow);
 		while (!timestamps.isEmpty() && timestamps.peek().before(oneMinuteAgo)) {
 			timestamps.poll();
 		}
@@ -96,9 +98,12 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 
 	public void waitForRapidRateLimit() throws InterruptedException {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
-		if (timestamps.size() >= RAPID_RATE_LIMIT) {
+		if (timestamps.size() >= rapidRateLimit) {
 			Timestamp oldest = timestamps.peek();
-			long waitTime = RAPID_RATE_WINDOW - (now.getTime() - oldest.getTime());
+			if (oldest == null) {
+				return;
+			}
+			long waitTime = rapidRateWindow - (now.getTime() - oldest.getTime());
 			if (waitTime > 0) {
 				LOG.info("Waiting for rapid rate limit: {} ms", waitTime);
 				Thread.sleep(waitTime);

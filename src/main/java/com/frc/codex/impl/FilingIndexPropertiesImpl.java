@@ -19,6 +19,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
+	private static final String COMPANIES_HOUSE_RAPID_RATE_LIMIT = "COMPANIES_HOUSE_RAPID_RATE_LIMIT";
+	private static final String COMPANIES_HOUSE_RAPID_RATE_WINDOW = "COMPANIES_HOUSE_RAPID_RATE_WINDOW";
 	private static final String COMPANIES_HOUSE_REST_API_KEY = "COMPANIES_HOUSE_REST_API_KEY";
 	private static final String COMPANIES_HOUSE_STREAM_API_BASE_URL = "COMPANIES_HOUSE_STREAM_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_STREAM_API_KEY = "COMPANIES_HOUSE_STREAM_API_KEY";
@@ -36,6 +38,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
+	private final int companiesHouseRapidRateLimit;
+	private final int companiesHouseRapidRateWindow;
 	private final String companiesHouseRestApiKey;
 	private final String companiesHouseStreamApiBaseUrl;
 	private final String companiesHouseStreamApiKey;
@@ -59,6 +63,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
 		companiesHouseStreamApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_STREAM_API_BASE_URL));
+		// Default rapid rate limit is 20 requests per 10 seconds (600 requests / 5 minutes)
+		companiesHouseRapidRateLimit = Integer.parseInt(requireNonNull(getEnv(COMPANIES_HOUSE_RAPID_RATE_LIMIT, "20")));
+		companiesHouseRapidRateWindow = Integer.parseInt(requireNonNull(getEnv(COMPANIES_HOUSE_RAPID_RATE_WINDOW, "10000")));
 
 		dbUrl = requireNonNull(getEnv(DB_URL));
 		dbUsername = requireNonNull(getEnv(DB_USERNAME));
@@ -126,6 +133,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String companiesHouseInformationApiBaseUrl() {
 		return companiesHouseInformationApiBaseUrl;
+	}
+
+	public int companiesHouseRapidRateLimit() {
+		return companiesHouseRapidRateLimit;
+	}
+
+	public int companiesHouseRapidRateWindow() {
+		return companiesHouseRapidRateWindow;
 	}
 
 	public String companiesHouseRestApiKey() {

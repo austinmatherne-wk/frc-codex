@@ -6,6 +6,8 @@ public interface FilingIndexProperties {
 	String awsRegion();
 	String companiesHouseDocumentApiBaseUrl();
 	String companiesHouseInformationApiBaseUrl();
+	int companiesHouseRapidRateLimit();
+	int companiesHouseRapidRateWindow();
 	String companiesHouseRestApiKey();
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
