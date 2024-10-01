@@ -44,6 +44,10 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		updateFiling(newFiling);
 	}
 
+	public boolean checkCompaniesLimit(int companiesLimit) {
+		return false;
+	}
+
 	public boolean checkRegistryLimit(RegistryCode registryCode, int limit) {
 		return false;
 	}
