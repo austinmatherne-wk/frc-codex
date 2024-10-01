@@ -30,30 +30,30 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	private static final Set<String> IGNORED_CONTENT_TYPES = Set.of("application/pdf", "application/json", "text/csv");
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseClientImpl.class);
 	private final CompaniesHouseConfig config;
-	public final CompaniesHouseDocumentClient document;
-	public final CompaniesHouseInformationClient information;
+	private final CompaniesHouseHttpClient document;
+	private final CompaniesHouseHttpClient information;
 	public final CompaniesHouseStreamClient stream;
 
 	public CompaniesHouseClientImpl(CompaniesHouseConfig config, CompaniesHouseRateLimiter rateLimiter) {
 		this.config = requireNonNull(config);
-		this.document = new CompaniesHouseDocumentClient(rateLimiter, config.documentApiBaseUrl(), config.restApiKey());
-		this.information = new CompaniesHouseInformationClient(rateLimiter, config.informationApiBaseUrl(), config.restApiKey());
+		this.document = new CompaniesHouseHttpClient(rateLimiter, config.documentApiBaseUrl(), config.restApiKey());
+		this.information = new CompaniesHouseHttpClient(rateLimiter, config.informationApiBaseUrl(), config.restApiKey());
 		this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
 	}
 
 	public String getCompany(String companyNumber) {
-		return information.getCompany(companyNumber);
+		return information.get("/company/" + companyNumber);
 	}
 
 	public Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException {
-		String json = information.getCompanyFiling(companyNumber, filingId);
+		String json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode node = mapper.readTree(json);
 		return getCompanyFilingUrls(node);
 	}
 
 	public String getCompanyFilingHistory(String companyNumber) {
-		return information.getCompanyFilingHistory(companyNumber);
+		return information.get("/company/" + companyNumber + "/filing-history");
 	}
 
 	private Set<String> getCompanyFilingUrls(JsonNode node) throws JsonProcessingException {
@@ -66,7 +66,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		}
 		String documentMetadataUrl = documentMetadata.asText();
 		String documentId = documentMetadataUrl.substring(documentMetadataUrl.lastIndexOf("/") + 1);
-		String metadata = document.getMetadata(documentId);
+		String metadata = document.get("/document/" + documentId);
 		JsonNode metadataNode = mapper.readTree(metadata);
 		JsonNode resources = metadataNode.get("resources");
 		if (resources != null) {
