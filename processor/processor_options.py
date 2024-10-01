@@ -14,10 +14,6 @@ class ProcessorOptions:
                 ]
             }
 
-    @cached_property
-    def companies_house_history_directory(self):
-        return os.getenv('COMPANIES_HOUSE_HISTORY_DIRECTORY', '/tmp/cha')
-
     @property
     def companies_house_rest_api_key(self):
         return self._secrets['COMPANIES_HOUSE_REST_API_KEY']
