@@ -109,7 +109,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 			}
 			long waitTime = rapidRateWindow - (now.getTime() - oldest.getTime());
 			if (waitTime > 0) {
-				LOG.debug("Waiting for rapid rate limit: {} ms", waitTime);
+				LOG.info("Waiting for rapid rate limit: {} ms", waitTime);
 				Thread.sleep(waitTime);
 			}
 		}
