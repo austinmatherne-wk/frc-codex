@@ -11,7 +11,6 @@ import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 
 @Component
-@Profile("application")
 public class CompaniesHouseConfigImpl implements CompaniesHouseConfig {
 
 	private final String documentApiBaseUrl;
