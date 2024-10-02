@@ -211,7 +211,13 @@ public class IndexerImpl implements Indexer {
 		for (Company company : companies) {
 			String companyNumber = company.getCompanyNumber();
 			LOG.info("Retrieving filings for company {}.", companyNumber);
-			List<NewFilingRequest> filings = companiesHouseClient.getCompanyFilings(companyNumber);
+			List<NewFilingRequest> filings;
+			try {
+				filings = companiesHouseClient.getCompanyFilings(companyNumber);
+			} catch (RateLimitException e) {
+				LOG.warn("Rate limit exceeded while retrieving CH filing history. Resuming later.", e);
+				return;
+			}
 			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
 			for (NewFilingRequest filing : filings) {
 				if (databaseManager.filingExists(filing)) {
