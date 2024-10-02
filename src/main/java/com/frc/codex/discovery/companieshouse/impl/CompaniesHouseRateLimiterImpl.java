@@ -64,6 +64,10 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		};
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		if (now.after(reset)) {
+			if (lastRejection != null && lastRejection.before(reset)) {
+				// We no longer care about the last rejection from the previous window.
+				lastRejection = null;
+			}
 			// The limits should have been reset since last update, so we should be healthy.
 			return true;
 		}
