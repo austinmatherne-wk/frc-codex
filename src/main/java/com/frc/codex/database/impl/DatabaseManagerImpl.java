@@ -125,13 +125,15 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		UUID filingId;
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "INSERT INTO filings " +
-					"(status, registry_code, download_url, filing_date, stream_timepoint, company_name, company_number) " +
-					"VALUES (?, ?, ?, ?, ?, ?, ?)";
+					"(status, registry_code, download_url, external_filing_id, external_view_url, filing_date, stream_timepoint, company_name, company_number) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?)";
 			PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 			int i = 0;
 			statement.setString(++i, FilingStatus.PENDING.toString());
 			statement.setString(++i, newFilingRequest.getRegistryCode());
 			statement.setString(++i, newFilingRequest.getDownloadUrl());
+			statement.setString(++i, newFilingRequest.getExternalFilingId());
+			statement.setString(++i, newFilingRequest.getExternalViewUrl());
 			statement.setTimestamp(++i, getTimestamp(newFilingRequest.getFilingDate()), TIMEZONE_UTC);
 			if (newFilingRequest.getStreamTimepoint() == null) {
 				statement.setNull(++i, java.sql.Types.BIGINT);
@@ -299,6 +301,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					.downloadUrl(resultSet.getString("download_url"))
 					.companyNumber(resultSet.getString("company_number"))
 					.companyName(resultSet.getString("company_name"))
+					.externalFilingId(resultSet.getString("external_filing_id"))
+					.externalViewUrl(resultSet.getString("external_view_url"))
 					.filename(resultSet.getString("filename"))
 					.filingType(resultSet.getString("filing_type"))
 					.filingDate(getLocalDateTime(

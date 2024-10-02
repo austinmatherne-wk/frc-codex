@@ -1,5 +1,6 @@
 package com.frc.codex.model;
 
+import com.frc.codex.RegistryCode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +16,8 @@ public class Filing {
 	private final String downloadUrl;
 	private final String companyName;
 	private final String companyNumber;
+	private final String externalFilingId;
+	private final String externalViewUrl;
 	private final String filename;
 	private final String filingType;
 	private final LocalDateTime filingDate;
@@ -34,6 +37,8 @@ public class Filing {
 		this.downloadUrl = b.downloadUrl;
 		this.companyName = b.companyName;
 		this.companyNumber = b.companyNumber;
+		this.externalFilingId = b.externalFilingId;
+		this.externalViewUrl = b.externalViewUrl;
 		this.filename = b.filename;
 		this.filingType = b.filingType;
 		this.filingDate = b.filingDate;
@@ -132,6 +137,17 @@ public class Filing {
 		return "view/" + filingId.toString() + "/" + stubViewerUrl;
 	}
 
+	public String getExternalViewUrl() {
+		if (getRegistryCode().equals(RegistryCode.FCA.toString()) ){
+			return externalViewUrl;
+		}
+		else {
+			return "https://find-and-update.company-information.service.gov.uk/company/"
+					+ companyNumber + "/filing-history/" + externalFilingId
+					+ "/document?format=pdf&download=0";
+		}
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -144,6 +160,8 @@ public class Filing {
 		private String downloadUrl;
 		private String companyName;
 		private String companyNumber;
+		private String externalFilingId;
+		private String externalViewUrl;
 		private String filename;
 		private String filingType;
 		private LocalDateTime filingDate;
@@ -193,6 +211,17 @@ public class Filing {
 			this.companyNumber = companyNumber;
 			return this;
 		}
+
+		public Builder externalFilingId(String externalFilingId) {
+			this.externalFilingId = externalFilingId;
+			return this;
+		}
+
+		public Builder externalViewUrl(String externalViewUrl) {
+			this.externalViewUrl = externalViewUrl;
+			return this;
+		}
+
 
 		public Builder filename(String filename) {
 			this.filename = filename;
