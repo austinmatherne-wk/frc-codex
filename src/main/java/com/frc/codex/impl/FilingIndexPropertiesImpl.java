@@ -19,6 +19,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
+	private static final String COMPANIES_HOUSE_RAPID_RATE_LIMIT = "COMPANIES_HOUSE_RAPID_RATE_LIMIT";
+	private static final String COMPANIES_HOUSE_RAPID_RATE_WINDOW = "COMPANIES_HOUSE_RAPID_RATE_WINDOW";
 	private static final String COMPANIES_HOUSE_REST_API_KEY = "COMPANIES_HOUSE_REST_API_KEY";
 	private static final String COMPANIES_HOUSE_STREAM_API_BASE_URL = "COMPANIES_HOUSE_STREAM_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_STREAM_API_KEY = "COMPANIES_HOUSE_STREAM_API_KEY";
@@ -28,6 +30,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
+	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
+	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
 	private static final String S3_RESULTS_BUCKET_NAME = "S3_RESULTS_BUCKET_NAME";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
@@ -36,6 +40,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
+	private final int companiesHouseRapidRateLimit;
+	private final int companiesHouseRapidRateWindow;
 	private final String companiesHouseRestApiKey;
 	private final String companiesHouseStreamApiBaseUrl;
 	private final String companiesHouseStreamApiKey;
@@ -45,6 +51,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
+	private final int filingLimitCompaniesHouse;
+	private final int filingLimitFca;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -59,6 +67,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
 		companiesHouseStreamApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_STREAM_API_BASE_URL));
+		// Default rapid rate limit is 20 requests per 10 seconds (600 requests / 5 minutes)
+		companiesHouseRapidRateLimit = Integer.parseInt(requireNonNull(getEnv(COMPANIES_HOUSE_RAPID_RATE_LIMIT, "20")));
+		companiesHouseRapidRateWindow = Integer.parseInt(requireNonNull(getEnv(COMPANIES_HOUSE_RAPID_RATE_WINDOW, "10000")));
 
 		dbUrl = requireNonNull(getEnv(DB_URL));
 		dbUsername = requireNonNull(getEnv(DB_USERNAME));
@@ -67,6 +78,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
+
+		// Limits must be explicitly overridden
+		filingLimitCompaniesHouse = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_COMPANIES_HOUSE, "5")));
+		filingLimitFca = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_FCA, "5")));
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
@@ -128,6 +143,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		return companiesHouseInformationApiBaseUrl;
 	}
 
+	public int companiesHouseRapidRateLimit() {
+		return companiesHouseRapidRateLimit;
+	}
+
+	public int companiesHouseRapidRateWindow() {
+		return companiesHouseRapidRateWindow;
+	}
+
 	public String companiesHouseRestApiKey() {
 		return companiesHouseRestApiKey;
 	}
@@ -146,6 +169,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaSearchApiUrl() {
 		return fcaSearchApiUrl;
+	}
+
+	public int filingLimitCompaniesHouse() {
+		return filingLimitCompaniesHouse;
+	}
+
+	public int filingLimitFca() {
+		return filingLimitFca;
 	}
 
 	public HikariConfig getDatabaseConfig(String poolName) {

@@ -6,11 +6,15 @@ public interface FilingIndexProperties {
 	String awsRegion();
 	String companiesHouseDocumentApiBaseUrl();
 	String companiesHouseInformationApiBaseUrl();
+	int companiesHouseRapidRateLimit();
+	int companiesHouseRapidRateWindow();
 	String companiesHouseRestApiKey();
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
 	String fcaDataApiBaseUrl();
 	String fcaSearchApiUrl();
+	int filingLimitCompaniesHouse();
+	int filingLimitFca();
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isDbMigrateAsync();
 	long maximumSearchResults();

@@ -22,6 +22,14 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "http://localhost:8085";
 	}
 
+	public int companiesHouseRapidRateLimit() {
+		return 20;
+	}
+
+	public int companiesHouseRapidRateWindow() {
+		return 10;
+	}
+
 	public String companiesHouseRestApiKey() {
 		return "XXX";
 	}
@@ -40,6 +48,14 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaSearchApiUrl() {
 		return "http://localhost:8086/search";
+	}
+
+	public int filingLimitCompaniesHouse() {
+		return 5;
+	}
+
+	public int filingLimitFca() {
+		return 5;
 	}
 
 	public HikariConfig getDatabaseConfig(String poolName) {

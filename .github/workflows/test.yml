@@ -44,7 +44,7 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: |
-          sleep 60
+          sleep 120
           echo "Test homepage"
           curl -i --fail http://localhost:8080/
           echo "Test CH API client"
