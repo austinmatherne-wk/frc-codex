@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS filings (
     -- Fields that may or may not be known before processing
     company_name VARCHAR(100),
     company_number VARCHAR(20),
+    external_filing_id VARCHAR(50),
+    external_view_url VARCHAR(500),
     filename VARCHAR(255),
     filing_type VARCHAR(20),
     filing_date TIMESTAMP,

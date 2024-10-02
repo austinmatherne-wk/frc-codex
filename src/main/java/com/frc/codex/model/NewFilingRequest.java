@@ -7,8 +7,10 @@ public class NewFilingRequest {
 	private String companyNumber;
 	private String registryCode;
 	private String downloadUrl;
+	private String externalFilingId;
 	private LocalDateTime filingDate;
 	private Long streamTimepoint;
+	private String externalViewUrl;
 
 	public String getCompanyName() {
 		return companyName;
@@ -26,12 +28,20 @@ public class NewFilingRequest {
 		return downloadUrl;
 	}
 
+	public String getExternalFilingId() {
+		return externalFilingId;
+	}
+
 	public LocalDateTime getFilingDate() {
 		return filingDate;
 	}
 
 	public Long getStreamTimepoint() {
 		return streamTimepoint;
+	}
+
+	public String getExternalViewUrl() {
+		return externalViewUrl;
 	}
 
 	public void setCompanyName(String companyName) {
@@ -46,6 +56,10 @@ public class NewFilingRequest {
 		this.registryCode = registryCode;
 	}
 
+	public void setExternalFilingId(String externalFilingId) {
+		this.externalFilingId = externalFilingId;
+	}
+
 	public void setDownloadUrl(String downloadUrl) {
 		this.downloadUrl = downloadUrl;
 	}
@@ -56,5 +70,9 @@ public class NewFilingRequest {
 
 	public void setStreamTimepoint(Long streamTimepoint) {
 		this.streamTimepoint = streamTimepoint;
+	}
+
+	public void setExternalViewUrl(String externalViewUrl) {
+		this.externalViewUrl = externalViewUrl;
 	}
 }

@@ -142,6 +142,7 @@ public class IndexerImpl implements Indexer {
 		String[] resourceUriSplit = resourceUri.split("/");
 		String companyNumber = resourceUriSplit[2];
 		String resourceId = filing.get("resource_id").asText();
+		String externalFilingId = data.get("transaction_id").asText();
 		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber, resourceId);
 		for (String filingUrl : filingUrls) {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();
@@ -149,6 +150,7 @@ public class IndexerImpl implements Indexer {
 			newFilingRequest.setDownloadUrl(filingUrl);
 			newFilingRequest.setFilingDate(filingDate);
 			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
+			newFilingRequest.setExternalFilingId(externalFilingId);
 			newFilingRequest.setStreamTimepoint(timepoint);
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing CH filing: {}", filingUrl);
@@ -313,7 +315,9 @@ public class IndexerImpl implements Indexer {
 			newFilingRequest.setCompanyName(filing.companyName());
 			newFilingRequest.setCompanyNumber(filing.lei());
 			newFilingRequest.setDownloadUrl(filing.downloadUrl());
+			newFilingRequest.setExternalFilingId(filing.sequenceId());
 			newFilingRequest.setFilingDate(filing.submittedDate());
+			newFilingRequest.setExternalViewUrl(filing.infoUrl());
 			newFilingRequest.setRegistryCode(RegistryCode.FCA.toString());
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
