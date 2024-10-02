@@ -234,14 +234,19 @@ public class IndexerImpl implements Indexer {
 		}
 	}
 
-	private void processCompaniesHouseArchive(URI uri, String archiveType) {
+	/*
+	 * Processes a Companies House archive by downloading it and index known companies by
+	 * extracting company numbers from the contained filenames.
+	 * Returns true if the archive was processed successfully or doesn't need processing.
+	 */
+	private boolean processCompaniesHouseArchive(URI uri, String archiveType) {
 		if (databaseManager.checkCompaniesLimit(COMPANIES_LIMIT)) {
-			return;
+			return false;
 		}
 		String filename = new File(uri.getPath()).getName();
 		if (databaseManager.companiesHouseArchiveExists(filename)) {
 			LOG.debug("Skipping existing CH archive: {}", uri);
-			return;
+			return true;
 		}
 		boolean completed = true;
 		LOG.info("Downloading archive: {}", uri);
@@ -252,7 +257,7 @@ public class IndexerImpl implements Indexer {
 			this.companiesHouseHistoryClient.downloadArchive(uri, tempFile.toPath());
 		} catch (IOException e) {
 			LOG.error("Failed to download archive: {}", uri, e);
-			return;
+			return false;
 		}
 		LOG.info("Downloaded archive: {}", tempFile.toPath());
 
@@ -264,7 +269,7 @@ public class IndexerImpl implements Indexer {
 					.toList();
 		} catch (Exception e) {
 			LOG.error("Failed to get arcnames for archive: {}", uri, e);
-			return;
+			return false;
 		}
 		LOG.info("Found arcnames: {}", arcnames.size());
 
@@ -285,7 +290,7 @@ public class IndexerImpl implements Indexer {
 				continue;
 			}
 			databaseManager.createCompany(company);
-			LOG.info("Created company {}.", companyNumber);
+			LOG.debug("Created company {}.", companyNumber);
 		}
 		if (completed) {
 			CompaniesHouseArchive archive = CompaniesHouseArchive.builder()
@@ -295,6 +300,7 @@ public class IndexerImpl implements Indexer {
 					.build();
 			databaseManager.createCompaniesHouseArchive(archive);
 		}
+		return true;
 	}
 
 	@Scheduled(fixedDelay = 30 * 60 * 1000)
@@ -305,15 +311,21 @@ public class IndexerImpl implements Indexer {
 		List<URI> downloadLinks;
 		downloadLinks = companiesHouseHistoryClient.getDailyDownloadLinks();
 		for (URI uri : downloadLinks) {
-			processCompaniesHouseArchive(uri, "daily");
+			if (!processCompaniesHouseArchive(uri, "daily")) {
+				return;
+			}
 		}
 		downloadLinks = companiesHouseHistoryClient.getMonthlyDownloadLinks();
 		for (URI uri : downloadLinks) {
-			processCompaniesHouseArchive(uri, "monthly");
+			if (!processCompaniesHouseArchive(uri, "monthly")) {
+				return;
+			}
 		}
 		downloadLinks = companiesHouseHistoryClient.getArchiveDownloadLinks();
 		for (URI uri : downloadLinks) {
-			processCompaniesHouseArchive(uri, "archive");
+			if (!processCompaniesHouseArchive(uri, "archive")) {
+				return;
+			}
 		}
 	}
 
