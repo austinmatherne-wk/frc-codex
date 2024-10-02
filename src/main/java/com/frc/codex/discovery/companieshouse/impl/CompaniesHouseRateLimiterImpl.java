@@ -100,7 +100,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		}
 	}
 
-	public void waitForRapidRateLimit() throws InterruptedException {
+	public synchronized void waitForRapidRateLimit() throws InterruptedException {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		if (timestamps.size() >= rapidRateLimit) {
 			Timestamp oldest = timestamps.peek();
