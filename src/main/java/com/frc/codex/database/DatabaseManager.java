@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.frc.codex.RegistryCode;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
@@ -14,6 +15,8 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 
 public interface DatabaseManager {
 	void applyFilingResult(FilingResultRequest filingResultRequest);
+	boolean checkCompaniesLimit(int companiesLimit);
+	boolean checkRegistryLimit(RegistryCode registryCode, int limit);
 	boolean companiesHouseArchiveExists(String filename);
 	String createCompaniesHouseArchive(CompaniesHouseArchive archive);
 	UUID createFiling(NewFilingRequest newFilingRequest);
@@ -25,4 +28,8 @@ public interface DatabaseManager {
 	long getRegistryCount(RegistryCode registryCode);
 	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
+	boolean companyExists(Company company);
+	void createCompany(Company company);
+	void updateCompany(Company company);
+	List<Company> getIncompleteCompanies(int limit);
 }

@@ -37,10 +37,11 @@ public class CompaniesHouseHttpClient {
 	}
 
 	public String get(String relativeUrl) {
+		String url = baseUrl + relativeUrl;
+		LOG.info("CH API GET: {}", url);
 		if (!rateLimiter.isHealthy()) {
 			throw new RateLimitException("Companies House rate limiter state is unhealthy.");
 		}
-		String url = baseUrl + relativeUrl;
 		ResponseEntity<String> response;
 		try {
 			response = restTemplate.exchange(
