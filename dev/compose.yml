@@ -22,6 +22,7 @@ services:
       DB_USERNAME: "frc_codex"
       FCA_DATA_API_BASE_URL: "https://data.fca.org.uk/artefacts/"
       FCA_SEARCH_API_URL: "https://api.data.fca.org.uk/search?index=fca-nsm-searchdata"
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,address=*:8180,suspend=n"
       S3_RESULTS_BUCKET_NAME: "frc-codex-results"
       SQS_JOBS_QUEUE_NAME: "frc_codex_jobs"
       SQS_RESULTS_QUEUE_NAME: "frc_codex_results"
@@ -29,6 +30,7 @@ services:
       - frc-codex-server.secrets
     ports:
       - 8080:8080
+      - 8180:8180
   frc-codex-processor:
     image: frc-codex-processor:latest
     depends_on:

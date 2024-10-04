@@ -64,3 +64,13 @@ To build images and compose services:
     ./dev/env-setup.sh
 ```
 Or, to build images and compose services separately, use `./dev/env-build.sh` and `./dev/env-compose.sh` respectively.
+
+## Remote Debugging
+You can attach to the composed Docker container within IntelliJ for debugging:
+1. Create a "Remote JVM Debug" run configuration in IntelliJ.
+2. Select "Attach to remote JVM" for debugger mode.
+3. Enter "localhost" for host.
+4. Enter "8180" for port (should match the port configured in JAVA_TOOL_OPTIONS).
+5. Compose your docker environment
+6. Run the "Remote JVM Debug" configuration in IntelliJ.
+7. A successful attachment will show "Connected to the target VM (...)" or similar.
