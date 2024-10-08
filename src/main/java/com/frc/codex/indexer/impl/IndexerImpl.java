@@ -382,6 +382,9 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 20 * 1000)
 	public void processResults() {
+		if (!properties.enablePreprocessing()) {
+			return;
+		}
 		LOG.info("Starting to process results.");
 		queueManager.processResults((FilingResultRequest filingResultRequest) -> {
 			try {
@@ -402,6 +405,9 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 20 * 1000)
 	public void queueJobs() {
+		if (!properties.enablePreprocessing()) {
+			return;
+		}
 		LOG.info("Starting to queue jobs.");
 		List<Filing> filings = databaseManager.getFilingsByStatus(FilingStatus.PENDING);
 		LOG.info("Pending filings: {}", filings.size());
