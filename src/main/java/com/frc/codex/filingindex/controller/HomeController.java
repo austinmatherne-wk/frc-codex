@@ -82,23 +82,7 @@ public class HomeController {
 				if (filings.size() >= this.maximumSearchResults) {
 					maximumResultsReturned = true;
 				} else if (filings.size() >= searchFilingsRequest.getLimit()) {
-					moreResultsLink = "/?companyName=" + searchFilingsRequest.getCompanyName() +
-							"&companyNumber=" + searchFilingsRequest.getCompanyNumber() +
-							"&filingDate=" + searchFilingsRequest.getCompanyNumber() +
-							"&limit=" + (searchFilingsRequest.getLimit() + this.searchPageSize) +
-							"&minDocumentDateDay=" + searchFilingsRequest.getMinDocumentDateDay() +
-							"&minDocumentDateMonth=" + searchFilingsRequest.getMinDocumentDateMonth() +
-							"&minDocumentDateYear=" + searchFilingsRequest.getMinDocumentDateYear() +
-							"&maxDocumentDateDay=" + searchFilingsRequest.getMaxDocumentDateDay() +
-							"&maxDocumentDateMonth=" + searchFilingsRequest.getMaxDocumentDateMonth() +
-							"&maxDocumentDateYear=" + searchFilingsRequest.getMaxDocumentDateYear() +
-							"$minFilingDateDay=" + searchFilingsRequest.getMinFilingDateDay() +
-							"&minFilingDateMonth=" + searchFilingsRequest.getMinFilingDateMonth() +
-							"&minFilingDateYear=" + searchFilingsRequest.getMinFilingDateYear() +
-							"&maxFilingDateDay=" + searchFilingsRequest.getMaxFilingDateDay() +
-							"&maxFilingDateMonth=" + searchFilingsRequest.getMaxFilingDateMonth() +
-							"&maxFilingDateYear=" + searchFilingsRequest.getMaxFilingDateYear() +
-							"#result-" + (filings.size() - 1);
+					moreResultsLink = searchFilingsRequest.getLoadMoreLink(this.searchPageSize, filings.size() - 1);
 				}
 			}
 		}
