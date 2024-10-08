@@ -10,6 +10,7 @@ from arelle.api.Session import Session  # type: ignore
 
 from processor.base.queue_manager import JobMessage
 from processor.base.worker import Worker, WorkerResult
+from processor.processor_options import ProcessorOptions
 
 DEFAULT_TAXONOMY_PACKAGES = [
     "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip",
@@ -34,8 +35,9 @@ class IxbrlViewerResult:
 
 class IxbrlViewerWorker(Worker):
 
-    def __init__(self, cache_directory: Path):
-        self._cache_directory = cache_directory
+    def __init__(self, processor_options: ProcessorOptions, http_cache_directory: Path | None = None):
+        self._http_cache_directory = http_cache_directory or processor_options.http_cache_directory
+        self._ixbrl_viewer_plugin_path = processor_options.ixbrl_viewer_plugin_path
 
     def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
         packages = list(DEFAULT_TAXONOMY_PACKAGES)
@@ -50,16 +52,19 @@ class IxbrlViewerWorker(Worker):
         result = self._generate_viewer(target_path, viewer_directory, packages)
         if not result.success:
             return WorkerResult(
+                job_message.filing_id,
                 error='Viewer generation failed within Arelle. Check the logs for details.',
                 logs=result.logs
             )
         viewer_path = viewer_directory / VIEWER_HTML_FILENAME
         if not viewer_path.exists():
             return WorkerResult(
+                job_message.filing_id,
                 error='Arelle reported success but viewer was not found. Check the logs for details.',
                 logs=result.logs
             )
         return WorkerResult(
+            job_message.filing_id,
             success=True,
             viewer_entrypoint=VIEWER_HTML_FILENAME,
             logs=result.logs,
@@ -76,7 +81,7 @@ class IxbrlViewerWorker(Worker):
 
     def _generate_viewer(self, target_path: Path, viewer_directory: Path, packages: list[str]) -> IxbrlViewerResult:
         runtime_options = RuntimeOptions(
-            cacheDirectory=str(self._cache_directory),
+            cacheDirectory=str(self._http_cache_directory),
             disablePersistentConfig=True,
             entrypointFile=str(target_path),
             internetLogDownloads=True,
@@ -91,7 +96,7 @@ class IxbrlViewerWorker(Worker):
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
             },
-            plugins='/processor/plugins/iXBRLViewerPlugin',
+            plugins=str(self._ixbrl_viewer_plugin_path),
             strictOptions=False,
         )
         with Session() as session:

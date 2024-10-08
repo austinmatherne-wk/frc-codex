@@ -1,3 +1,4 @@
+import json
 import logging
 import tempfile
 import zipfile
@@ -17,12 +18,10 @@ class Processor:
     def __init__(
             self,
             download_manager: DownloadManager,
-            queue_manager: QueueManager,
             upload_manager: UploadManager,
             worker_factory: WorkerFactory,
     ):
         self._download_manager = download_manager
-        self._queue_manager = queue_manager
         self._upload_manager = upload_manager
         self._worker_factory = worker_factory
 
@@ -46,7 +45,7 @@ class Processor:
                     break
             return target_path, zip_file.namelist()
 
-    def _handle_message(self, job_message: JobMessage) -> WorkerResult:
+    def _handle_message(self, job_message: JobMessage, queue_manager: QueueManager) -> WorkerResult:
         logger.info(
             "Processing started for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
@@ -66,12 +65,12 @@ class Processor:
             success=worker_result.success,
             viewer_entrypoint=worker_result.viewer_entrypoint,
         )
-        self._queue_manager.publish_result(result_message)
+        queue_manager.publish_result(result_message)
         logger.info(
             "Added result message for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
         )
-        self._queue_manager.complete_job(job_message)
+        queue_manager.complete_job(job_message)
         logger.info(
             "Removed job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
@@ -90,6 +89,7 @@ class Processor:
                         namelist, job_message.message_id, job_message.filing_id
                     )
                     return WorkerResult(
+                        job_message.filing_id,
                         error=f'Target path could not be determined in filing from {namelist}.'
                     )
                 logger.info('Using target path: %s', target_path)
@@ -112,10 +112,36 @@ class Processor:
                 "An unexpected error occurred while processing the filing: (Message: %s, Filing: %s)",
                 job_message.message_id, job_message.filing_id
             )
-            return WorkerResult(error='An unexpected error occurred while processing the filing: ' + str(e))
+            return WorkerResult(
+                job_message.filing_id,
+                error='An unexpected error occurred while processing the filing: ' + str(e)
+            )
 
-    def run(self) -> list[WorkerResult]:
+    def run_from_queue(self, queue_manager: QueueManager) -> list[WorkerResult]:
         results = []
-        for message in self._queue_manager.get_jobs():
-            results.append(self._handle_message(message))
+        for message in queue_manager.get_jobs():
+            results.append(self._handle_message(message, queue_manager))
         return results
+
+    def run_from_lambda(self, event, context) -> WorkerResult:
+        body = event
+        if 'body' in body:
+            body = json.loads(body['body'])
+
+        job_message = JobMessage(
+            filing_id=body['filing_id'],
+            download_url=body['filing_url'],
+            registry_code=body['registry_code'],
+            receipt_handle=context.aws_request_id,
+            message_id=context.aws_request_id,
+        )
+        logger.info(
+            "Processing started for Lambda event: (Event: %s, Filing: %s)",
+            job_message.message_id, job_message.filing_id
+        )
+        worker_result = self._process_filing(job_message)
+        logger.info(
+            "Processing finished for Lambda event: (Event: %s, Filing: %s)",
+            job_message.message_id, job_message.filing_id
+        )
+        return worker_result
