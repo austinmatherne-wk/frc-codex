@@ -1,10 +1,15 @@
 package com.frc.codex.model;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class FilingResultRequest {
+	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final String companyName;
 	private final String companyNumber;
 	private final LocalDateTime documentDate;
@@ -86,6 +91,15 @@ public class FilingResultRequest {
 			return this;
 		}
 
+		public Builder documentDate(String documentDate) {
+			if (documentDate == null) {
+				this.documentDate = null;
+			} else {
+				this.documentDate = LocalDate.parse(documentDate, DATE_FORMAT).atStartOfDay();
+			}
+			return this;
+		}
+
 		public Builder error(String error) {
 			this.error = error;
 			return this;
@@ -94,6 +108,35 @@ public class FilingResultRequest {
 		public Builder filingId(UUID filingId) {
 			this.filingId = filingId;
 			return this;
+		}
+
+		public Builder json(JsonNode jsonNode) {
+			boolean success = Objects.equals(jsonNode.get("Success").asText(), "true");
+			String error = null;
+			String viewerEntrypoint = null;
+			if (!success) {
+				error = jsonNode.get("Error").asText();
+			} else {
+				viewerEntrypoint = jsonNode.get("ViewerEntrypoint").asText();
+			}
+			String companyName = jsonNode.get("CompanyName").asText();
+			companyName = companyName == null ? null : companyName.toUpperCase();
+			String companyNumber = jsonNode.get("CompanyNumber").asText();
+			String documentDate = null;
+			if (jsonNode.has("DocumentDate")) {
+				documentDate = jsonNode.get("DocumentDate").asText();
+			}
+			UUID filingId = UUID.fromString(Objects.requireNonNull(jsonNode.get("FilingId").asText()));
+			String logs = jsonNode.get("Logs").asText();
+			return this
+					.companyName(companyName)
+					.companyNumber(companyNumber)
+					.documentDate(documentDate)
+					.error(error)
+					.filingId(filingId)
+					.logs(logs)
+					.stubViewerUrl(viewerEntrypoint)
+					.success(success);
 		}
 
 		public Builder logs(String logs) {

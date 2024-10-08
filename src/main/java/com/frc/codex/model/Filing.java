@@ -134,7 +134,8 @@ public class Filing {
 	}
 
 	public String getViewerLink() {
-		return "view/" + filingId.toString() + "/" + stubViewerUrl;
+		String path = stubViewerUrl == null ? "viewer" : stubViewerUrl;
+		return "view/" + filingId.toString() + "/" + path;
 	}
 
 	public String getExternalViewUrl() {
