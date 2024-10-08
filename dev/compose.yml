@@ -32,6 +32,8 @@ services:
       - 8080:8080
       - 8180:8180
   frc-codex-processor:
+    profiles:
+        - disabled
     image: frc-codex-processor:latest
     depends_on:
       localstack:
