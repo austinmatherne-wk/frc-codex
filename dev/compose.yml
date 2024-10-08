@@ -4,6 +4,8 @@ services:
     depends_on:
       localstack:
         condition: service_healthy
+      frc-codex-lambda:
+        condition: service_healthy
     healthcheck:
       interval: 2s
       retries: 30
@@ -31,6 +33,30 @@ services:
     ports:
       - 8080:8080
       - 8180:8180
+  frc-codex-lambda:
+    image: frc-codex-lambda:latest
+    healthcheck:
+      interval: 1s
+      retries: 0
+      test: exit 0 # TODO: Improve healthcheck
+      timeout: 1s
+    environment:
+      AWS_ACCESS_KEY_ID: 'local_aws_access_key_id'
+      AWS_ENDPOINT_URL: 'http://localstack.localhost:4566'
+      AWS_SECRET_ACCESS_KEY: 'local_aws_secret_access_key'
+      SECRETS_FILEPATH: '/run/secrets/frc-codex-server.secrets'
+      S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
+      S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
+      S3_REGION_NAME: 'eu-west-2'
+    platform: linux/amd64
+    ports:
+      - 8081:8080
+    networks:
+      default:
+        aliases:
+          - lambda.localhost
+    secrets:
+      - frc-codex-server.secrets
   frc-codex-processor:
     profiles:
         - disabled

@@ -9,7 +9,7 @@ docker compose -f ./dev/compose.yml "${EXTRA_ARGS[@]}" up -d
 
 # Set up the logging
 mkdir -p ./dev/logs
-for service in frc-codex-processor frc-codex-server; do
+for service in frc-codex-lambda frc-codex-processor frc-codex-server; do
   docker compose -f ./dev/compose.yml logs -f $service > ./dev/logs/$service.log 2>&1 &
 done
 
