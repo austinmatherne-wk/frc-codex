@@ -53,7 +53,6 @@ public class HomeController {
 		model.addObject("minFilingDateError", getDateValidation(searchFilingsRequest::getMinFilingDate));
 		model.addObject("maxDocumentDateError", getDateValidation(searchFilingsRequest::getMaxDocumentDate));
 		model.addObject("maxFilingDateError", getDateValidation(searchFilingsRequest::getMaxFilingDate));
-		searchFilingsRequest.setStatus(FilingStatus.COMPLETED.toString());
 		List<Filing> filings;
 		String message = null;
 		boolean maximumResultsReturned = false;
