@@ -28,6 +28,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_USERNAME = "DB_USERNAME";
 	private static final String DB_PASSWORD = "DB_PASSWORD";
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
+	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
@@ -49,6 +50,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String dbUsername;
 	private final String dbPassword;
 	private final long dbMaxLifetime;
+	private final boolean enablePreprocessing;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
 	private final int filingLimitCompaniesHouse;
@@ -75,6 +77,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		dbUsername = requireNonNull(getEnv(DB_USERNAME));
 		dbPassword = requireNonNull(getEnv(DB_PASSWORD));
 		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300")));
+
+		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
 
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
@@ -161,6 +165,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String companiesHouseStreamApiKey() {
 		return companiesHouseStreamApiKey;
+	}
+
+	public boolean enablePreprocessing() {
+		return enablePreprocessing;
 	}
 
 	public String fcaDataApiBaseUrl() {
