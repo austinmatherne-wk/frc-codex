@@ -55,6 +55,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String fcaSearchApiUrl;
 	private final int filingLimitCompaniesHouse;
 	private final int filingLimitFca;
+	private final boolean isCi;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -86,6 +87,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		// Limits must be explicitly overridden
 		filingLimitCompaniesHouse = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_COMPANIES_HOUSE, "5")));
 		filingLimitFca = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_FCA, "5")));
+
+		isCi = Boolean.parseBoolean(getEnv("CI", "false"));
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
@@ -198,6 +201,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		config.setMaxLifetime(dbMaxLifetime);
 		config.setPoolName(poolName);
 		return config;
+	}
+
+	public boolean isCi() {
+		return isCi;
 	}
 
 	public boolean isDbMigrateAsync() {

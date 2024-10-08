@@ -16,6 +16,7 @@ services:
       AWS_ENDPOINT_URL: "http://localstack.localhost:4566"
       AWS_REGION: "eu-west-2"
       AWS_SECRET_ACCESS_KEY: "local_aws_secret_access_key"
+      CI: "true"
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"
       COMPANIES_HOUSE_INFORMATION_API_BASE_URL: "https://api.companieshouse.gov.uk"
       COMPANIES_HOUSE_STREAM_API_BASE_URL: "https://stream.companieshouse.gov.uk"
