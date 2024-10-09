@@ -220,6 +220,7 @@ public class IndexerImpl implements Indexer {
 			}
 			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
 			for (NewFilingRequest filing : filings) {
+				filing.setCompanyName(company.getCompanyName());
 				if (databaseManager.filingExists(filing)) {
 					LOG.info("Skipping existing filing: {}", filing.getDownloadUrl());
 					continue;
