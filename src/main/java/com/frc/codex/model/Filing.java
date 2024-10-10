@@ -145,7 +145,7 @@ public class Filing {
 		else {
 			return "https://find-and-update.company-information.service.gov.uk/company/"
 					+ companyNumber + "/filing-history/" + externalFilingId
-					+ "/document?format=pdf&download=0";
+					+ "/document?format=xhtml&download=0";
 		}
 	}
 
