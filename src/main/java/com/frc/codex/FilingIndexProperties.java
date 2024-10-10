@@ -17,7 +17,7 @@ public interface FilingIndexProperties {
 	int filingLimitCompaniesHouse();
 	int filingLimitFca();
 	HikariConfig getDatabaseConfig(String poolName);
-	boolean isCi();
+	boolean isAws();
 	boolean isDbMigrateAsync();
 	long maximumSearchResults();
 	String s3ResultsBucketName();

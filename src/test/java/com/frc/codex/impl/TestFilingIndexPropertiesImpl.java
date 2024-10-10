@@ -74,8 +74,8 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return config;
 	}
 
-	public boolean isCi() {
-		return true;
+	public boolean isAws() {
+		return false;
 	}
 
 	public boolean isDbMigrateAsync() {

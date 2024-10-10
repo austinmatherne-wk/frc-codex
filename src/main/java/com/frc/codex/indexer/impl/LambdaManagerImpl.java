@@ -30,17 +30,17 @@ public class LambdaManagerImpl implements LambdaManager {
 
 	public LambdaManagerImpl(FilingIndexProperties properties) throws URISyntaxException {
 		this.properties = properties;
-		if (properties.isCi()) {
+		if (properties.isAws()) {
+			this.client = LambdaAsyncClient.builder()
+					.region(Region.of(properties.awsRegion()))
+					.build();
+		} else {
 			this.client = LambdaAsyncClient.builder()
 					.endpointOverride(new URI("http://lambda.localhost:8080/"))
 					.overrideConfiguration(ClientOverrideConfiguration.builder()
 							.apiCallAttemptTimeout(Duration.ofSeconds(300))
 							.apiCallTimeout(Duration.ofSeconds(300))
 							.build())
-					.region(Region.of(properties.awsRegion()))
-					.build();
-		} else {
-			this.client = LambdaAsyncClient.builder()
 					.region(Region.of(properties.awsRegion()))
 					.build();
 		}
@@ -59,9 +59,12 @@ public class LambdaManagerImpl implements LambdaManager {
 	}
 
 	public InvokeResponse invokeSync(FilingPayload payload) throws ExecutionException, InterruptedException {
-		if (properties.isCi()) {
+		if (properties.isAws()) {
+			CompletableFuture<InvokeResponse> future = invokeAsync(payload);
+			return future.get();
+		} else {
 			// Local Lambda container can't currently handle concurrent requests (as it's meant to emulate
-			// a true Lambda container which is never tasked with concurrent requests).
+			// a single Lambda container which is never tasked with concurrent requests).
 			// This may be improved upon in the future:
 			// https://github.com/aws/aws-lambda-runtime-interface-emulator/issues/97
 			synchronized (this) {
@@ -73,9 +76,6 @@ public class LambdaManagerImpl implements LambdaManager {
 					LOG.info("Completed lambda function invocation.");
 				}
 			}
-		} else {
-			CompletableFuture<InvokeResponse> future = invokeAsync(payload);
-			return future.get();
 		}
 	}
 }
