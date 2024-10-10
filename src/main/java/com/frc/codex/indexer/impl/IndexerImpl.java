@@ -216,7 +216,7 @@ public class IndexerImpl implements Indexer {
 		}
 	}
 
-	@Scheduled(fixedDelay = 30 * 60 * 1000)
+	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexFilingsFromCompaniesIndex() throws JsonProcessingException {
 		LOG.info("Indexing filings from companies index.");
 		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANIES_BATCH_SIZE);
