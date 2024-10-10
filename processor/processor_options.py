@@ -1,5 +1,6 @@
 import os
 from functools import cached_property
+from pathlib import Path
 
 
 class ProcessorOptions:
@@ -17,6 +18,17 @@ class ProcessorOptions:
     @property
     def companies_house_rest_api_key(self):
         return self._secrets['COMPANIES_HOUSE_REST_API_KEY']
+
+    @cached_property
+    def http_cache_directory(self) -> Path:
+        return Path(os.getenv('HTTP_CACHE_DIRECTORY', '/tmp/_HTTP_CACHE'))
+
+    @cached_property
+    def ixbrl_viewer_plugin_path(self) -> Path:
+        return Path(os.getenv(
+            'IXBRL_VIEWER_PLUGIN_PATH',
+            '/var/task/processor/plugins/frc-ixbrl-viewer/iXBRLViewerPlugin'
+        ))
 
     @cached_property
     def maximum_processors(self):

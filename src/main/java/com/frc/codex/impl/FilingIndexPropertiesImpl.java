@@ -28,6 +28,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_USERNAME = "DB_USERNAME";
 	private static final String DB_PASSWORD = "DB_PASSWORD";
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
+	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
@@ -49,10 +50,12 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String dbUsername;
 	private final String dbPassword;
 	private final long dbMaxLifetime;
+	private final boolean enablePreprocessing;
 	private final String fcaDataApiBaseUrl;
 	private final String fcaSearchApiUrl;
 	private final int filingLimitCompaniesHouse;
 	private final int filingLimitFca;
+	private final boolean isAws;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -76,12 +79,16 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		dbPassword = requireNonNull(getEnv(DB_PASSWORD));
 		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300")));
 
+		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
+
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
 
 		// Limits must be explicitly overridden
 		filingLimitCompaniesHouse = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_COMPANIES_HOUSE, "5")));
 		filingLimitFca = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_FCA, "5")));
+
+		isAws = Boolean.parseBoolean(requireNonNull(getEnv("AWS", "true")));
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
@@ -163,6 +170,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		return companiesHouseStreamApiKey;
 	}
 
+	public boolean enablePreprocessing() {
+		return enablePreprocessing;
+	}
+
 	public String fcaDataApiBaseUrl() {
 		return fcaDataApiBaseUrl;
 	}
@@ -190,6 +201,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		config.setMaxLifetime(dbMaxLifetime);
 		config.setPoolName(poolName);
 		return config;
+	}
+
+	public boolean isAws() {
+		return isAws;
 	}
 
 	public boolean isDbMigrateAsync() {

@@ -43,15 +43,15 @@ def _get_processor_count(processor_options: ProcessorOptions) -> int:
     return cpu_count
 
 
-def _run_processor(processor_options: ProcessorOptions, cache_directory: Path, next_sync_ts: datetime) -> None:
+def _run_processor(processor_options: ProcessorOptions, http_cache_directory: Path, next_sync_ts: datetime) -> None:
     processor = Processor(
         download_manager=MainDownloadManager(processor_options),
-        queue_manager=MainQueueManager(processor_options),
         upload_manager=MainUploadManager(processor_options),
-        worker_factory=MainWorkerFactory(cache_directory),
+        worker_factory=MainWorkerFactory(processor_options, http_cache_directory)
     )
+    queue_manager = MainQueueManager(processor_options)
     while True:
-        processor.run()
+        processor.run_from_queue(queue_manager)
         if datetime.now() >= next_sync_ts:
             break
 

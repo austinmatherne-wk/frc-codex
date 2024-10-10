@@ -52,6 +52,33 @@ public class SearchFilingsRequest {
 		return limit;
 	}
 
+	public String getLoadMoreLink(long pageSize, int lastResultIndex) {
+		String query = buildQuery("companyName", getCompanyName()) +
+				buildQuery("companyNumber", getCompanyNumber()) +
+				buildQuery("filingDate", getCompanyNumber()) +
+				buildQuery("limit", getLimit() + pageSize) +
+				buildQuery("minDocumentDateDay", getMinDocumentDateDay()) +
+				buildQuery("minDocumentDateMonth", getMinDocumentDateMonth()) +
+				buildQuery("minDocumentDateYear", getMinDocumentDateYear()) +
+				buildQuery("maxDocumentDateDay", getMaxDocumentDateDay()) +
+				buildQuery("maxDocumentDateMonth", getMaxDocumentDateMonth()) +
+				buildQuery("maxDocumentDateYear", getMaxDocumentDateYear()) +
+				buildQuery("minFilingDateDay", getMinFilingDateDay()) +
+				buildQuery("minFilingDateMonth", getMinFilingDateMonth()) +
+				buildQuery("minFilingDateYear", getMinFilingDateYear()) +
+				buildQuery("maxFilingDateDay", getMaxFilingDateDay()) +
+				buildQuery("maxFilingDateMonth", getMaxFilingDateMonth()) +
+				buildQuery("maxFilingDateYear", getMaxFilingDateYear());
+		return ("/?" + query + "#result-" + lastResultIndex);
+	}
+
+	private String buildQuery(String paramName, Object paramValue) {
+		if (paramValue != null && paramValue != "") {
+			return paramName + "=" + paramValue + "&";
+		}
+		return "";
+	}
+
 	public LocalDateTime getMinDocumentDate() {
 		return buildDate(minDocumentDateDay, minDocumentDateMonth, minDocumentDateYear, false);
 	}

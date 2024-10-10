@@ -42,6 +42,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "XXX";
 	}
 
+	public boolean enablePreprocessing() {
+		return false;
+	}
+
 	public String fcaDataApiBaseUrl() {
 		return "http://localhost:8086/data";
 	}
@@ -68,6 +72,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		config.setMaxLifetime(300);
 		config.setPoolName(poolName);
 		return config;
+	}
+
+	public boolean isAws() {
+		return false;
 	}
 
 	public boolean isDbMigrateAsync() {

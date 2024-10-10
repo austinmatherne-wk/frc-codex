@@ -8,6 +8,7 @@ from processor.base.queue_manager import JobMessage
 
 @dataclass(frozen=True)
 class WorkerResult:
+    filing_id: str
     error: str = ''
     logs: str = ''
     company_name: str | None = None

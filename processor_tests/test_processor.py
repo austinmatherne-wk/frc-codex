@@ -32,34 +32,37 @@ class TestProcessor(TestCase):
         ]
         worker_results_map = {
             'filing_id1': WorkerResult(
+                'filing_id1',
                 logs='logs1',
                 success=True,
                 viewer_entrypoint='viewer_entrypoint1',
             ),
             'filing_id2': WorkerResult(
+                'filing_id2',
                 error='error2',
                 logs='logs2',
                 success=False,
             ),
         }
         mock_get_target_path.return_value = (Path('download_url1'), [])
-        queue_manager = MockQueueManager(job_messages=job_messages)
         upload_manager = MockUploadManager()
         processor = Processor(
             download_manager=Mock(),
-            queue_manager=queue_manager,
             upload_manager=upload_manager,
             worker_factory=MockWorkerFactory(worker_results_map=worker_results_map),
         )
-        worker_results = processor.run()
+        queue_manager = MockQueueManager(job_messages=job_messages)
+        worker_results = processor.run_from_queue(queue_manager)
 
         self.assertEqual(worker_results, [
             WorkerResult(
+                'filing_id1',
                 logs='logs1',
                 success=True,
                 viewer_entrypoint='viewer_entrypoint1',
             ),
             WorkerResult(
+                'filing_id2',
                 error='error2',
                 logs='logs2',
                 success=False,
