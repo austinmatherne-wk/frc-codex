@@ -26,6 +26,7 @@ import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.QueueManager;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
@@ -82,7 +83,7 @@ public class AdminController {
 			Model model,
 			@PathVariable("companyNumber") String companyNumber
 	) throws JsonProcessingException {
-		String company = this.companiesHouseClient.getCompany(companyNumber);
+		Company company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
 		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber);
 		String filingUrls = filings.stream()

@@ -342,8 +342,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	public void updateCompany(Company company) {
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "UPDATE companies " +
-					"SET completed_date = COALESCE(completed_date, ?), " +
-					"company_name = COALESCE(company_name, ?) " +
+					"SET completed_date = COALESCE(?, completed_date), " +
+					"company_name = COALESCE(?, company_name) " +
 					"WHERE company_number = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;

@@ -28,6 +28,7 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
@@ -49,8 +50,14 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
 	}
 
-	public String getCompany(String companyNumber) {
-		return information.get("/company/" + companyNumber);
+	public Company getCompany(String companyNumber) throws JsonProcessingException {
+		String json = information.get("/company/" + companyNumber);
+		JsonNode root = OBJECT_MAPPER.readTree(json);
+		String companyName = root.get("company_name").asText();
+		return Company.builder()
+				.companyName(companyName)
+				.companyNumber(companyNumber)
+				.build();
 	}
 
 	public Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException {

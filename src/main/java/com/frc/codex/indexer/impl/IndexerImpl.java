@@ -223,6 +223,13 @@ public class IndexerImpl implements Indexer {
 		LOG.info("Loaded {} incomplete companies from companies index.", companies.size());
 		for (Company company : companies) {
 			String companyNumber = company.getCompanyNumber();
+			String companyName = company.getCompanyName();
+			if (companyName == null) {
+				// If we don't already have the company's name, pull it from the API.
+				Company updateCompany = companiesHouseClient.getCompany(companyNumber);
+				companyName = updateCompany.getCompanyName();
+				databaseManager.updateCompany(updateCompany);
+			}
 			LOG.info("Retrieving filings for company {}.", companyNumber);
 			List<NewFilingRequest> filings;
 			try {
@@ -233,7 +240,7 @@ public class IndexerImpl implements Indexer {
 			}
 			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
 			for (NewFilingRequest filing : filings) {
-				filing.setCompanyName(company.getCompanyName());
+				filing.setCompanyName(companyName);
 				if (databaseManager.filingExists(filing)) {
 					LOG.info("Skipping existing filing: {}", filing.getDownloadUrl());
 					continue;
