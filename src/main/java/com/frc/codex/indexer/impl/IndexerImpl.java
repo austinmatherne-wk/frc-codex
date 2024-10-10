@@ -126,12 +126,24 @@ public class IndexerImpl implements Indexer {
 			return timepoint;
 		}
 		JsonNode data = filing.get("data");
-		JsonNode dateNode = data.get("date");
+		JsonNode filingDateNode = data.get("date");
 		LocalDateTime filingDate = null;
-		if (dateNode != null) {
-			String dateStr = dateNode.asText();
+		if (filingDateNode != null) {
+			String dateStr = filingDateNode.asText();
 			try {
 				filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to parse date: " + dateStr, e);
+			}
+		}
+		// Note: `action_date` is not a documented field but appears to consistently represent
+		// the document date for the filing.
+		JsonNode documentDateNode = data.get("action_date");
+		LocalDateTime documentDate = null;
+		if (documentDateNode != null) {
+			String dateStr = documentDateNode.asText();
+			try {
+				documentDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to parse date: " + dateStr, e);
 			}
@@ -145,6 +157,7 @@ public class IndexerImpl implements Indexer {
 		for (String filingUrl : filingUrls) {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();
 			newFilingRequest.setCompanyNumber(companyNumber);
+			newFilingRequest.setDocumentDate(documentDate);
 			newFilingRequest.setDownloadUrl(filingUrl);
 			newFilingRequest.setFilingDate(filingDate);
 			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
@@ -356,6 +369,7 @@ public class IndexerImpl implements Indexer {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();
 			newFilingRequest.setCompanyName(filing.companyName());
 			newFilingRequest.setCompanyNumber(filing.lei());
+			newFilingRequest.setDocumentDate(filing.documentDate());
 			newFilingRequest.setDownloadUrl(filing.downloadUrl());
 			newFilingRequest.setExternalFilingId(filing.sequenceId());
 			newFilingRequest.setFilingDate(filing.submittedDate());

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class NewFilingRequest {
 	private String companyName;
 	private String companyNumber;
+	private LocalDateTime documentDate;
 	private String registryCode;
 	private String downloadUrl;
 	private String externalFilingId;
@@ -18,6 +19,10 @@ public class NewFilingRequest {
 
 	public String getCompanyNumber() {
 		return companyNumber;
+	}
+
+	public LocalDateTime getDocumentDate() {
+		return documentDate;
 	}
 
 	public String getRegistryCode() {
@@ -50,6 +55,10 @@ public class NewFilingRequest {
 
 	public void setCompanyNumber(String companyNumber) {
 		this.companyNumber = companyNumber;
+	}
+
+	public void setDocumentDate(LocalDateTime documentDate) {
+		this.documentDate = documentDate;
 	}
 
 	public void setRegistryCode(String registryCode) {

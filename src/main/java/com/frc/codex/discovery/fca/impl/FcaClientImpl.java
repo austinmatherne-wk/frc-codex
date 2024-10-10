@@ -1,10 +1,8 @@
 package com.frc.codex.discovery.fca.impl;
 
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -127,19 +125,24 @@ public class FcaClientImpl implements FcaClient {
 			JsonNode source = hit.get("_source");
 			String downloadLink = source.get("download_link").asText();
 			String sequenceId = source.get("seq_id").asText();
+			String documentDateStr = source.get("document_date").asText();
+			LocalDateTime documentDate = LocalDateTime.from(
+					INCOMING_JSON_DATE_FORMAT.parse(documentDateStr)
+			);
 			String submittedDateStr = source.get("submitted_date").asText();
-			String companyName = source.get("company").asText();
-			companyName = companyName.toUpperCase();
-			String lei = source.get("lei").asText();
 			LocalDateTime submittedDate = LocalDateTime.from(
 					INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr)
 			);
+			String companyName = source.get("company").asText();
+			companyName = companyName.toUpperCase();
+			String lei = source.get("lei").asText();
 			String[] downloadLinkSplit = downloadLink.split("/");
 			String filename = downloadLinkSplit[downloadLinkSplit.length - 1];
 			String downloadUrl = this.dataApiBaseUrl + downloadLink;
 			String infoUrl = this.dataApiBaseUrl + source.get("html_link").asText();
 			filings.add(new FcaFiling(
 					companyName,
+					documentDate,
 					downloadUrl,
 					filename,
 					infoUrl,

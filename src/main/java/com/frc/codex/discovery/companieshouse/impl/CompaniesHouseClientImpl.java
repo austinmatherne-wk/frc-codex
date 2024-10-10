@@ -79,12 +79,22 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 			}
 			totalItems = node.get("total_count").asInt();
 			for (JsonNode item : items) {
-				JsonNode dateNode = item.get("date");
+				JsonNode filingDateNode = item.get("date");
 				LocalDateTime filingDate = null;
-				if (dateNode != null) {
-					String dateStr = dateNode.asText();
+				if (filingDateNode != null) {
+					String dateStr = filingDateNode.asText();
 					try {
 						filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
+					} catch (Exception e) {
+						throw new RuntimeException("Failed to parse date: " + dateStr, e);
+					}
+				}
+				JsonNode documentDateNode = item.get("action_date");
+				LocalDateTime documentDate = null;
+				if (documentDateNode != null) {
+					String dateStr = documentDateNode.asText();
+					try {
+						documentDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
 					} catch (Exception e) {
 						throw new RuntimeException("Failed to parse date: " + dateStr, e);
 					}
@@ -93,6 +103,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 				for (String filingUrl : filingUrls) {
 					NewFilingRequest newFilingRequest = new NewFilingRequest();
 					newFilingRequest.setCompanyNumber(companyNumber);
+					newFilingRequest.setDocumentDate(documentDate);
 					newFilingRequest.setDownloadUrl(filingUrl);
 					newFilingRequest.setFilingDate(filingDate);
 					newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
