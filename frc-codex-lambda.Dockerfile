@@ -10,7 +10,6 @@ RUN pip install -r requirements.txt
 COPY processor ${LAMBDA_TASK_ROOT}/processor
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
-USER root
 RUN mkdir /tmp/_HTTP_CACHE
 COPY _HTTP_CACHE /tmp/_HTTP_CACHE
 RUN chown -R nobody /tmp/_HTTP_CACHE
