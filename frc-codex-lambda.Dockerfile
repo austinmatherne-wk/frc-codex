@@ -1,8 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.12
 
 RUN mkdir /tmp/_HTTP_CACHE
-COPY _HTTP_CACHE /tmp/_HTTP_CACHE
-RUN chown -R nobody /tmp/_HTTP_CACHE
+COPY --chown=nobody _HTTP_CACHE /tmp/_HTTP_CACHE
 
 # Copy requirements.txt
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
