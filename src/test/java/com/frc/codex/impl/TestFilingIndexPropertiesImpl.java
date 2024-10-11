@@ -69,7 +69,7 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		config.setJdbcUrl("http://localhost:5432/frc_codex");
 		config.setUsername("frc_codex");
 		config.setPassword("frc_codex");
-		config.setMaxLifetime(300);
+		config.setMaxLifetime(300*1000);
 		config.setPoolName(poolName);
 		return config;
 	}
