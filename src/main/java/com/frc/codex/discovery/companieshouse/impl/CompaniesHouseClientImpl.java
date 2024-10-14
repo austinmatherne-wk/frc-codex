@@ -82,7 +82,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		return information.get("/company/" + companyNumber + "/filing-history?category=accounts&items_per_page=" + itemsPerPage + "&start_index=" + startIndex);
 	}
 
-	public List<NewFilingRequest> getCompanyFilings(String companyNumber) throws JsonProcessingException {
+	public List<NewFilingRequest> getCompanyFilings(String companyNumber, String companyName) throws JsonProcessingException {
 		List<NewFilingRequest> filings = new ArrayList<>();
 		int index = 0;
 		int itemsPerPage = 100;
@@ -123,13 +123,16 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 					String downloadUrl = "https://find-and-update.company-information.service.gov.uk/company/"
 							+ companyNumber + "/filing-history/" + externalFilingId
 							+ "/document?format=xhtml&download=0";
-					NewFilingRequest newFilingRequest = new NewFilingRequest();
-					newFilingRequest.setCompanyNumber(companyNumber);
-					newFilingRequest.setDocumentDate(documentDate);
-					newFilingRequest.setDownloadUrl(downloadUrl);
-					newFilingRequest.setExternalFilingId(externalFilingId);
-					newFilingRequest.setFilingDate(filingDate);
-					newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
+					NewFilingRequest newFilingRequest = NewFilingRequest.builder()
+						.companyName(companyName)
+						.companyNumber(companyNumber)
+						.documentDate(documentDate)
+						.downloadUrl(downloadUrl)
+						.externalFilingId(externalFilingId)
+						.externalViewUrl(downloadUrl)
+						.filingDate(filingDate)
+						.registryCode(RegistryCode.COMPANIES_HOUSE.toString())
+						.build();
 					filings.add(newFilingRequest);
 				}
 			}

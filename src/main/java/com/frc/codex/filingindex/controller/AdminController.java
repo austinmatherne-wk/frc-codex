@@ -85,7 +85,7 @@ public class AdminController {
 	) throws JsonProcessingException {
 		Company company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
-		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber);
+		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber, "");
 		String filingUrls = filings.stream()
 				.map(NewFilingRequest::getDownloadUrl)
 				.collect(Collectors.joining("\n"));
@@ -121,22 +121,9 @@ public class AdminController {
 		model.addObject("failedFilings", failedFilings);
 		List<Filing> completedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
 		model.addObject("completedFilings", completedFilings);
-		model.addObject("newFilingRequest", new NewFilingRequest());
 		boolean healthy = completedFilings.size() > 0 && failedFilings.size() == 0;
 		model.setStatus(healthy ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
 		return model;
-	}
-
-	/**
-	 * This endpoint demonstrates the database client functionality
-	 * by loading filing data from the database.
-	 */
-	@PostMapping("/admin/smoketest/database")
-	public ModelAndView smokeTestDatabaseSubmit(
-			@ModelAttribute NewFilingRequest newFilingRequest
-	) {
-		this.databaseManager.createFiling(newFilingRequest);
-		return smokeTestDatabasePage();
 	}
 
 	/**

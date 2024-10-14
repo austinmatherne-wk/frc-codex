@@ -19,7 +19,7 @@ public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
 		return null;
 	}
 
-	public List<NewFilingRequest> getCompanyFilings(String companyNumber) {
+	public List<NewFilingRequest> getCompanyFilings(String companyNumber, String companyName) {
 		return null;
 	}
 
