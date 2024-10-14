@@ -138,6 +138,10 @@ public class Filing {
 		return "view/" + filingId.toString() + "/" + path;
 	}
 
+	public String getExternalFilingId() {
+		return externalFilingId;
+	}
+
 	public String getExternalViewUrl() {
 		if (getRegistryCode().equals(RegistryCode.FCA.toString()) ){
 			return externalViewUrl;

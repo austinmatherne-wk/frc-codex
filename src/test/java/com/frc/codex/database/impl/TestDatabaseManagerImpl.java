@@ -84,7 +84,10 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public boolean filingExists(NewFilingRequest newFilingRequest) {
 		return filings.values().stream()
-				.anyMatch(f -> f.getDownloadUrl().equals(newFilingRequest.getDownloadUrl()));
+				.anyMatch(f ->
+						f.getRegistryCode().equals(newFilingRequest.getRegistryCode()) &&
+						f.getExternalFilingId().equals(newFilingRequest.getExternalFilingId())
+				);
 	}
 
 	public Filing getFiling(UUID filingId) {
