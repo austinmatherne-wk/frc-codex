@@ -40,17 +40,17 @@ class TestDownloadManager(TestCase):
         mock_retrieve.return_value = Mock(headers=headers)
         mock_save.return_value = None
 
-        download_manager = MainDownloadManager(Mock(companies_house_rest_api_key='api_key'))
+        download_manager = MainDownloadManager(Mock())
         filing_path = download_manager.download_filing(
             filing_id='filing_id',
             registry_code='CH',
-            download_url='download_url?contentType=application/xml',
+            download_url='download_url',
             directory=Path('directory'),
         )
         mock_retrieve.assert_called_once_with(
             url='download_url',
-            auth=('api_key', ''),
-            headers={'Accept': 'application/xml'}
+            auth=None,
+            headers=None
         )
         mock_save.assert_called_once_with(
             mock_retrieve.return_value,
@@ -69,21 +69,6 @@ class TestDownloadManager(TestCase):
             download_manager.download_filing(
                 filing_id='filing_id',
                 registry_code='ZZ',
-                download_url='download_url',
-                directory=Path('directory'),
-            )
-
-    @patch('processor.main.main_download_manager.MainDownloadManager._retrieve')
-    @patch('processor.main.main_download_manager.MainDownloadManager._save')
-    def test_download_filing_missing_content_type(self, mock_save, mock_retrieve) -> None:
-        mock_retrieve.return_value = Mock()
-        mock_save.return_value = None
-
-        download_manager = MainDownloadManager(Mock())
-        with self.assertRaisesRegex(AssertionError, 'Missing contentType in download URL'):
-            download_manager.download_filing(
-                filing_id='filing_id',
-                registry_code='CH',
                 download_url='download_url',
                 directory=Path('directory'),
             )

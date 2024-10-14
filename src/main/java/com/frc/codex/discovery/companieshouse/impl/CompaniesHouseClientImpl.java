@@ -118,11 +118,15 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 				}
 				String externalFilingId = item.get("transaction_id").asText();
 				Set<String> filingUrls = getCompanyFilingUrls(item);
-				for (String filingUrl : filingUrls) {
+				if (!filingUrls.isEmpty()) {
+					// There are matching IXBRL filing URLs
+					String downloadUrl = "https://find-and-update.company-information.service.gov.uk/company/"
+							+ companyNumber + "/filing-history/" + externalFilingId
+							+ "/document?format=xhtml&download=0";
 					NewFilingRequest newFilingRequest = new NewFilingRequest();
 					newFilingRequest.setCompanyNumber(companyNumber);
 					newFilingRequest.setDocumentDate(documentDate);
-					newFilingRequest.setDownloadUrl(filingUrl);
+					newFilingRequest.setDownloadUrl(downloadUrl);
 					newFilingRequest.setExternalFilingId(externalFilingId);
 					newFilingRequest.setFilingDate(filingDate);
 					newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
