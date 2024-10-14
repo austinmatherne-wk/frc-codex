@@ -21,6 +21,7 @@ import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseClientImpl;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
@@ -35,6 +36,7 @@ import com.frc.codex.model.NewFilingRequest;
 public class AdminController {
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
+	private final CompaniesHouseRateLimiter companiesHouseRateLimiter;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
 	private final Indexer indexer;
@@ -44,6 +46,7 @@ public class AdminController {
 	public AdminController(
 			CompaniesHouseClient companiesHouseClient,
 			CompaniesHouseHistoryClient companiesHouseHistoryClient,
+			CompaniesHouseRateLimiter companiesHouseRateLimiter,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			Indexer indexer,
@@ -52,6 +55,7 @@ public class AdminController {
 	) {
 		this.companiesHouseClient = companiesHouseClient;
 		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
+		this.companiesHouseRateLimiter = companiesHouseRateLimiter;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.indexer = indexer;
@@ -64,13 +68,12 @@ public class AdminController {
 		model.addAttribute("awsRegion", properties.awsRegion());
 		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
 		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
+		model.addAttribute("chRateLimiter", companiesHouseRateLimiter.toString());
 		model.addAttribute("chRestApiKey", !StringUtils.isEmpty(properties.companiesHouseRestApiKey()));
 		model.addAttribute("chStreamApiKey", !StringUtils.isEmpty(properties.companiesHouseStreamApiKey()));
 		model.addAttribute("chStreamUrl", properties.companiesHouseStreamApiBaseUrl());
 		model.addAttribute("fcaDataApiBaseUrl", properties.fcaDataApiBaseUrl());
 		model.addAttribute("fcaSearchApiUrl", properties.fcaSearchApiUrl());
-		List<Filing> filings = databaseManager.getFilingsByStatus(FilingStatus.COMPLETED);
-		model.addAttribute("filings", filings);
 		return "admin/index";
 	}
 

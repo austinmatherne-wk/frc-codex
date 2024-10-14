@@ -35,6 +35,10 @@
             <td th:text="${chInformationUrl}">N/A</td>
         </tr>
         <tr>
+            <th>Companies House Rate Limiter</th>
+            <td th:text="${chRateLimiter}">N/A</td>
+        </tr>
+        <tr>
             <th>Companies House Stream API URL</th>
             <td th:text="${chStreamUrl}">N/A</td>
         </tr>
@@ -54,21 +58,6 @@
             <th>FCA Search API URL</th>
             <td th:text="${fcaSearchApiUrl}">N/A</td>
         </tr>
-    </table>
-    <h2>Viewers</h2>
-    <table>
-        <tr>
-            <th>Filings (<span th:text="(${filings.size()})"></span>)</th>
-            <th>Registry</th>
-            <th></th>
-        </tr>
-        <th:block th:each="filing : ${filings}">
-            <tr>
-                <td th:text="${filing.getFilingId()}">...</td>
-                <td th:text="${filing.getRegistryCode()}">...</td>
-                <td><a th:href="${filing.getViewerLink()}">Viewer</a></td>
-            </tr>
-        </th:block>
     </table>
 </div>
 </body>

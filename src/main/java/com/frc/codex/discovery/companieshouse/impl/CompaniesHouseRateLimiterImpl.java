@@ -100,6 +100,16 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		}
 	}
 
+	public String toString() {
+		return "CompaniesHouseRateLimiterImpl [" +
+				"limit=" + limit + ", " +
+				"remaining=" + remaining + ", " +
+				"updated=" + updated + ", " +
+				"reset=" + reset + ", " +
+				"lastRejection=" + lastRejection +
+				"]";
+	}
+
 	public synchronized void waitForRapidRateLimit() throws InterruptedException {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		if (timestamps.size() >= rapidRateLimit) {
