@@ -142,8 +142,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		UUID filingId;
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "INSERT INTO filings " +
-					"(status, registry_code, download_url, external_filing_id, external_view_url, filing_date, stream_timepoint, company_name, company_number) " +
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ? ,?)";
+					"(status, registry_code, download_url, external_filing_id, external_view_url, document_date, filing_date, stream_timepoint, company_name, company_number) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)";
 			PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 			int i = 0;
 			statement.setString(++i, FilingStatus.PENDING.toString());
@@ -151,6 +151,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			statement.setString(++i, newFilingRequest.getDownloadUrl());
 			statement.setString(++i, newFilingRequest.getExternalFilingId());
 			statement.setString(++i, newFilingRequest.getExternalViewUrl());
+			statement.setTimestamp(++i, getTimestamp(newFilingRequest.getDocumentDate()), TIMEZONE_UTC);
 			statement.setTimestamp(++i, getTimestamp(newFilingRequest.getFilingDate()), TIMEZONE_UTC);
 			if (newFilingRequest.getStreamTimepoint() == null) {
 				statement.setNull(++i, java.sql.Types.BIGINT);
@@ -341,8 +342,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	public void updateCompany(Company company) {
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "UPDATE companies " +
-					"SET completed_date = COALESCE(completed_date, ?), " +
-					"company_name = COALESCE(company_name, ?) " +
+					"SET completed_date = COALESCE(?, completed_date), " +
+					"company_name = COALESCE(?, company_name) " +
 					"WHERE company_number = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;

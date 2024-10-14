@@ -3,16 +3,23 @@ package com.frc.codex.filingindex.controller;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,8 +45,9 @@ public class ViewController {
 	private final DatabaseManager databaseManager;
 	private final LambdaManager lambdaManager;
 	private final FilingIndexProperties properties;
+	private final RestTemplate restTemplate;
 	private final S3ClientBuilder s3ClientBuilder;
-	private final ConcurrentHashMap<UUID, Boolean> filingProgressMap;
+	private final ConcurrentHashMap<UUID, CompletableFuture<InvokeResponse>> invokeFutures;
 	public ViewController(
 			FilingIndexProperties properties,
 			DatabaseManager databaseManager,
@@ -48,11 +56,33 @@ public class ViewController {
 		this.properties = properties;
 		this.databaseManager = databaseManager;
 		this.lambdaManager = lambdaManager;
+		this.restTemplate = new RestTemplate();
 		Region awsRegion = Region.of(properties.awsRegion());
 		this.s3ClientBuilder = S3Client.builder()
 				.forcePathStyle(true)
 				.region(awsRegion);
-		this.filingProgressMap = new ConcurrentHashMap<>();
+		this.invokeFutures = new ConcurrentHashMap<>();
+	}
+
+	private ModelAndView loadingResult(Filing filing) {
+		return new ModelAndView("redirect:/view/" + filing.getFilingId() + "/loading");
+	}
+
+	private ModelAndView onDemandResult(Filing filing) {
+		UUID filingId = filing.getFilingId();
+		try {
+			LOG.info("Processing filing on demand: {}", filingId);
+			CompletableFuture<InvokeResponse> invokeResponse = lambdaManager.invokeAsync(new FilingPayload(
+					filingId,
+					filing.getDownloadUrl(),
+					filing.getRegistryCode()
+			));
+			invokeFutures.put(filingId, invokeResponse);
+			return loadingResult(filing);
+		} catch (Exception e) {
+			invokeFutures.remove(filingId);
+			throw e;
+		}
 	}
 
 	private FilingResultRequest parseResult(InvokeResponse invokeResponse) {
@@ -68,78 +98,60 @@ public class ViewController {
 				.build();
 	}
 
-	private ResponseEntity<String> onDemandResult(String filingId)
-			throws ExecutionException, InterruptedException, IOException {
+	private ModelAndView viewerResult(UUID filingId, String stubViewerUrl) {
+		return new ModelAndView("redirect:/view/" + filingId + "/" + stubViewerUrl);
+	}
+
+	@GetMapping("/view/{filingId}/loading")
+	public ModelAndView loadingPage(
+			@PathVariable("filingId") String filingId
+	) {
+		ModelAndView model = new ModelAndView("view/loading");
+		model.addObject("iframeSrc", "/view/" + filingId + "/public");
+		return model;
+	}
+
+	@GetMapping("/view/{filingId}/public")
+	public ResponseEntity<byte[]> publicPage(
+			@PathVariable("filingId") String filingId
+	) {
 		UUID filingUuid = UUID.fromString(filingId);
-		String assetKey;
-		try {
-			LOG.info("Processing filing on demand: {}", filingUuid);
-			Filing filing = databaseManager.getFiling(filingUuid);
-			InvokeResponse invokeResponse = lambdaManager.invokeSync(new FilingPayload(
-					filing.getFilingId(),
-					filing.getDownloadUrl(),
-					filing.getRegistryCode()
-			));
-			Integer statusCode = invokeResponse.statusCode();
-			if (statusCode >= 300 || statusCode < 200) {
-				filingProgressMap.remove(filingUuid);
-				return ResponseEntity.status(statusCode).body(invokeResponse.functionError());
-			}
-			FilingResultRequest filingResultRequest = parseResult(invokeResponse);
-			assetKey = filingResultRequest.getStubViewerUrl();
-			databaseManager.applyFilingResult(filingResultRequest);
-		} catch (Exception e) {
-			filingProgressMap.remove(filingUuid);
-			throw e;
-		}
-		filingProgressMap.put(filingUuid, true);
-		return viewerAssetPage(filingId, assetKey);
-	}
-
-	private ResponseEntity<String> unavailableResult() {
-		return ResponseEntity
-				.status(202)
-				.body("This filing is not currently available.");
-	}
-
-	private ResponseEntity<String> waitResult(UUID filingUuid, Boolean completed) throws IOException {
-		while (!completed) {
-			LOG.info("Waiting for filing to be processed by previous request: {}", filingUuid);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			completed = filingProgressMap.get(filingUuid);
-			if (completed == null) {
-				return unavailableResult();
-			}
-		}
 		Filing filing = databaseManager.getFiling(filingUuid);
-		return viewerAssetPage(filingUuid.toString(), filing.getStubViewerUrl());
+		String filingUrl = filing.getExternalViewUrl();
+		return restTemplate.exchange(
+				filingUrl,
+				HttpMethod.GET,
+				new HttpEntity<>(null, new HttpHeaders()),
+				byte[].class
+		);
 	}
 
 	/**
 	 * This endpoint serves as a proxy to the S3 bucket hosting the stub viewer.
 	 */
 	@RequestMapping("/view/{filingId}/viewer")
-	@ResponseBody
-	public ResponseEntity<String> viewerPage(
+	public ModelAndView viewerPage(
 			@PathVariable("filingId") String filingId
-	) throws IOException, ExecutionException, InterruptedException {
+	) {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		if (filing.getStatus().equals("completed")) {
-			return viewerAssetPage(filingId, filing.getStubViewerUrl());
+			// Already completed, redirect directly to viewer.
+			return viewerResult(filing.getFilingId(), filing.getStubViewerUrl());
 		}
 		if (filing.getStatus().equals("failed")) {
-			return unavailableResult();
+			// Generation failed, show error message.
+			ModelAndView modelAndView = new ModelAndView("view/unavailable");
+			modelAndView.addObject("message", "Viewer generation failed. Please try again later.");
+			return modelAndView;
 		}
-		Boolean completed = filingProgressMap.putIfAbsent(filingUuid, false);
-		if (completed == null) {
-			return onDemandResult(filingId);
+		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
+		if (future == null) {
+			// No request in progress. We'll start one.
+			return onDemandResult(filing);
 		} else {
-			return waitResult(filingUuid, completed);
+			// A request is already in progress, we'll redirect to the loading page to wait.
+			return loadingResult(filing);
 		}
 	}
 
@@ -163,5 +175,33 @@ public class ViewController {
 				return ResponseEntity.ok(decodedString);
 			}
 		}
+	}
+
+	@GetMapping("/view/{filingId}/wait")
+	public ModelAndView waitPage(
+			@PathVariable("filingId") String filingId
+	) {
+		UUID filingUuid = UUID.fromString(filingId);
+		if (invokeFutures.containsKey(filingUuid)) {
+			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
+			if (future.isDone()) {
+				invokeFutures.remove(filingUuid);
+			}
+			try {
+				InvokeResponse invokeResponse = future.get();
+				// Synchronize this block to ensure that only one request
+				// applies the result and removes the future.
+				synchronized (future) {
+					if (invokeFutures.containsKey(filingUuid)) {
+						FilingResultRequest result = parseResult(invokeResponse);
+						// Apply the result before we remove from the map to ensure that no requests
+						// occur after a future is removed but before the result is applied.
+						databaseManager.applyFilingResult(result);
+						invokeFutures.remove(filingUuid);
+					}
+				}
+			} catch (InterruptedException | ExecutionException ignored) {}
+		}
+		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 	}
 }

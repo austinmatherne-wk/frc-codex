@@ -8,13 +8,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
 @Profile("test")
 public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
 
-	public String getCompany(String companyNumber) {
+	public Company getCompany(String companyNumber) {
 		return null;
 	}
 

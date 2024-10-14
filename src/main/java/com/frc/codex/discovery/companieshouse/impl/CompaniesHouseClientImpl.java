@@ -28,6 +28,7 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.model.Company;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
@@ -36,6 +37,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	private static final Set<String> ACCEPTED_CONTENT_TYPES = Set.of("application/xml", "application/xhtml+xml");
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final Set<String> IGNORED_CONTENT_TYPES = Set.of("application/pdf", "application/json", "text/csv");
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseClientImpl.class);
 	private final CompaniesHouseConfig config;
 	private final CompaniesHouseHttpClient document;
@@ -49,14 +51,19 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
 	}
 
-	public String getCompany(String companyNumber) {
-		return information.get("/company/" + companyNumber);
+	public Company getCompany(String companyNumber) throws JsonProcessingException {
+		String json = information.get("/company/" + companyNumber);
+		JsonNode root = OBJECT_MAPPER.readTree(json);
+		String companyName = root.get("company_name").asText();
+		return Company.builder()
+				.companyName(companyName)
+				.companyNumber(companyNumber)
+				.build();
 	}
 
 	public Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException {
 		String json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode node = mapper.readTree(json);
+		JsonNode node = OBJECT_MAPPER.readTree(json);
 		return getCompanyFilingUrls(node);
 	}
 
@@ -71,29 +78,41 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		int totalItems = Integer.MAX_VALUE;
 		while (index + itemsPerPage < totalItems) {
 			String json = getCompanyFilingHistory(companyNumber, itemsPerPage, index);
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode node = mapper.readTree(json);
+			JsonNode node = OBJECT_MAPPER.readTree(json);
 			JsonNode items = node.get("items");
 			if (items == null) {
 				break;
 			}
 			totalItems = node.get("total_count").asInt();
 			for (JsonNode item : items) {
-				JsonNode dateNode = item.get("date");
+				JsonNode filingDateNode = item.get("date");
 				LocalDateTime filingDate = null;
-				if (dateNode != null) {
-					String dateStr = dateNode.asText();
+				if (filingDateNode != null) {
+					String dateStr = filingDateNode.asText();
 					try {
 						filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
 					} catch (Exception e) {
 						throw new RuntimeException("Failed to parse date: " + dateStr, e);
 					}
 				}
+				JsonNode documentDateNode = item.get("action_date");
+				LocalDateTime documentDate = null;
+				if (documentDateNode != null) {
+					String dateStr = documentDateNode.asText();
+					try {
+						documentDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
+					} catch (Exception e) {
+						throw new RuntimeException("Failed to parse date: " + dateStr, e);
+					}
+				}
+				String externalFilingId = item.get("transaction_id").asText();
 				Set<String> filingUrls = getCompanyFilingUrls(item);
 				for (String filingUrl : filingUrls) {
 					NewFilingRequest newFilingRequest = new NewFilingRequest();
 					newFilingRequest.setCompanyNumber(companyNumber);
+					newFilingRequest.setDocumentDate(documentDate);
 					newFilingRequest.setDownloadUrl(filingUrl);
+					newFilingRequest.setExternalFilingId(externalFilingId);
 					newFilingRequest.setFilingDate(filingDate);
 					newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
 					filings.add(newFilingRequest);
@@ -106,7 +125,6 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 
 	private Set<String> getCompanyFilingUrls(JsonNode node) throws JsonProcessingException {
 		Set<String> filingUrls = new HashSet<>();
-		ObjectMapper mapper = new ObjectMapper();
 		JsonNode links = node.get("links");
 		if (links == null) {
 			return filingUrls;
@@ -118,7 +136,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		String documentMetadataUrl = documentMetadata.asText();
 		String documentId = documentMetadataUrl.substring(documentMetadataUrl.lastIndexOf("/") + 1);
 		String metadata = document.get("/document/" + documentId);
-		JsonNode metadataNode = mapper.readTree(metadata);
+		JsonNode metadataNode = OBJECT_MAPPER.readTree(metadata);
 		JsonNode resources = metadataNode.get("resources");
 		if (resources != null) {
 			for (Iterator<Map.Entry<String, JsonNode>> it = resources.fields(); it.hasNext(); ) {
