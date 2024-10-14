@@ -32,6 +32,10 @@ public class LambdaManagerImpl implements LambdaManager {
 		this.properties = properties;
 		if (properties.isAws()) {
 			this.client = LambdaAsyncClient.builder()
+					.overrideConfiguration(ClientOverrideConfiguration.builder()
+							.apiCallAttemptTimeout(Duration.ofSeconds(300))
+							.apiCallTimeout(Duration.ofSeconds(300))
+							.build())
 					.region(Region.of(properties.awsRegion()))
 					.build();
 		} else {
