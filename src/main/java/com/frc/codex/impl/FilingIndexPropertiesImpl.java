@@ -16,6 +16,7 @@ import com.zaxxer.hikari.HikariConfig;
 @Component
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
+	private static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
@@ -58,6 +59,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final int filingLimitCompaniesHouse;
 	private final int filingLimitFca;
 	private final boolean isAws;
+	private final String awsLambdaFunctionName;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -67,6 +69,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 
 	public FilingIndexPropertiesImpl() {
+		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
 		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
@@ -139,6 +142,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public String awsLambdaFunctionName() {
+		return awsLambdaFunctionName;
 	}
 
 	public String awsRegion() {

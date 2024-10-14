@@ -52,7 +52,7 @@ public class LambdaManagerImpl implements LambdaManager {
 
 	public CompletableFuture<InvokeResponse> invokeAsync(FilingPayload payload) {
 		InvokeRequest request = InvokeRequest.builder()
-				.functionName("function")
+				.functionName(properties.awsLambdaFunctionName())
 				.payload(serializePayload(payload))
 				.build();
 		return client.invoke(request);
