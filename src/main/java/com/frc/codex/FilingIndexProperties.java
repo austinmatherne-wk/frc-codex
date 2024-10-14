@@ -12,6 +12,7 @@ public interface FilingIndexProperties {
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
 	String fcaDataApiBaseUrl();
+	int fcaPastDays();
 	String fcaSearchApiUrl();
 	boolean enablePreprocessing();
 	int filingLimitCompaniesHouse();

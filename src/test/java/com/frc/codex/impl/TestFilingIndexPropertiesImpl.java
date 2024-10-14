@@ -50,6 +50,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "http://localhost:8086/data";
 	}
 
+	public int fcaPastDays() {
+		return 30;
+	}
+
 	public String fcaSearchApiUrl() {
 		return "http://localhost:8086/search";
 	}

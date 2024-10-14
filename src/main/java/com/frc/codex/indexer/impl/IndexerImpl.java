@@ -368,9 +368,9 @@ public class IndexerImpl implements Indexer {
 		if (databaseManager.checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
 			return;
 		}
-		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(
-				LocalDateTime.now().minusDays(30)
-		);
+		LocalDateTime fcaStartDate = properties.fcaPastDays() <= 0 ? null :
+				LocalDateTime.now().minusDays(properties.fcaPastDays());
+		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(fcaStartDate);
 		List<FcaFiling> filings = fcaClient.fetchAllSinceDate(latestSubmittedDate);
 		for (FcaFiling filing : filings) {
 			NewFilingRequest newFilingRequest = new NewFilingRequest();

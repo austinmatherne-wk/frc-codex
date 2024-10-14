@@ -30,6 +30,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
+	private static final String FCA_PAST_DAYS = "FCA_PAST_DAYS";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
 	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
@@ -52,6 +53,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final boolean enablePreprocessing;
 	private final String fcaDataApiBaseUrl;
+	private final int fcaPastDays;
 	private final String fcaSearchApiUrl;
 	private final int filingLimitCompaniesHouse;
 	private final int filingLimitFca;
@@ -82,6 +84,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
 
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
+		fcaPastDays = Integer.parseInt(getEnv(FCA_PAST_DAYS, "0"));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
 
 		// Limits must be explicitly overridden
@@ -176,6 +179,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaDataApiBaseUrl() {
 		return fcaDataApiBaseUrl;
+	}
+
+	public int fcaPastDays() {
+		return fcaPastDays;
 	}
 
 	public String fcaSearchApiUrl() {
