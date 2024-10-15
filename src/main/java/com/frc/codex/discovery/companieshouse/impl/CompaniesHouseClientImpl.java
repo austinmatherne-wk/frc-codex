@@ -19,7 +19,9 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,7 +64,16 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	}
 
 	public Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException {
-		String json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
+		String json;
+		try {
+			json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				LOG.warn("Filing not found: companyNumber={} filingId={}", companyNumber, filingId, e);
+				return Set.of();
+			}
+			throw e;
+		}
 		JsonNode node = OBJECT_MAPPER.readTree(json);
 		return getCompanyFilingUrls(node);
 	}

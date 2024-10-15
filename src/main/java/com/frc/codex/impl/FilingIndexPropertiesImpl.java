@@ -77,7 +77,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		dbUrl = requireNonNull(getEnv(DB_URL));
 		dbUsername = requireNonNull(getEnv(DB_USERNAME));
 		dbPassword = requireNonNull(getEnv(DB_PASSWORD));
-		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300")));
+		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300000")));
 
 		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
 

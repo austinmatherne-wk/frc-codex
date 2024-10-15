@@ -1,7 +1,12 @@
 package com.frc.codex.discovery.fca.impl;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,9 +131,16 @@ public class FcaClientImpl implements FcaClient {
 			String downloadLink = source.get("download_link").asText();
 			String sequenceId = source.get("seq_id").asText();
 			String documentDateStr = source.get("document_date").asText();
-			LocalDateTime documentDate = LocalDateTime.from(
-					INCOMING_JSON_DATE_FORMAT.parse(documentDateStr)
-			);
+			LocalDateTime documentDate;
+			try {
+				TemporalAccessor documentDateAccessor = INCOMING_JSON_DATE_FORMAT.parse(documentDateStr);
+				documentDate = LocalDateTime.from(documentDateAccessor);
+			} catch (DateTimeParseException e) {
+				// document_date is sometimes YYYY-MM-DD, for example in the sample response in FCA.md.
+				// https://github.com/Arelle/frc-codex/blob/27a87ba7f4cec53f0d9990391899415efacb2103/src/main/java/com/frc/codex/discovery/fca/FCA.md#L70
+				TemporalAccessor documentDateAccessor = ISO_LOCAL_DATE.parse(documentDateStr);
+				documentDate = LocalDate.from(documentDateAccessor).atStartOfDay();
+			}
 			String submittedDateStr = source.get("submitted_date").asText();
 			LocalDateTime submittedDate = LocalDateTime.from(
 					INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr)
