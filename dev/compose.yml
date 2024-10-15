@@ -15,6 +15,7 @@ services:
       AWS: "false"
       AWS_ACCESS_KEY_ID: "local_aws_access_key_id"
       AWS_ENDPOINT_URL: "http://localstack.localhost:4566"
+      AWS_ENDPOINT_URL_LAMBDA: "http://lambda.localhost:8080/"
       AWS_REGION: "eu-west-2"
       AWS_SECRET_ACCESS_KEY: "local_aws_secret_access_key"
       COMPANIES_HOUSE_DOCUMENT_API_BASE_URL: "https://document-api.companieshouse.gov.uk"

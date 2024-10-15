@@ -62,7 +62,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final int filingLimitFca;
 	private final boolean isAws;
 	private final String awsLambdaFunctionName;
-	private final String awsRegion;
 	private final int lambdaPreprocessingConcurrency;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -74,7 +73,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public FilingIndexPropertiesImpl() {
 		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
-		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
@@ -154,10 +152,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String awsLambdaFunctionName() {
 		return awsLambdaFunctionName;
-	}
-
-	public String awsRegion() {
-		return awsRegion;
 	}
 
 	public String companiesHouseDocumentApiBaseUrl() {

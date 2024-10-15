@@ -31,7 +31,6 @@ import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
 
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -57,10 +56,8 @@ public class ViewController {
 		this.databaseManager = databaseManager;
 		this.lambdaManager = lambdaManager;
 		this.restTemplate = new RestTemplate();
-		Region awsRegion = Region.of(properties.awsRegion());
 		this.s3ClientBuilder = S3Client.builder()
-				.forcePathStyle(true)
-				.region(awsRegion);
+				.forcePathStyle(true);
 		this.invokeFutures = new ConcurrentHashMap<>();
 	}
 

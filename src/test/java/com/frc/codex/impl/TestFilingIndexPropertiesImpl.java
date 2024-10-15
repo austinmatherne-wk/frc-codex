@@ -14,10 +14,6 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "function";
 	}
 
-	public String awsRegion() {
-		return "eu-west-2";
-	}
-
 	public String companiesHouseDocumentApiBaseUrl() {
 		return "http://localhost:8085";
 	}

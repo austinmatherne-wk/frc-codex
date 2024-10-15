@@ -1,7 +1,6 @@
 package com.frc.codex.indexer.impl;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -21,7 +20,6 @@ import com.frc.codex.model.FilingResultRequest;
 
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
@@ -35,24 +33,12 @@ public class LambdaManagerImpl implements LambdaManager {
 
 	public LambdaManagerImpl(FilingIndexProperties properties) throws URISyntaxException {
 		this.properties = properties;
-		if (properties.isAws()) {
-			this.client = LambdaAsyncClient.builder()
-					.overrideConfiguration(ClientOverrideConfiguration.builder()
-							.apiCallAttemptTimeout(Duration.ofSeconds(300))
-							.apiCallTimeout(Duration.ofSeconds(300))
-							.build())
-					.region(Region.of(properties.awsRegion()))
-					.build();
-		} else {
-			this.client = LambdaAsyncClient.builder()
-					.endpointOverride(new URI("http://lambda.localhost:8080/"))
-					.overrideConfiguration(ClientOverrideConfiguration.builder()
-							.apiCallAttemptTimeout(Duration.ofSeconds(300))
-							.apiCallTimeout(Duration.ofSeconds(300))
-							.build())
-					.region(Region.of(properties.awsRegion()))
-					.build();
-		}
+		this.client = LambdaAsyncClient.builder()
+				.overrideConfiguration(ClientOverrideConfiguration.builder()
+						.apiCallAttemptTimeout(Duration.ofSeconds(300))
+						.apiCallTimeout(Duration.ofSeconds(300))
+						.build())
+				.build();
 	}
 
 	private SdkBytes serializePayload(FilingPayload payload) {
