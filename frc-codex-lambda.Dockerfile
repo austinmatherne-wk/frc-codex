@@ -1,5 +1,8 @@
 FROM public.ecr.aws/lambda/python:3.12
 
+RUN mkdir /tmp/_HTTP_CACHE
+COPY --chown=nobody _HTTP_CACHE /tmp/_HTTP_CACHE
+
 # Copy requirements.txt
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
@@ -10,10 +13,6 @@ RUN pip install -r requirements.txt
 COPY processor ${LAMBDA_TASK_ROOT}/processor
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
-USER root
-RUN mkdir /tmp/_HTTP_CACHE
-COPY _HTTP_CACHE /tmp/_HTTP_CACHE
-RUN chown -R nobody /tmp/_HTTP_CACHE
 USER nobody
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
