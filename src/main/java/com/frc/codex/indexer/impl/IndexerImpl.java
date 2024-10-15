@@ -7,10 +7,16 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,13 +41,17 @@ import com.frc.codex.discovery.companieshouse.RateLimitException;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
+import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
+import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
+
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 @Component
 @Profile("application")
@@ -53,6 +63,7 @@ public class IndexerImpl implements Indexer {
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
+	private final LambdaManager lambdaManager;
 	private final FilingIndexProperties properties;
 	private final QueueManager queueManager;
 
@@ -70,6 +81,7 @@ public class IndexerImpl implements Indexer {
 			CompaniesHouseHistoryClient companiesHouseHistoryClient,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
+			LambdaManager lambdaManager,
 			QueueManager queueManager
 	) {
 		this.properties = properties;
@@ -77,6 +89,7 @@ public class IndexerImpl implements Indexer {
 		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
+		this.lambdaManager = lambdaManager;
 		this.queueManager = queueManager;
 		this.companiesHouseFilenamePattern = Pattern.compile(
 				"Prod\\d+_\\d+_([a-zA-Z0-9]+)_(\\d{8})\\.html"
@@ -399,6 +412,54 @@ public class IndexerImpl implements Indexer {
 		LOG.info("Completed FCA indexing at {}", fcaSessionLastEndedDate);
 	}
 
+	@Scheduled(fixedDelay = 60 * 10 * 1000)
+	public void preprocessFcaViaLambda() throws InterruptedException {
+		int concurrency = properties.lambdaPreprocessingConcurrency();
+		if (concurrency < 1) {
+			return;
+		}
+		if (databaseManager.checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
+			return;
+		}
+		LOG.info("Starting preprocessing of FCA filings via Lambda.");
+		Queue<Filing> filings = new LinkedList<>(databaseManager.getFilingsByStatus(FilingStatus.PENDING, RegistryCode.FCA));
+		CompletableFuture<InvokeResponse>[] futures = new CompletableFuture[concurrency];
+		while (Arrays.stream(futures).anyMatch(Objects::nonNull) || !filings.isEmpty()) {
+			for (int i = 0; i < futures.length; i++) {
+				CompletableFuture<InvokeResponse> future = futures[i];
+				if (future == null) {
+					Filing filing = filings.poll();
+					if (filing == null) {
+						continue; // Nothing new to add, allow other futures to complete.
+					}
+					if (databaseManager.checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
+						continue; // Limit reached, allow other futures to complete.
+					}
+					// Invoke the Lambda function and assign to the future slot.
+					LOG.info("Started preprocessing of FCA filing via Lambda: {}", filing.getFilingId());
+					future = lambdaManager.invokeAsync(new FilingPayload(
+							filing.getFilingId(),
+							filing.getDownloadUrl(),
+							filing.getRegistryCode()
+					));
+					futures[i] = future;
+				} else if (future.isDone()) {
+					futures[i] = null;
+					InvokeResponse response;
+					try {
+						response = future.get();
+					} catch (ExecutionException e) {
+						LOG.error("Preprocessing via Lambda encountered an exception.", e);
+						continue;
+					}
+					FilingResultRequest result = lambdaManager.parseResult(response);
+					LOG.info("Completed preprocessing of FCA filing via Lambda: {}", result.getFilingId());
+					databaseManager.applyFilingResult(result);
+				}
+			}
+			Thread.sleep(1000);
+		}
+	}
 
 	/*
 	 * Retrieves messages from the results queue and applies them to the database.
