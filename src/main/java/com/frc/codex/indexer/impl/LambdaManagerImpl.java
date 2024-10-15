@@ -1,5 +1,6 @@
 package com.frc.codex.indexer.impl;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -11,9 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.FilingPayload;
+import com.frc.codex.model.FilingResultRequest;
 
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -25,6 +29,7 @@ import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 @Component
 public class LambdaManagerImpl implements LambdaManager {
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private final LambdaAsyncClient client;
 	private final FilingIndexProperties properties;
 
@@ -81,5 +86,17 @@ public class LambdaManagerImpl implements LambdaManager {
 				}
 			}
 		}
+	}
+
+	public FilingResultRequest parseResult(InvokeResponse invokeResponse) {
+		JsonNode root;
+		try {
+			root = OBJECT_MAPPER.readTree(invokeResponse.payload().asByteArray());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return FilingResultRequest.builder()
+				.json(root)
+				.build();
 	}
 }
