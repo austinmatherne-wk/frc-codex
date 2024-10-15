@@ -90,6 +90,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return false;
 	}
 
+	public int lambdaPreprocessingConcurrency() {
+		return 1;
+	}
+
 	public long maximumSearchResults() {
 		return 100;
 	}

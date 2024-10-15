@@ -21,6 +21,7 @@ public interface FilingIndexProperties {
 	HikariConfig getDatabaseConfig(String poolName);
 	boolean isAws();
 	boolean isDbMigrateAsync();
+	int lambdaPreprocessingConcurrency();
 	long maximumSearchResults();
 	String s3ResultsBucketName();
 	long searchPageSize();

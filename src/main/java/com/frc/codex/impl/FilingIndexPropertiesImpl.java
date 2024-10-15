@@ -35,6 +35,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
 	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
+	private static final String LAMBDA_PREPROCESSING_CONCURRENCY = "LAMBDA_PREPROCESSING_CONCURRENCY";
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
 	private static final String S3_RESULTS_BUCKET_NAME = "S3_RESULTS_BUCKET_NAME";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
@@ -62,6 +63,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final boolean isAws;
 	private final String awsLambdaFunctionName;
 	private final String awsRegion;
+	private final int lambdaPreprocessingConcurrency;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
 	private final long searchPageSize;
@@ -97,6 +99,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		filingLimitFca = Integer.parseInt(requireNonNull(getEnv(FILING_LIMIT_FCA, "5")));
 
 		isAws = Boolean.parseBoolean(requireNonNull(getEnv("AWS", "true")));
+
+		lambdaPreprocessingConcurrency = Integer.parseInt(requireNonNull(getEnv(LAMBDA_PREPROCESSING_CONCURRENCY, "1")));
 
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
@@ -227,6 +231,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public boolean isDbMigrateAsync() {
 		return false;
+	}
+
+	public int lambdaPreprocessingConcurrency() {
+		return lambdaPreprocessingConcurrency;
 	}
 
 	public long maximumSearchResults() {
