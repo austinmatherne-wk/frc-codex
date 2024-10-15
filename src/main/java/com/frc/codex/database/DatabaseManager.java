@@ -23,6 +23,7 @@ public interface DatabaseManager {
 	boolean filingExists(NewFilingRequest newFilingRequest);
 	Filing getFiling(UUID filingId);
 	List<Filing> getFilingsByStatus(FilingStatus status);
+	List<Filing> getFilingsByStatus(FilingStatus status, RegistryCode registryCode);
 	LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate);
 	Long getLatestStreamTimepoint(Long defaultTimepoint);
 	long getRegistryCount(RegistryCode registryCode);
