@@ -3,6 +3,7 @@ package com.frc.codex;
 import com.zaxxer.hikari.HikariConfig;
 
 public interface FilingIndexProperties {
+	String awsLambdaFunctionName();
 	String awsRegion();
 	String companiesHouseDocumentApiBaseUrl();
 	String companiesHouseInformationApiBaseUrl();
@@ -12,6 +13,7 @@ public interface FilingIndexProperties {
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
 	String fcaDataApiBaseUrl();
+	int fcaPastDays();
 	String fcaSearchApiUrl();
 	boolean enablePreprocessing();
 	int filingLimitCompaniesHouse();

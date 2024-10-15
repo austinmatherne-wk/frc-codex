@@ -66,7 +66,11 @@ public class FcaClientImpl implements FcaClient {
 		ObjectNode dateCriteria = criteriaObj.putArray("dateCriteria").addObject();
 		dateCriteria.put("name", "submitted_date");
 		ObjectNode dateValue = dateCriteria.putObject("value");
-		dateValue.put("from", OUTGOING_JSON_DATE_FORMAT.format(sinceDate));
+		if (sinceDate == null) {
+			dateValue.putNull("from");
+		} else {
+			dateValue.put("from", OUTGOING_JSON_DATE_FORMAT.format(sinceDate));
+		}
 		dateValue.putNull("to");
 		return node.toString();
 	}
@@ -111,6 +115,18 @@ public class FcaClientImpl implements FcaClient {
 		return processed >= this.pageSize;
 	}
 
+	private LocalDateTime parseDate(String dateStr) {
+		try {
+			TemporalAccessor documentDateAccessor = INCOMING_JSON_DATE_FORMAT.parse(dateStr);
+			return LocalDateTime.from(documentDateAccessor);
+		} catch (DateTimeParseException e) {
+			// document_date is sometimes YYYY-MM-DD, for example in the sample response in FCA.md.
+			// https://github.com/Arelle/frc-codex/blob/27a87ba7f4cec53f0d9990391899415efacb2103/src/main/java/com/frc/codex/discovery/fca/FCA.md#L70
+			TemporalAccessor documentDateAccessor = ISO_LOCAL_DATE.parse(dateStr);
+			return LocalDate.from(documentDateAccessor).atStartOfDay();
+		}
+	}
+
 	/*
 	 * Processes a page of FCA filings.
 	 * @param response The response to process.
@@ -131,20 +147,9 @@ public class FcaClientImpl implements FcaClient {
 			String downloadLink = source.get("download_link").asText();
 			String sequenceId = source.get("seq_id").asText();
 			String documentDateStr = source.get("document_date").asText();
-			LocalDateTime documentDate;
-			try {
-				TemporalAccessor documentDateAccessor = INCOMING_JSON_DATE_FORMAT.parse(documentDateStr);
-				documentDate = LocalDateTime.from(documentDateAccessor);
-			} catch (DateTimeParseException e) {
-				// document_date is sometimes YYYY-MM-DD, for example in the sample response in FCA.md.
-				// https://github.com/Arelle/frc-codex/blob/27a87ba7f4cec53f0d9990391899415efacb2103/src/main/java/com/frc/codex/discovery/fca/FCA.md#L70
-				TemporalAccessor documentDateAccessor = ISO_LOCAL_DATE.parse(documentDateStr);
-				documentDate = LocalDate.from(documentDateAccessor).atStartOfDay();
-			}
+			LocalDateTime documentDate = parseDate(documentDateStr);
 			String submittedDateStr = source.get("submitted_date").asText();
-			LocalDateTime submittedDate = LocalDateTime.from(
-					INCOMING_JSON_DATE_FORMAT.parse(submittedDateStr)
-			);
+			LocalDateTime submittedDate = parseDate(submittedDateStr);
 			String companyName = source.get("company").asText();
 			companyName = companyName.toUpperCase();
 			String lei = source.get("lei").asText();

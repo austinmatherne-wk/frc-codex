@@ -154,22 +154,26 @@ public class IndexerImpl implements Indexer {
 		String resourceId = filing.get("resource_id").asText();
 		String externalFilingId = data.get("transaction_id").asText();
 		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber, resourceId);
-		for (String filingUrl : filingUrls) {
-			NewFilingRequest newFilingRequest = new NewFilingRequest();
-			newFilingRequest.setCompanyNumber(companyNumber);
-			newFilingRequest.setDocumentDate(documentDate);
-			newFilingRequest.setDownloadUrl(filingUrl);
-			newFilingRequest.setFilingDate(filingDate);
-			newFilingRequest.setRegistryCode(RegistryCode.COMPANIES_HOUSE.toString());
-			newFilingRequest.setExternalFilingId(externalFilingId);
-			newFilingRequest.setStreamTimepoint(timepoint);
+		if (!filingUrls.isEmpty()) {
+			String downloadUrl = "https://find-and-update.company-information.service.gov.uk/company/"
+					+ companyNumber + "/filing-history/" + externalFilingId
+					+ "/document?format=xhtml&download=0";
+			NewFilingRequest newFilingRequest = NewFilingRequest.builder()
+					.companyNumber(companyNumber)
+					.documentDate(documentDate)
+					.downloadUrl(downloadUrl)
+					.externalFilingId(externalFilingId)
+					.externalViewUrl(downloadUrl)
+					.filingDate(filingDate)
+					.registryCode(RegistryCode.COMPANIES_HOUSE.toString())
+					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
-				LOG.info("Skipping existing CH filing: {}", filingUrl);
-				continue;
+				LOG.info("Skipping existing CH filing: {}", downloadUrl);
+			} else {
+				UUID filingId = this.databaseManager.createFiling(newFilingRequest);
+				LOG.info("Created CH filing for {}: {}", downloadUrl, filingId);
+				this.companiesHouseSessionFilingCount += 1;
 			}
-			UUID filingId = this.databaseManager.createFiling(newFilingRequest);
-			LOG.info("Created CH filing for {}: {}", filingUrl, filingId);
-			this.companiesHouseSessionFilingCount += 1;
 		}
 		return timepoint;
 	}
@@ -233,14 +237,13 @@ public class IndexerImpl implements Indexer {
 			LOG.info("Retrieving filings for company {}.", companyNumber);
 			List<NewFilingRequest> filings;
 			try {
-				filings = companiesHouseClient.getCompanyFilings(companyNumber);
+				filings = companiesHouseClient.getCompanyFilings(companyNumber, companyName);
 			} catch (RateLimitException e) {
 				LOG.warn("Rate limit exceeded while retrieving CH filing history. Resuming later.", e);
 				return;
 			}
 			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
 			for (NewFilingRequest filing : filings) {
-				filing.setCompanyName(companyName);
 				if (databaseManager.filingExists(filing)) {
 					LOG.info("Skipping existing filing: {}", filing.getDownloadUrl());
 					continue;
@@ -368,20 +371,21 @@ public class IndexerImpl implements Indexer {
 		if (databaseManager.checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
 			return;
 		}
-		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(
-				LocalDateTime.now().minusDays(30)
-		);
+		LocalDateTime fcaStartDate = properties.fcaPastDays() <= 0 ? null :
+				LocalDateTime.now().minusDays(properties.fcaPastDays());
+		LocalDateTime latestSubmittedDate = databaseManager.getLatestFcaFilingDate(fcaStartDate);
 		List<FcaFiling> filings = fcaClient.fetchAllSinceDate(latestSubmittedDate);
 		for (FcaFiling filing : filings) {
-			NewFilingRequest newFilingRequest = new NewFilingRequest();
-			newFilingRequest.setCompanyName(filing.companyName());
-			newFilingRequest.setCompanyNumber(filing.lei());
-			newFilingRequest.setDocumentDate(filing.documentDate());
-			newFilingRequest.setDownloadUrl(filing.downloadUrl());
-			newFilingRequest.setExternalFilingId(filing.sequenceId());
-			newFilingRequest.setFilingDate(filing.submittedDate());
-			newFilingRequest.setExternalViewUrl(filing.infoUrl());
-			newFilingRequest.setRegistryCode(RegistryCode.FCA.toString());
+			NewFilingRequest newFilingRequest = NewFilingRequest.builder()
+					.companyName(filing.companyName())
+					.companyNumber(filing.lei())
+					.documentDate(filing.documentDate())
+					.downloadUrl(filing.downloadUrl())
+					.externalFilingId(filing.sequenceId())
+					.externalViewUrl(filing.infoUrl())
+					.filingDate(filing.submittedDate())
+					.registryCode(RegistryCode.FCA.toString())
+					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
 				continue;

@@ -20,6 +20,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 	private static final String HEADER_RATE_REMAINING = "X-Ratelimit-Remain";
 	private static final String HEADER_RATE_RESET = "X-Ratelimit-Reset";
 	private static final Logger LOG = LoggerFactory.getLogger(CompaniesHouseRateLimiterImpl.class);
+	private static final int REMAINING_FLOOR = 25;
 
 	private long limit;
 	private long remaining;
@@ -76,7 +77,7 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 			LOG.info("Rate limit rejection at {} in current window until {}, unhealthy.", lastRejection, reset);
 			return false;
 		}
-		if (remaining <= 0) {
+		if (remaining <= REMAINING_FLOOR) {
 			// We have no remaining requests, so we should be unhealthy.
 			LOG.info("Rate limit exhausted, unhealthy.");
 			return false;
@@ -98,6 +99,16 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		while (!timestamps.isEmpty() && timestamps.peek().before(oneMinuteAgo)) {
 			timestamps.poll();
 		}
+	}
+
+	public String toString() {
+		return "CompaniesHouseRateLimiterImpl [" +
+				"limit=" + limit + ", " +
+				"remaining=" + remaining + ", " +
+				"updated=" + updated + ", " +
+				"reset=" + reset + ", " +
+				"lastRejection=" + lastRejection +
+				"]";
 	}
 
 	public synchronized void waitForRapidRateLimit() throws InterruptedException {

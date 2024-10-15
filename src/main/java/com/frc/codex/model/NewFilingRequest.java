@@ -1,17 +1,31 @@
 package com.frc.codex.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.time.LocalDateTime;
 
 public class NewFilingRequest {
-	private String companyName;
-	private String companyNumber;
-	private LocalDateTime documentDate;
-	private String registryCode;
-	private String downloadUrl;
-	private String externalFilingId;
-	private LocalDateTime filingDate;
-	private Long streamTimepoint;
-	private String externalViewUrl;
+	private final String companyName;
+	private final String companyNumber;
+	private final LocalDateTime documentDate;
+	private final String registryCode;
+	private final String downloadUrl;
+	private final String externalFilingId;
+	private final LocalDateTime filingDate;
+	private final Long streamTimepoint;
+	private final String externalViewUrl;
+
+	private NewFilingRequest(Builder builder) {
+		this.companyName = builder.companyName;
+		this.companyNumber = requireNonNull(builder.companyNumber);
+		this.documentDate = builder.documentDate;
+		this.downloadUrl = requireNonNull(builder.downloadUrl);
+		this.externalFilingId = requireNonNull(builder.externalFilingId);
+		this.externalViewUrl = requireNonNull(builder.externalViewUrl);
+		this.filingDate = requireNonNull(builder.filingDate);
+		this.registryCode = requireNonNull(builder.registryCode);
+		this.streamTimepoint = builder.streamTimepoint;
+	}
 
 	public String getCompanyName() {
 		return companyName;
@@ -25,10 +39,6 @@ public class NewFilingRequest {
 		return documentDate;
 	}
 
-	public String getRegistryCode() {
-		return registryCode;
-	}
-
 	public String getDownloadUrl() {
 		return downloadUrl;
 	}
@@ -37,51 +47,84 @@ public class NewFilingRequest {
 		return externalFilingId;
 	}
 
+	public String getExternalViewUrl() {
+		return externalViewUrl;
+	}
+
 	public LocalDateTime getFilingDate() {
 		return filingDate;
+	}
+
+	public String getRegistryCode() {
+		return registryCode;
 	}
 
 	public Long getStreamTimepoint() {
 		return streamTimepoint;
 	}
 
-	public String getExternalViewUrl() {
-		return externalViewUrl;
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
+	public static class Builder {
+		private String companyName;
+		private String companyNumber;
+		private LocalDateTime documentDate;
+		private String registryCode;
+		private String downloadUrl;
+		private String externalFilingId;
+		private LocalDateTime filingDate;
+		private Long streamTimepoint;
+		private String externalViewUrl;
 
-	public void setCompanyNumber(String companyNumber) {
-		this.companyNumber = companyNumber;
-	}
+		public NewFilingRequest build() {
+			return new NewFilingRequest(this);
+		}
 
-	public void setDocumentDate(LocalDateTime documentDate) {
-		this.documentDate = documentDate;
-	}
+		public Builder companyName(String companyName) {
+			this.companyName = companyName;
+			return this;
+		}
 
-	public void setRegistryCode(String registryCode) {
-		this.registryCode = registryCode;
-	}
+		public Builder companyNumber(String companyNumber) {
+			this.companyNumber = companyNumber;
+			return this;
+		}
 
-	public void setExternalFilingId(String externalFilingId) {
-		this.externalFilingId = externalFilingId;
-	}
+		public Builder documentDate(LocalDateTime documentDate) {
+			this.documentDate = documentDate;
+			return this;
+		}
 
-	public void setDownloadUrl(String downloadUrl) {
-		this.downloadUrl = downloadUrl;
-	}
+		public Builder downloadUrl(String downloadUrl) {
+			this.downloadUrl = downloadUrl;
+			return this;
+		}
 
-	public void setFilingDate(LocalDateTime filingDate) {
-		this.filingDate = filingDate;
-	}
+		public Builder externalFilingId(String externalFilingId) {
+			this.externalFilingId = externalFilingId;
+			return this;
+		}
 
-	public void setStreamTimepoint(Long streamTimepoint) {
-		this.streamTimepoint = streamTimepoint;
-	}
+		public Builder externalViewUrl(String externalViewUrl) {
+			this.externalViewUrl = externalViewUrl;
+			return this;
+		}
 
-	public void setExternalViewUrl(String externalViewUrl) {
-		this.externalViewUrl = externalViewUrl;
+		public Builder filingDate(LocalDateTime filingDate) {
+			this.filingDate = filingDate;
+			return this;
+		}
+
+		public Builder registryCode(String registryCode) {
+			this.registryCode = registryCode;
+			return this;
+		}
+
+		public Builder streamTimepoint(Long streamTimepoint) {
+			this.streamTimepoint = streamTimepoint;
+			return this;
+		}
 	}
 }

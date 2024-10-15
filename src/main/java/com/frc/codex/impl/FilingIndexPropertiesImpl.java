@@ -16,6 +16,7 @@ import com.zaxxer.hikari.HikariConfig;
 @Component
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
+	private static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
@@ -30,6 +31,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
+	private static final String FCA_PAST_DAYS = "FCA_PAST_DAYS";
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
 	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
@@ -52,10 +54,12 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long dbMaxLifetime;
 	private final boolean enablePreprocessing;
 	private final String fcaDataApiBaseUrl;
+	private final int fcaPastDays;
 	private final String fcaSearchApiUrl;
 	private final int filingLimitCompaniesHouse;
 	private final int filingLimitFca;
 	private final boolean isAws;
+	private final String awsLambdaFunctionName;
 	private final String awsRegion;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -65,6 +69,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 
 	public FilingIndexPropertiesImpl() {
+		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
 		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
@@ -82,6 +87,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
 
 		fcaDataApiBaseUrl = requireNonNull(getEnv(FCA_DATA_API_BASE_URL));
+		fcaPastDays = Integer.parseInt(getEnv(FCA_PAST_DAYS, "0"));
 		fcaSearchApiUrl = requireNonNull(getEnv(FCA_SEARCH_API_URL));
 
 		// Limits must be explicitly overridden
@@ -138,6 +144,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		}
 	}
 
+	public String awsLambdaFunctionName() {
+		return awsLambdaFunctionName;
+	}
+
 	public String awsRegion() {
 		return awsRegion;
 	}
@@ -176,6 +186,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaDataApiBaseUrl() {
 		return fcaDataApiBaseUrl;
+	}
+
+	public int fcaPastDays() {
+		return fcaPastDays;
 	}
 
 	public String fcaSearchApiUrl() {

@@ -10,6 +10,10 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("test")
 public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
+	public String awsLambdaFunctionName() {
+		return "function";
+	}
+
 	public String awsRegion() {
 		return "eu-west-2";
 	}
@@ -48,6 +52,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String fcaDataApiBaseUrl() {
 		return "http://localhost:8086/data";
+	}
+
+	public int fcaPastDays() {
+		return 30;
 	}
 
 	public String fcaSearchApiUrl() {

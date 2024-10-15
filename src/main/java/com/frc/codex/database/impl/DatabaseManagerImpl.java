@@ -182,10 +182,13 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	public boolean filingExists(NewFilingRequest newFilingRequest) {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT filing_id FROM filings " +
-					"WHERE download_url = ? " +
+					"WHERE registry_code = ? " +
+					"AND external_filing_id = ? " +
 					"LIMIT 1";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setObject(1, newFilingRequest.getDownloadUrl());
+			int i = 1;
+			statement.setObject(i++, newFilingRequest.getRegistryCode());
+			statement.setObject(i++, newFilingRequest.getExternalFilingId());
 			ResultSet resultSet = statement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
