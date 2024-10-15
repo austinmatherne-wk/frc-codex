@@ -26,4 +26,10 @@ public interface FilingIndexProperties {
 	long searchPageSize();
 	String sqsJobsQueueName();
 	String sqsResultsQueueName();
+
+	/**
+	 * @return The number of unprocessed `companies` records that can be queued before the indexer stops
+	 *   downloading Companies House archives to discover new companies.
+	 */
+	int unprocessedCompaniesLimit();
 }

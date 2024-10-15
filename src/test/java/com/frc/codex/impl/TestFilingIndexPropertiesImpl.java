@@ -109,4 +109,8 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 	public String sqsResultsQueueName() {
 		return "frc_codex_results";
 	}
+
+	public int unprocessedCompaniesLimit() {
+		return 1000;
+	}
 }

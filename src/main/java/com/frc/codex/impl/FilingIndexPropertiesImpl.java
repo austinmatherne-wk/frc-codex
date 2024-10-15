@@ -41,6 +41,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
+	private static final String UNPROCESSED_COMPANIES_LIMIT = "UNPROCESSED_COMPANIES_LIMIT";
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
 	private final int companiesHouseRapidRateLimit;
@@ -66,6 +67,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long searchPageSize;
 	private final String sqsJobsQueueName;
 	private final String sqsResultsQueueName;
+	private final int unprocessedCompaniesLimit;
 
 
 	public FilingIndexPropertiesImpl() {
@@ -102,6 +104,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		s3ResultsBucketName = requireNonNull(getEnv(S3_RESULTS_BUCKET_NAME));
 		sqsJobsQueueName = requireNonNull(getEnv(SQS_JOBS_QUEUE_NAME));
 		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
+
+		unprocessedCompaniesLimit = Integer.parseInt(requireNonNull(getEnv(UNPROCESSED_COMPANIES_LIMIT, "1000")));
 
 		Properties secrets = getSecrets();
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
@@ -243,5 +247,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String sqsResultsQueueName() {
 		return sqsResultsQueueName;
+	}
+
+	public int unprocessedCompaniesLimit() {
+		return unprocessedCompaniesLimit;
 	}
 }

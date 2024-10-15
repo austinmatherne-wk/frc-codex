@@ -48,7 +48,6 @@ import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 public class IndexerImpl implements Indexer {
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final int COMPANIES_BATCH_SIZE = 100;
-	private static final int COMPANIES_LIMIT = 1000;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
@@ -270,7 +269,7 @@ public class IndexerImpl implements Indexer {
 	 * Returns true if the archive was processed successfully or doesn't need processing.
 	 */
 	private boolean processCompaniesHouseArchive(URI uri, String archiveType) {
-		if (databaseManager.checkCompaniesLimit(COMPANIES_LIMIT)) {
+		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return false;
 		}
 		String filename = new File(uri.getPath()).getName();
@@ -335,7 +334,7 @@ public class IndexerImpl implements Indexer {
 
 	@Scheduled(fixedDelay = 30 * 60 * 1000)
 	public void indexCompaniesFromCompaniesHouseArchives() {
-		if (databaseManager.checkCompaniesLimit(COMPANIES_LIMIT)) {
+		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return;
 		}
 		List<URI> downloadLinks;
