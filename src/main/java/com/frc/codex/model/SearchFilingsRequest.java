@@ -7,6 +7,7 @@ import java.time.YearMonth;
 import org.thymeleaf.util.StringUtils;
 
 public class SearchFilingsRequest {
+	private Boolean admin;
 	private String companyName;
 	private String companyNumber;
 	private long limit;
@@ -68,7 +69,8 @@ public class SearchFilingsRequest {
 				buildQuery("minFilingDateYear", getMinFilingDateYear()) +
 				buildQuery("maxFilingDateDay", getMaxFilingDateDay()) +
 				buildQuery("maxFilingDateMonth", getMaxFilingDateMonth()) +
-				buildQuery("maxFilingDateYear", getMaxFilingDateYear());
+				buildQuery("maxFilingDateYear", getMaxFilingDateYear()) +
+				buildQuery("admin", getAdmin());
 		return ("/?" + query + "#result-" + lastResultIndex);
 	}
 
@@ -77,6 +79,10 @@ public class SearchFilingsRequest {
 			return paramName + "=" + paramValue + "&";
 		}
 		return "";
+	}
+
+	public Boolean getAdmin() {
+		return admin;
 	}
 
 	public LocalDateTime getMinDocumentDate() {
@@ -150,6 +156,10 @@ public class SearchFilingsRequest {
 	public boolean isEmpty() {
 		return StringUtils.isEmpty(companyName)
 				&& StringUtils.isEmpty(companyNumber);
+	}
+
+	public void setAdmin(Boolean admin) {
+		this.admin = admin;
 	}
 
 	public void setCompanyName(String companyName) {
