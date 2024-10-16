@@ -31,7 +31,6 @@ import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
 
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -57,10 +56,8 @@ public class ViewController {
 		this.databaseManager = databaseManager;
 		this.lambdaManager = lambdaManager;
 		this.restTemplate = new RestTemplate();
-		Region awsRegion = Region.of(properties.awsRegion());
 		this.s3ClientBuilder = S3Client.builder()
-				.forcePathStyle(true)
-				.region(awsRegion);
+				.forcePathStyle(true);
 		this.invokeFutures = new ConcurrentHashMap<>();
 	}
 
@@ -83,19 +80,6 @@ public class ViewController {
 			invokeFutures.remove(filingId);
 			throw e;
 		}
-	}
-
-	private FilingResultRequest parseResult(InvokeResponse invokeResponse) {
-		JsonNode root;
-		try {
-			root = OBJECT_MAPPER.readTree(invokeResponse.payload().asByteArray());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		LOG.info("Received response: {}", root);
-		return FilingResultRequest.builder()
-				.json(root)
-				.build();
 	}
 
 	private ModelAndView viewerResult(UUID filingId, String stubViewerUrl) {
@@ -193,7 +177,7 @@ public class ViewController {
 				// applies the result and removes the future.
 				synchronized (future) {
 					if (invokeFutures.containsKey(filingUuid)) {
-						FilingResultRequest result = parseResult(invokeResponse);
+						FilingResultRequest result = lambdaManager.parseResult(invokeResponse);
 						// Apply the result before we remove from the map to ensure that no requests
 						// occur after a future is removed but before the result is applied.
 						databaseManager.applyFilingResult(result);

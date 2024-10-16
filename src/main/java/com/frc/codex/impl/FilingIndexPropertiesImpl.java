@@ -35,12 +35,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String FCA_SEARCH_API_URL = "FCA_SEARCH_API_URL";
 	private static final String FILING_LIMIT_COMPANIES_HOUSE = "FILING_LIMIT_COMPANIES_HOUSE";
 	private static final String FILING_LIMIT_FCA = "FILING_LIMIT_FCA";
+	private static final String LAMBDA_PREPROCESSING_CONCURRENCY = "LAMBDA_PREPROCESSING_CONCURRENCY";
 	private static final String MAXIMUM_SEARCH_RESULTS = "MAXIMUM_SEARCH_RESULTS";
 	private static final String S3_RESULTS_BUCKET_NAME = "S3_RESULTS_BUCKET_NAME";
 	private static final String SEARCH_PAGE_SIZE = "SEARCH_PAGE_SIZE";
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
+	private static final String UNPROCESSED_COMPANIES_LIMIT = "UNPROCESSED_COMPANIES_LIMIT";
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
 	private final int companiesHouseRapidRateLimit;
@@ -60,17 +62,17 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final int filingLimitFca;
 	private final boolean isAws;
 	private final String awsLambdaFunctionName;
-	private final String awsRegion;
+	private final int lambdaPreprocessingConcurrency;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
 	private final long searchPageSize;
 	private final String sqsJobsQueueName;
 	private final String sqsResultsQueueName;
+	private final int unprocessedCompaniesLimit;
 
 
 	public FilingIndexPropertiesImpl() {
 		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
-		awsRegion = requireNonNull(getEnv(AWS_REGION));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
@@ -96,12 +98,16 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 		isAws = Boolean.parseBoolean(requireNonNull(getEnv("AWS", "true")));
 
+		lambdaPreprocessingConcurrency = Integer.parseInt(requireNonNull(getEnv(LAMBDA_PREPROCESSING_CONCURRENCY, "1")));
+
 		maximumSearchResults = Long.parseLong(requireNonNull(getEnv(MAXIMUM_SEARCH_RESULTS, "100")));
 		searchPageSize = Long.parseLong(requireNonNull(getEnv(SEARCH_PAGE_SIZE, "10")));
 
 		s3ResultsBucketName = requireNonNull(getEnv(S3_RESULTS_BUCKET_NAME));
 		sqsJobsQueueName = requireNonNull(getEnv(SQS_JOBS_QUEUE_NAME));
 		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
+
+		unprocessedCompaniesLimit = Integer.parseInt(requireNonNull(getEnv(UNPROCESSED_COMPANIES_LIMIT, "1000")));
 
 		Properties secrets = getSecrets();
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
@@ -146,10 +152,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String awsLambdaFunctionName() {
 		return awsLambdaFunctionName;
-	}
-
-	public String awsRegion() {
-		return awsRegion;
 	}
 
 	public String companiesHouseDocumentApiBaseUrl() {
@@ -225,6 +227,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		return false;
 	}
 
+	public int lambdaPreprocessingConcurrency() {
+		return lambdaPreprocessingConcurrency;
+	}
+
 	public long maximumSearchResults() {
 		return maximumSearchResults;
 	}
@@ -243,5 +249,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String sqsResultsQueueName() {
 		return sqsResultsQueueName;
+	}
+
+	public int unprocessedCompaniesLimit() {
+		return unprocessedCompaniesLimit;
 	}
 }

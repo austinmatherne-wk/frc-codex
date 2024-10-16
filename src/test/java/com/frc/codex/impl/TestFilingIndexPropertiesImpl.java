@@ -14,10 +14,6 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "function";
 	}
 
-	public String awsRegion() {
-		return "eu-west-2";
-	}
-
 	public String companiesHouseDocumentApiBaseUrl() {
 		return "http://localhost:8085";
 	}
@@ -90,6 +86,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return false;
 	}
 
+	public int lambdaPreprocessingConcurrency() {
+		return 1;
+	}
+
 	public long maximumSearchResults() {
 		return 100;
 	}
@@ -108,5 +108,9 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String sqsResultsQueueName() {
 		return "frc_codex_results";
+	}
+
+	public int unprocessedCompaniesLimit() {
+		return 1000;
 	}
 }

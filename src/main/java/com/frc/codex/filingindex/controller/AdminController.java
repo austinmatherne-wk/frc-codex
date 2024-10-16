@@ -65,7 +65,6 @@ public class AdminController {
 
 	@GetMapping("/admin")
 	public String indexPage(Model model) {
-		model.addAttribute("awsRegion", properties.awsRegion());
 		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
 		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
 		model.addAttribute("chRateLimiter", companiesHouseRateLimiter.toString());

@@ -19,7 +19,6 @@ import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;
 
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -33,11 +32,9 @@ public class QueueManagerImpl implements QueueManager {
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
 	private static final DateTimeFormatter MESSAGE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final FilingIndexProperties properties;
-	private final Region awsRegion;
 
 	public QueueManagerImpl(FilingIndexProperties properties) {
 		this.properties = properties;
-		this.awsRegion = Region.of(properties.awsRegion());
 	}
 
 	/*
@@ -85,7 +82,6 @@ public class QueueManagerImpl implements QueueManager {
 
 	private SqsClient getSqsClient() {
 		return SqsClient.builder()
-				.region(awsRegion)
 				.build();
 	}
 

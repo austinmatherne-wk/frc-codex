@@ -115,6 +115,13 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.collect(ImmutableList.toImmutableList());
 	}
 
+	public List<Filing> getFilingsByStatus(FilingStatus status, RegistryCode registryCode) {
+		return filings.values().stream()
+				.filter(f -> f.getStatus().equals(status.toString()))
+				.filter(f -> f.getRegistryCode().equals(registryCode.toString()))
+				.collect(ImmutableList.toImmutableList());
+	}
+
 	public long getRegistryCount(RegistryCode registryCode) {
 		return filings.values().stream()
 				.filter(f -> f.getRegistryCode().equals(registryCode.toString()))

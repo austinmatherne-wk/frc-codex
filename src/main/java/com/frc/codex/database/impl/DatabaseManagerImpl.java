@@ -186,9 +186,9 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"AND external_filing_id = ? " +
 					"LIMIT 1";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			int i = 1;
-			statement.setObject(i++, newFilingRequest.getRegistryCode());
-			statement.setObject(i++, newFilingRequest.getExternalFilingId());
+			int i = 0;
+			statement.setObject(++i, newFilingRequest.getRegistryCode());
+			statement.setObject(++i, newFilingRequest.getExternalFilingId());
 			ResultSet resultSet = statement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
@@ -250,6 +250,20 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			String sql = "SELECT * FROM filings WHERE status = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setString(1, status.toString());
+			ResultSet resultSet = statement.executeQuery();
+			return getFilings(resultSet);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<Filing> getFilingsByStatus(FilingStatus status, RegistryCode registryCode) {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT * FROM filings WHERE status = ? AND registry_code = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			int i = 0;
+			statement.setString(++i, status.toString());
+			statement.setString(++i, registryCode.name());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
 		} catch (SQLException e) {
