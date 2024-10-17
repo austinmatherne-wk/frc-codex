@@ -23,6 +23,7 @@ public class SearchFilingsRequest {
 	private Integer maxFilingDateDay;
 	private Integer maxFilingDateMonth;
 	private Integer maxFilingDateYear;
+	private String registryCode;
 	private String status;
 
 	public static LocalDateTime buildDate(Integer day, Integer month, Integer year, boolean end) {
@@ -70,6 +71,7 @@ public class SearchFilingsRequest {
 				buildQuery("maxFilingDateDay", getMaxFilingDateDay()) +
 				buildQuery("maxFilingDateMonth", getMaxFilingDateMonth()) +
 				buildQuery("maxFilingDateYear", getMaxFilingDateYear()) +
+				buildQuery("registryCode", getRegistryCode()) +
 				buildQuery("admin", getAdmin());
 		return ("/?" + query + "#result-" + lastResultIndex);
 	}
@@ -148,6 +150,9 @@ public class SearchFilingsRequest {
 	public Integer getMaxFilingDateYear() {
 		return maxFilingDateYear;
 	}
+	public String getRegistryCode() {
+		return registryCode;
+	}
 
 	public String getStatus() {
 		return status;
@@ -222,6 +227,9 @@ public class SearchFilingsRequest {
 		this.maxFilingDateYear = year;
 	}
 
+	public void setRegistryCode(String registryCode) {
+		this.registryCode = registryCode;
+	}
 
 	public void setStatus(String status) {
 		this.status = status;

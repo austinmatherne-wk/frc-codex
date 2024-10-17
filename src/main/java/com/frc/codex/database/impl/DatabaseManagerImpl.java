@@ -512,6 +512,10 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				conditions.add("status = ?");
 				parameters.add(searchFilingsRequest.getStatus());
 			}
+			if (!StringUtils.isEmpty(searchFilingsRequest.getRegistryCode())) {
+				conditions.add("registry_code = ?");
+				parameters.add(searchFilingsRequest.getRegistryCode());
+			}
 			StringBuilder sqlBuilder = new StringBuilder("SELECT * ");
 			if (selects.size() > 0) {
 				sqlBuilder.append(", ");

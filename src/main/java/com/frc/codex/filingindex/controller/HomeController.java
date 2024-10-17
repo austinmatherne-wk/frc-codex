@@ -14,6 +14,7 @@ import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingStatus;
+import com.frc.codex.RegistryCode;
 import com.frc.codex.model.SearchFilingsRequest;
 
 @Controller
@@ -53,6 +54,7 @@ public class HomeController {
 		model.addObject("minFilingDateError", getDateValidation(searchFilingsRequest::getMinFilingDate));
 		model.addObject("maxDocumentDateError", getDateValidation(searchFilingsRequest::getMaxDocumentDate));
 		model.addObject("maxFilingDateError", getDateValidation(searchFilingsRequest::getMaxFilingDate));
+		model.addObject("registryCodes", RegistryCode.values());
 		searchFilingsRequest.setStatus(null);
 		List<Filing> filings;
 		String message = null;
