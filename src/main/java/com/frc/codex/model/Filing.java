@@ -135,7 +135,7 @@ public class Filing {
 	}
 
 	public String getViewerLink() {
-		String path = !Objects.equals(status, FilingStatus.COMPLETED.name()) ? "viewer" : stubViewerUrl;
+		String path = Objects.equals(status, FilingStatus.COMPLETED.name()) ? stubViewerUrl : "viewer";
 		return "view/" + filingId.toString() + "/" + path;
 	}
 
