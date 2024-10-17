@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
@@ -184,7 +183,11 @@ public class ViewController {
 						invokeFutures.remove(filingUuid);
 					}
 				}
-			} catch (InterruptedException | ExecutionException ignored) {}
+			} catch (InterruptedException e) {
+				LOG.error("Interrupted while retrieving Lambda result for filing: {}", filingUuid, e);
+			} catch (ExecutionException e) {
+				LOG.error("Failed to retrieve Lambda result for filing: {}", filingUuid, e);
+			}
 		}
 		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 	}
