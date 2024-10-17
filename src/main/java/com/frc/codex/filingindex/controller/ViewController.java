@@ -171,6 +171,7 @@ public class ViewController {
 				invokeFutures.remove(filingUuid);
 			}
 			try {
+				LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
 				InvokeResponse invokeResponse = future.get();
 				// Synchronize this block to ensure that only one request
 				// applies the result and removes the future.
@@ -183,10 +184,8 @@ public class ViewController {
 						invokeFutures.remove(filingUuid);
 					}
 				}
-			} catch (InterruptedException e) {
-				LOG.error("Interrupted while retrieving Lambda result for filing: {}", filingUuid, e);
-			} catch (ExecutionException e) {
-				LOG.error("Failed to retrieve Lambda result for filing: {}", filingUuid, e);
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
 			}
 		}
 		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
