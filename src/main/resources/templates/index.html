@@ -263,6 +263,25 @@
                             </div>
                         </div>
                     </div>
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            <div class="govuk-form-group">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label" for="registryCode">
+                                        Registry
+                                    </label>
+                                    <div id="registryCode-hint" class="govuk-hint">
+                                    </div>
+                                    <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
+                                        <option value="" selected>Any</option>
+                                        <option th:each="registry : ${registryCodes}"
+                                                th:value="${registry.name}"
+                                        th:text="${registry.displayName}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </details>
             <div class="govuk-button-group">
