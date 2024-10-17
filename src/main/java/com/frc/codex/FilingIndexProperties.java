@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 
 public interface FilingIndexProperties {
 	String awsLambdaFunctionName();
+	long awsLambdaTimeoutSeconds();
 	String companiesHouseDocumentApiBaseUrl();
 	String companiesHouseInformationApiBaseUrl();
 	int companiesHouseRapidRateLimit();

@@ -31,12 +31,12 @@ public class LambdaManagerImpl implements LambdaManager {
 	private final LambdaAsyncClient client;
 	private final FilingIndexProperties properties;
 
-	public LambdaManagerImpl(FilingIndexProperties properties) throws URISyntaxException {
+	public LambdaManagerImpl(FilingIndexProperties properties) {
 		this.properties = properties;
 		this.client = LambdaAsyncClient.builder()
 				.overrideConfiguration(ClientOverrideConfiguration.builder()
-						.apiCallAttemptTimeout(Duration.ofSeconds(300))
-						.apiCallTimeout(Duration.ofSeconds(300))
+						.apiCallAttemptTimeout(Duration.ofSeconds(properties.awsLambdaTimeoutSeconds()))
+						.apiCallTimeout(Duration.ofSeconds(properties.awsLambdaTimeoutSeconds()))
 						.build())
 				.build();
 	}
