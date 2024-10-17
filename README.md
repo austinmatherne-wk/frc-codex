@@ -53,6 +53,9 @@ The processor expects an `iXBRLViewerPlugin` directory in the plugins directory:
 Example `./dev/compose-local.yml`:
 ```yaml
 services:
+  frc-codex-lambda:
+    volumes:
+      - ../../frc-ixbrl-viewer/iXBRLViewerPlugin:/var/task/processor/plugins/frc-ixbrl-viewer/iXBRLViewerPlugin
   frc-codex-processor:
     volumes:
       - ../../frc-ixbrl-viewer/iXBRLViewerPlugin:/processor/plugins/iXBRLViewerPlugin
