@@ -167,9 +167,6 @@ public class ViewController {
 		UUID filingUuid = UUID.fromString(filingId);
 		if (invokeFutures.containsKey(filingUuid)) {
 			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
-			if (future.isDone()) {
-				invokeFutures.remove(filingUuid);
-			}
 			try {
 				LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
 				InvokeResponse invokeResponse = future.get();
