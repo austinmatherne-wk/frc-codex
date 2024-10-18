@@ -17,6 +17,7 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
+	private static final String AWS_LAMBDA_TIMEOUT_SECONDS = "AWS_LAMBDA_TIMEOUT_SECONDS";
 	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
@@ -62,6 +63,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final int filingLimitFca;
 	private final boolean isAws;
 	private final String awsLambdaFunctionName;
+	private final long awsLambdaTimeoutSeconds;
 	private final int lambdaPreprocessingConcurrency;
 	private final long maximumSearchResults;
 	private final String s3ResultsBucketName;
@@ -73,6 +75,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public FilingIndexPropertiesImpl() {
 		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
+		awsLambdaTimeoutSeconds = Long.parseLong(requireNonNull(getEnv(AWS_LAMBDA_TIMEOUT_SECONDS, "300")));
 
 		companiesHouseDocumentApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_DOCUMENT_API_BASE_URL));
 		companiesHouseInformationApiBaseUrl = requireNonNull(getEnv(COMPANIES_HOUSE_INFORMATION_API_BASE_URL));
@@ -152,6 +155,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String awsLambdaFunctionName() {
 		return awsLambdaFunctionName;
+	}
+
+	public long awsLambdaTimeoutSeconds() {
+		return awsLambdaTimeoutSeconds;
 	}
 
 	public String companiesHouseDocumentApiBaseUrl() {

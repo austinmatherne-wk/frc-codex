@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Filing {
@@ -134,7 +135,7 @@ public class Filing {
 	}
 
 	public String getViewerLink() {
-		String path = stubViewerUrl == null ? "viewer" : stubViewerUrl;
+		String path = Objects.equals(status, FilingStatus.COMPLETED.name()) ? stubViewerUrl : "viewer";
 		return "view/" + filingId.toString() + "/" + path;
 	}
 

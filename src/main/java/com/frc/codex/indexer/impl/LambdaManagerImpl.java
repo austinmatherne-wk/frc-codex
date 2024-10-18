@@ -20,6 +20,7 @@ import com.frc.codex.model.FilingResultRequest;
 
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
@@ -31,12 +32,18 @@ public class LambdaManagerImpl implements LambdaManager {
 	private final LambdaAsyncClient client;
 	private final FilingIndexProperties properties;
 
-	public LambdaManagerImpl(FilingIndexProperties properties) throws URISyntaxException {
+	public LambdaManagerImpl(FilingIndexProperties properties) {
 		this.properties = properties;
 		this.client = LambdaAsyncClient.builder()
+				.httpClientBuilder(NettyNioAsyncHttpClient.builder()
+						.maxConcurrency(100)
+						.readTimeout(Duration.ZERO)
+						.writeTimeout(Duration.ZERO)
+						.connectionTimeout(Duration.ofSeconds(properties.awsLambdaTimeoutSeconds()))
+				)
 				.overrideConfiguration(ClientOverrideConfiguration.builder()
-						.apiCallAttemptTimeout(Duration.ofSeconds(300))
-						.apiCallTimeout(Duration.ofSeconds(300))
+						.apiCallAttemptTimeout(Duration.ofSeconds(properties.awsLambdaTimeoutSeconds()))
+						.apiCallTimeout(Duration.ofSeconds(properties.awsLambdaTimeoutSeconds()))
 						.build())
 				.build();
 	}

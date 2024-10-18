@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
@@ -168,10 +167,8 @@ public class ViewController {
 		UUID filingUuid = UUID.fromString(filingId);
 		if (invokeFutures.containsKey(filingUuid)) {
 			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
-			if (future.isDone()) {
-				invokeFutures.remove(filingUuid);
-			}
 			try {
+				LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
 				InvokeResponse invokeResponse = future.get();
 				// Synchronize this block to ensure that only one request
 				// applies the result and removes the future.
@@ -184,7 +181,9 @@ public class ViewController {
 						invokeFutures.remove(filingUuid);
 					}
 				}
-			} catch (InterruptedException | ExecutionException ignored) {}
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
+			}
 		}
 		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 	}

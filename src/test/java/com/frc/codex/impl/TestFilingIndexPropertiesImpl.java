@@ -14,6 +14,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "function";
 	}
 
+	public long awsLambdaTimeoutSeconds() {
+		return 300;
+	}
+
 	public String companiesHouseDocumentApiBaseUrl() {
 		return "http://localhost:8085";
 	}
