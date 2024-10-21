@@ -317,6 +317,10 @@ public class IndexerImpl implements Indexer {
 
 		// Example: Prod223_3785_13056435_20240331.html
 		for (String arcname : arcnames) {
+			if (arcname.endsWith(".xml")) {
+				LOG.info("Skipping entry in {}: {}", uri, arcname);
+				continue;
+			}
 			Matcher matcher = companiesHouseFilenamePattern.matcher(arcname);
 			if (!matcher.matches()) {
 				LOG.error("Found invalid archive entry in {}: {}", uri, arcname);
@@ -341,6 +345,9 @@ public class IndexerImpl implements Indexer {
 					.archiveType(archiveType)
 					.build();
 			databaseManager.createCompaniesHouseArchive(archive);
+			LOG.info("Completed archive: {}", filename);
+		} else {
+			LOG.error("Archive not completed: {}", filename);
 		}
 		return true;
 	}

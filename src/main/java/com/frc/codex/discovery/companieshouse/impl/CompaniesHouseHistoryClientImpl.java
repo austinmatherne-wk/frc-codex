@@ -2,12 +2,11 @@ package com.frc.codex.discovery.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,10 +18,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
@@ -51,18 +50,19 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 	}
 
 	@Override
-	public void downloadArchive(URI uri, Path outputFilePath) throws IOException {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(List.of(MediaType.APPLICATION_OCTET_STREAM));
-		HttpEntity<String> entity = new HttpEntity<>(null, headers);
-		ResponseEntity<byte[]> response = restTemplate.exchange(
+	public void downloadArchive(URI uri, Path outputFilePath) {
+		ResponseExtractor<Void> responseExtractor = response -> {
+			try (InputStream inputStream = response.getBody()) {
+				Files.copy(inputStream, outputFilePath, StandardCopyOption.REPLACE_EXISTING);
+			}
+			return null;
+		};
+		restTemplate.execute(
 				uri,
 				HttpMethod.GET,
-				entity,
-				byte[].class
+				null,
+				responseExtractor
 		);
-		byte[] body = requireNonNull(response.getBody());
-		Files.write(outputFilePath, body);
 	}
 
 	@Override
