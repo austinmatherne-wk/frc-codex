@@ -2,16 +2,11 @@ package com.frc.codex.discovery.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
@@ -54,19 +50,19 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 	}
 
 	@Override
-	public void downloadArchive(URI uri, Path outputFilePath) throws IOException {
-		HttpURLConnection connection = (HttpURLConnection)uri.toURL().openConnection();
-		connection.setRequestMethod("GET");
-		try (InputStream inputStream = new BufferedInputStream(connection.getInputStream());
-				OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(outputFilePath, StandardOpenOption.TRUNCATE_EXISTING))) {
-			byte[] buffer = new byte[8192];
-			int bytesRead;
-			while ((bytesRead = inputStream.read(buffer)) != -1) {
-				outputStream.write(buffer, 0, bytesRead);
+	public void downloadArchive(URI uri, Path outputFilePath) {
+		ResponseExtractor<Void> responseExtractor = response -> {
+			try (InputStream inputStream = response.getBody()) {
+				Files.copy(inputStream, outputFilePath, StandardCopyOption.REPLACE_EXISTING);
 			}
-		} finally {
-			connection.disconnect();
-		}
+			return null;
+		};
+		restTemplate.execute(
+				uri,
+				HttpMethod.GET,
+				null,
+				responseExtractor
+		);
 	}
 
 	@Override
