@@ -345,6 +345,9 @@ public class IndexerImpl implements Indexer {
 					.archiveType(archiveType)
 					.build();
 			databaseManager.createCompaniesHouseArchive(archive);
+			LOG.info("Completed archive: {}", filename);
+		} else {
+			LOG.error("Archive not completed: {}", filename);
 		}
 		return true;
 	}
