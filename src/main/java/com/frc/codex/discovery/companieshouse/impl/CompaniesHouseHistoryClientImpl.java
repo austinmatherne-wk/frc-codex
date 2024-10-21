@@ -2,12 +2,16 @@ package com.frc.codex.discovery.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,7 +23,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -52,17 +55,18 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 
 	@Override
 	public void downloadArchive(URI uri, Path outputFilePath) throws IOException {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(List.of(MediaType.APPLICATION_OCTET_STREAM));
-		HttpEntity<String> entity = new HttpEntity<>(null, headers);
-		ResponseEntity<byte[]> response = restTemplate.exchange(
-				uri,
-				HttpMethod.GET,
-				entity,
-				byte[].class
-		);
-		byte[] body = requireNonNull(response.getBody());
-		Files.write(outputFilePath, body);
+		HttpURLConnection connection = (HttpURLConnection)uri.toURL().openConnection();
+		connection.setRequestMethod("GET");
+		try (InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+				OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(outputFilePath, StandardOpenOption.TRUNCATE_EXISTING))) {
+			byte[] buffer = new byte[8192];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, bytesRead);
+			}
+		} finally {
+			connection.disconnect();
+		}
 	}
 
 	@Override
