@@ -318,7 +318,7 @@ public class IndexerImpl implements Indexer {
 		// Example: Prod223_3785_13056435_20240331.html
 		for (String arcname : arcnames) {
 			if (arcname.endsWith(".xml")) {
-				LOG.info("Skipping entry in {}: {}", uri, arcname);
+				LOG.debug("Skipping entry in {}: {}", uri, arcname);
 				continue;
 			}
 			Matcher matcher = companiesHouseFilenamePattern.matcher(arcname);

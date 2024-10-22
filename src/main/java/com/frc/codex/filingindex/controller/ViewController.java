@@ -1,7 +1,5 @@
 package com.frc.codex.filingindex.controller;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.indexer.LambdaManager;
@@ -39,12 +37,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 @RestController
 public class ViewController {
 	private static final Logger LOG = LoggerFactory.getLogger(ViewController.class);
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private final DatabaseManager databaseManager;
 	private final LambdaManager lambdaManager;
 	private final FilingIndexProperties properties;
 	private final RestTemplate restTemplate;
-	private final S3ClientBuilder s3ClientBuilder;
+	private final S3Client s3Client;
 	private final ConcurrentHashMap<UUID, CompletableFuture<InvokeResponse>> invokeFutures;
 	public ViewController(
 			FilingIndexProperties properties,
@@ -55,8 +52,9 @@ public class ViewController {
 		this.databaseManager = databaseManager;
 		this.lambdaManager = lambdaManager;
 		this.restTemplate = new RestTemplate();
-		this.s3ClientBuilder = S3Client.builder()
-				.forcePathStyle(true);
+		this.s3Client = S3Client.builder()
+				.forcePathStyle(true)
+				.build();
 		this.invokeFutures = new ConcurrentHashMap<>();
 	}
 
@@ -143,21 +141,19 @@ public class ViewController {
 	 */
 	@RequestMapping("/view/{jobId}/{assetKey}")
 	@ResponseBody
-	public ResponseEntity<String> viewerAssetPage(
+	public ResponseEntity<InputStreamResource> viewerAssetPage(
 			@PathVariable("jobId") String jobId,
 			@PathVariable("assetKey") String assetKey
-	) throws IOException {
+	) {
 		String key = jobId + "/" + assetKey;
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
-		try (S3Client s3 = s3ClientBuilder.build()) {
-			try (ResponseInputStream<GetObjectResponse> response = s3.getObject(getObjectRequest)) {
-				String decodedString = new String(response.readAllBytes(), StandardCharsets.UTF_8);
-				return ResponseEntity.ok(decodedString);
-			}
-		}
+		ResponseInputStream<GetObjectResponse> response = s3Client.getObject(getObjectRequest);
+		InputStreamResource resource = new InputStreamResource(response);
+		return ResponseEntity.ok()
+				.body(resource);
 	}
 
 	@GetMapping("/view/{filingId}/wait")
