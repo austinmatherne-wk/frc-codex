@@ -263,7 +263,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;
 			statement.setString(++i, status.toString());
-			statement.setString(++i, registryCode.name());
+			statement.setString(++i, registryCode.toString());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
 		} catch (SQLException e) {

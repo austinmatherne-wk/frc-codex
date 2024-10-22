@@ -44,7 +44,10 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: |
-          sleep 120
+          echo "Wait for smoke testing to be ready..."
+          curl -i --fail --silent http://localhost:8080/admin/smoketest/wait
+          echo "Test invocation"
+          curl -i --fail --silent -L http://localhost:8080/admin/smoketest/invoke
           echo "Test homepage"
           curl -i --fail http://localhost:8080/
           echo "Test CH API client"

@@ -2,27 +2,30 @@ package com.frc.codex.filingindex.controller;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
+import com.frc.codex.database.impl.DatabaseManagerImpl;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
-import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseClientImpl;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
@@ -34,6 +37,7 @@ import com.frc.codex.model.NewFilingRequest;
 
 @Controller
 public class AdminController {
+	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManagerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
 	private final CompaniesHouseRateLimiter companiesHouseRateLimiter;
@@ -142,6 +146,25 @@ public class AdminController {
 		return model;
 	}
 
+	/**
+	 * This endpoint waits until a pending filing exists and then invokes it.
+	 * The user is redirected to the /wait endpoint for the filing.
+	 */
+	@GetMapping("/admin/smoketest/invoke")
+	public String smokeTestInvokePage() throws InterruptedException {
+		Filing filing = null;
+		while (filing == null) {
+			List<Filing> pendingFilings = this.databaseManager.getFilingsByStatus(FilingStatus.PENDING);
+			if (pendingFilings.size() > 0) {
+				filing = pendingFilings.get(0);
+			} else {
+				LOG.info("Invocation smoke test is waiting for pending filing...");
+				Thread.sleep(5000);
+			}
+		}
+		return "redirect:/view/" + filing.getFilingId() + "/wait";
+	}
+
 	/*
 	 * This endpoint demonstrates the FCA client functionality
 	 * by loading the last week's worth of filings.
@@ -168,5 +191,30 @@ public class AdminController {
 		String queueStatus = queueManager.getStatus();
 		model.addObject("queueStatus", queueStatus);
 		return model;
+	}
+
+	/**
+	 * Waits for certain criteria to be met
+	 */
+	@GetMapping("/admin/smoketest/wait")
+	public ResponseEntity<String> smokeTestWaitPage() throws InterruptedException {
+		HashMap<RegistryCode, Filing> filings = new HashMap<>();
+		boolean filingsReady = false;
+		while (!filingsReady) {
+			for(RegistryCode registryCode : RegistryCode.values()) {
+				if (!filings.containsKey(registryCode)) {
+					List<Filing> pendingFilings = this.databaseManager.getFilingsByStatus(FilingStatus.PENDING, registryCode);
+					if (pendingFilings.size() > 0) {
+						filings.put(registryCode, pendingFilings.get(0));
+					}
+				}
+			}
+			filingsReady = filings.size() >= RegistryCode.values().length;
+			if (!filingsReady) {
+				LOG.info("Waiting for filings to be ready for smoke testing...");
+				Thread.sleep(5000);
+			}
+		}
+		return new ResponseEntity<>("Ready", HttpStatus.OK);
 	}
 }

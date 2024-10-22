@@ -165,25 +165,26 @@ public class ViewController {
 			@PathVariable("filingId") String filingId
 	) {
 		UUID filingUuid = UUID.fromString(filingId);
-		if (invokeFutures.containsKey(filingUuid)) {
-			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
-			try {
-				LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
-				InvokeResponse invokeResponse = future.get();
-				// Synchronize this block to ensure that only one request
-				// applies the result and removes the future.
-				synchronized (future) {
-					if (invokeFutures.containsKey(filingUuid)) {
-						FilingResultRequest result = lambdaManager.parseResult(invokeResponse);
-						// Apply the result before we remove from the map to ensure that no requests
-						// occur after a future is removed but before the result is applied.
-						databaseManager.applyFilingResult(result);
-						invokeFutures.remove(filingUuid);
-					}
+		if (!invokeFutures.containsKey(filingUuid)) {
+			onDemandResult(databaseManager.getFiling(filingUuid));
+		}
+		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
+		try {
+			LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
+			InvokeResponse invokeResponse = future.get();
+			// Synchronize this block to ensure that only one request
+			// applies the result and removes the future.
+			synchronized (future) {
+				if (invokeFutures.containsKey(filingUuid)) {
+					FilingResultRequest result = lambdaManager.parseResult(invokeResponse);
+					// Apply the result before we remove from the map to ensure that no requests
+					// occur after a future is removed but before the result is applied.
+					databaseManager.applyFilingResult(result);
+					invokeFutures.remove(filingUuid);
 				}
-			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
 			}
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
 		}
 		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 	}
