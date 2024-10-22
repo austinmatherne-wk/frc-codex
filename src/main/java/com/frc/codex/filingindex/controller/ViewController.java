@@ -1,5 +1,7 @@
 package com.frc.codex.filingindex.controller;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,10 +28,10 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
 
+import jakarta.servlet.http.HttpServletResponse;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
@@ -141,19 +142,24 @@ public class ViewController {
 	 */
 	@RequestMapping("/view/{jobId}/{assetKey}")
 	@ResponseBody
-	public ResponseEntity<InputStreamResource> viewerAssetPage(
+	public void viewerAssetPage(
+			HttpServletResponse response,
 			@PathVariable("jobId") String jobId,
 			@PathVariable("assetKey") String assetKey
-	) {
+	) throws IOException {
 		String key = jobId + "/" + assetKey;
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
-		ResponseInputStream<GetObjectResponse> response = s3Client.getObject(getObjectRequest);
-		InputStreamResource resource = new InputStreamResource(response);
-		return ResponseEntity.ok()
-				.body(resource);
+		response.setContentType("text/html");
+		response.setStatus(200);
+		try(
+				ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest);
+				OutputStream outputStream = response.getOutputStream()
+		) {
+			responseInputStream.transferTo(outputStream);
+		}
 	}
 
 	@GetMapping("/view/{filingId}/wait")
