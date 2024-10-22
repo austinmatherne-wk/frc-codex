@@ -505,7 +505,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 				parameters.add(searchFilingsRequest.getMaxDocumentDate());
 			}
 			if (searchFilingsRequest.getMaxFilingDate() != null) {
-				conditions.add("filing_date >= ?");
+				conditions.add("filing_date <= ?");
 				parameters.add(searchFilingsRequest.getMaxFilingDate());
 			}
 			if (!StringUtils.isEmpty(searchFilingsRequest.getStatus())) {
