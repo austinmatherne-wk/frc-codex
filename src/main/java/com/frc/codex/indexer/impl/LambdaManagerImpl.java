@@ -83,13 +83,21 @@ public class LambdaManagerImpl implements LambdaManager {
 
 	public FilingResultRequest parseResult(InvokeResponse invokeResponse) {
 		JsonNode root;
+		byte[] byteArray;
 		try {
-			root = OBJECT_MAPPER.readTree(invokeResponse.payload().asByteArray());
+			byteArray = invokeResponse.payload().asByteArray();
+			root = OBJECT_MAPPER.readTree(byteArray);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return FilingResultRequest.builder()
-				.json(root)
-				.build();
+		try {
+			return FilingResultRequest.builder()
+					.json(root)
+					.build();
+		} catch (Exception e) {
+			String str = new String(byteArray, StandardCharsets.UTF_8);
+			LOG.error("Failed to parse result: {}", str, e);
+			return null;
+		}
 	}
 }

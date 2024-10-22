@@ -468,6 +468,9 @@ public class IndexerImpl implements Indexer {
 						continue;
 					}
 					FilingResultRequest result = lambdaManager.parseResult(response);
+					if (result == null) {
+						continue;
+					}
 					LOG.info("Completed preprocessing of FCA filing via Lambda: {}", result.getFilingId());
 					databaseManager.applyFilingResult(result);
 				}
