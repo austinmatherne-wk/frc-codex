@@ -27,6 +27,7 @@ public interface DatabaseManager {
 	LocalDateTime getLatestFcaFilingDate(LocalDateTime defaultDate);
 	Long getLatestStreamTimepoint(Long defaultTimepoint);
 	long getRegistryCount(RegistryCode registryCode);
+	void resetFiling(UUID filingId);
 	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
 	boolean companyExists(Company company);

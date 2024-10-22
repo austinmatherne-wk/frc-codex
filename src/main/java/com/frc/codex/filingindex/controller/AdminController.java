@@ -107,10 +107,6 @@ public class AdminController extends BaseController {
 		return "admin/index";
 	}
 
-	/*
-	 * This endpoint demonstrates progress of the indexer and processor by showing
-	 * statistics of the associated SQS queues.
-	 */
 	@PostMapping("/admin/filing/reset")
 	public Object smokeTestSqsPage(HttpServletRequest request, @RequestParam("filingId") String filingId) {
 		if (!authenticateAdmin(request)) {

@@ -469,6 +469,24 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
+	public void resetFiling(UUID filingId) {
+		try (Connection connection = getInitializedConnection(false)) {
+			String sql = "UPDATE filings SET " +
+					"status = 'pending', error = NULL, logs = NULL, " +
+					"stub_viewer_url = NULL, oim_csv_url = NULL, oim_json_url = NULL " +
+					"WHERE filing_id = ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setObject(1, filingId);
+			int affectedRows = statement.executeUpdate();
+			if (affectedRows == 0) {
+				throw new SQLException("Resetting filing failed, no rows affected.");
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
 		try (Connection connection = getInitializedConnection(true)) {
 			List<String> selects = new ArrayList<>();
