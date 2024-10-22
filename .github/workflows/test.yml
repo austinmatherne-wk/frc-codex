@@ -27,6 +27,12 @@ jobs:
       - name: Test with tox
         shell: bash
         run: tox
+      - name: Checkout frc-ixbrl-viewer
+        uses: actions/checkout@v4
+        with:
+          repository: Arelle/frc-ixbrl-viewer
+          path: processor/plugins/frc-ixbrl-viewer
+          token: ${{ secrets.FRC_IXBRL_VIEWER_CHECKOUT_PAT }}
       - name: "Secrets"
         shell: bash
         run: |
