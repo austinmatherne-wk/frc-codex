@@ -177,7 +177,7 @@ public class IndexerImpl implements Indexer {
 					.externalFilingId(externalFilingId)
 					.externalViewUrl(downloadUrl)
 					.filingDate(filingDate)
-					.registryCode(RegistryCode.COMPANIES_HOUSE.toString())
+					.registryCode(RegistryCode.COMPANIES_HOUSE.getCode())
 					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing CH filing: {}", downloadUrl);
@@ -403,7 +403,7 @@ public class IndexerImpl implements Indexer {
 					.externalFilingId(filing.sequenceId())
 					.externalViewUrl(filing.infoUrl())
 					.filingDate(filing.submittedDate())
-					.registryCode(RegistryCode.FCA.toString())
+					.registryCode(RegistryCode.FCA.getCode())
 					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());

@@ -275,8 +275,8 @@
                                     <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
                                         <option value="" selected>Any</option>
                                         <option th:each="registry : ${registryCodes}"
-                                                th:value="${registry.name}"
-                                        th:text="${registry.displayName}"></option>
+                                                th:value="${registry.getCode()}"
+                                        th:text="${registry.getDisplayName()}"></option>
                                     </select>
                                 </div>
                             </div>

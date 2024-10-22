@@ -4,14 +4,19 @@ public enum RegistryCode {
 	COMPANIES_HOUSE ("CH", "Companies House"),
 	FCA ("FCA", "Financial Conduct Authority (FCA)"),;
 
-	private final String name;
-	public final String displayName;
+	private final String code;
+	private final String displayName;
 
 	private RegistryCode(String n, String d) {
-		name = n;
+		code = n;
 		displayName = d;
 	}
-	public String toString() {
-		return this.name;
+
+	public String getCode() {
+		return this.code;
+	}
+
+	public String getDisplayName() {
+		return this.displayName;
 	}
 }

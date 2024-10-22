@@ -131,7 +131,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 						.externalFilingId(externalFilingId)
 						.externalViewUrl(downloadUrl)
 						.filingDate(filingDate)
-						.registryCode(RegistryCode.COMPANIES_HOUSE.toString())
+						.registryCode(RegistryCode.COMPANIES_HOUSE.getCode())
 						.build();
 					filings.add(newFilingRequest);
 				}

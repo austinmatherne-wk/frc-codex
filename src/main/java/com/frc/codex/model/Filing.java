@@ -144,7 +144,7 @@ public class Filing {
 	}
 
 	public String getExternalViewUrl() {
-		if (getRegistryCode().equals(RegistryCode.FCA.toString()) ){
+		if (getRegistryCode().equals(RegistryCode.FCA.getCode()) ){
 			return externalViewUrl;
 		}
 		else {

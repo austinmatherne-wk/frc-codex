@@ -263,7 +263,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;
 			statement.setString(++i, status.toString());
-			statement.setString(++i, registryCode.toString());
+			statement.setString(++i, registryCode.getCode());
 			ResultSet resultSet = statement.executeQuery();
 			return getFilings(resultSet);
 		} catch (SQLException e) {
@@ -287,7 +287,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT COUNT(*) FROM filings WHERE registry_code = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, registryCode.toString());
+			statement.setString(1, registryCode.getCode());
 			ResultSet resultSet = statement.executeQuery();
 			resultSet.next();
 			return resultSet.getLong(1);
