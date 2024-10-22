@@ -1,6 +1,7 @@
 package com.frc.codex.filingindex.controller;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -9,15 +10,13 @@ import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -94,17 +93,30 @@ public class ViewController {
 	}
 
 	@GetMapping("/view/{filingId}/public")
-	public ResponseEntity<byte[]> publicPage(
+	public void publicPage(
+			HttpServletResponse response,
 			@PathVariable("filingId") String filingId
 	) {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
-		return restTemplate.exchange(
+
+		response.setContentType("text/html");
+		response.setStatus(200);
+		ResponseExtractor<Void> responseExtractor = resp -> {
+			try (
+					InputStream inputStream = resp.getBody();
+					OutputStream outputStream = response.getOutputStream()
+			) {
+				inputStream.transferTo(outputStream);
+			}
+			return null;
+		};
+		restTemplate.execute(
 				filingUrl,
 				HttpMethod.GET,
-				new HttpEntity<>(null, new HttpHeaders()),
-				byte[].class
+				null,
+				responseExtractor
 		);
 	}
 
