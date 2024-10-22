@@ -10,6 +10,18 @@ import com.zaxxer.hikari.HikariConfig;
 @Profile("test")
 public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 
+	public String adminCookieName() {
+		return "frc_codex_admin_key";
+	}
+
+	public boolean adminEnabled() {
+		return true;
+	}
+
+	public String adminKey() {
+		return "XYZ";
+	}
+
 	public String awsLambdaFunctionName() {
 		return "function";
 	}

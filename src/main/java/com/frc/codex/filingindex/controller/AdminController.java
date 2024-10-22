@@ -4,6 +4,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
@@ -35,8 +38,12 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Controller
-public class AdminController {
+public class AdminController extends BaseController {
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManagerImpl.class);
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
@@ -44,31 +51,51 @@ public class AdminController {
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
 	private final Indexer indexer;
-	private final FilingIndexProperties properties;
 	private final QueueManager queueManager;
 
 	public AdminController(
+			FilingIndexProperties properties,
 			CompaniesHouseClient companiesHouseClient,
 			CompaniesHouseHistoryClient companiesHouseHistoryClient,
 			CompaniesHouseRateLimiter companiesHouseRateLimiter,
 			DatabaseManager databaseManager,
 			FcaClient fcaClient,
 			Indexer indexer,
-			FilingIndexProperties properties,
 			QueueManager queueManager
 	) {
+		super(properties);
 		this.companiesHouseClient = companiesHouseClient;
 		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
 		this.companiesHouseRateLimiter = companiesHouseRateLimiter;
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.indexer = indexer;
-		this.properties = properties;
 		this.queueManager = queueManager;
 	}
 
+	@GetMapping("/admin/login/{key}")
+	public String adminLogin(HttpServletResponse response,	@PathVariable("key") String key) {
+		Cookie cookie = new Cookie(properties.adminCookieName(), key);
+		cookie.setMaxAge(60 * 60 * 24); // 1 day
+		cookie.setPath("/");
+		response.addCookie(cookie);
+		return "redirect:/admin";
+	}
+
+	@GetMapping("/admin/logout")
+	public String adminLogout(HttpServletResponse response) {
+		Cookie cookie = new Cookie(properties.adminCookieName(), "");
+		cookie.setMaxAge(0);
+		cookie.setPath("/");
+		response.addCookie(cookie);
+		return "redirect:/";
+	}
+
 	@GetMapping("/admin")
-	public String indexPage(Model model) {
+	public Object indexPage(HttpServletRequest request, Model model) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		model.addAttribute("chDocumentUrl", properties.companiesHouseDocumentApiBaseUrl());
 		model.addAttribute("chInformationUrl", properties.companiesHouseInformationApiBaseUrl());
 		model.addAttribute("chRateLimiter", companiesHouseRateLimiter.toString());
@@ -80,15 +107,32 @@ public class AdminController {
 		return "admin/index";
 	}
 
+	/*
+	 * This endpoint demonstrates progress of the indexer and processor by showing
+	 * statistics of the associated SQS queues.
+	 */
+	@PostMapping("/admin/filing/reset")
+	public Object smokeTestSqsPage(HttpServletRequest request, @RequestParam("filingId") String filingId) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
+		databaseManager.resetFiling(UUID.fromString(filingId));
+		return "redirect:/admin";
+	}
+
 	/**
 	 * This endpoint demonstrates the Companies House client functionality
 	 * by loading a company's information JSON.
 	 */
 	@GetMapping("/admin/smoketest/companieshouse/company/{companyNumber}")
-	public String smokeTestCompanyPage(
+	public Object smokeTestCompanyPage(
+			HttpServletRequest request,
 			Model model,
 			@PathVariable("companyNumber") String companyNumber
 	) throws JsonProcessingException {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		Company company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
 		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber, "");
@@ -100,9 +144,13 @@ public class AdminController {
 	}
 
 	@GetMapping("/admin/smoketest/companieshouse/history")
-	public String smokeTestHistoryPage(
+	public Object smokeTestHistoryPage(
+			HttpServletRequest request,
 			Model model
 	) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		List<URI> dailyLinks = this.companiesHouseHistoryClient.getDailyDownloadLinks();
 		List<URI> monthlyLinks = this.companiesHouseHistoryClient.getMonthlyDownloadLinks();
 		List<URI> archiveLinks = this.companiesHouseHistoryClient.getArchiveDownloadLinks();
@@ -117,7 +165,10 @@ public class AdminController {
 	 * by loading filing data from the database.
 	 */
 	@GetMapping("/admin/smoketest/database")
-	public ModelAndView smokeTestDatabasePage() {
+	public Object smokeTestDatabasePage(HttpServletRequest request) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		ModelAndView model = new ModelAndView("admin/smoketest/database");
 		List<Filing> pendingFilings = this.databaseManager.getFilingsByStatus(FilingStatus.PENDING);
 		List<Filing> queuedFilings = this.databaseManager.getFilingsByStatus(FilingStatus.QUEUED);
@@ -137,7 +188,10 @@ public class AdminController {
 	 * its progress in discovering filings.
 	 */
 	@GetMapping("/admin/smoketest/indexer")
-	public ModelAndView smokeTestIndexerPage() {
+	public Object smokeTestIndexerPage(HttpServletRequest request) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		ModelAndView model = new ModelAndView("admin/smoketest/indexer");
 		String indexerStatus = indexer.getStatus();
 		model.addObject("indexerStatus", indexerStatus);
@@ -170,7 +224,10 @@ public class AdminController {
 	 * by loading the last week's worth of filings.
 	 */
 	@GetMapping("/admin/smoketest/fca")
-	public ModelAndView smokeTestFcaPage() {
+	public Object smokeTestFcaPage(HttpServletRequest request) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		ModelAndView model = new ModelAndView("admin/smoketest/fca");
 		LocalDateTime sinceDate = LocalDateTime.now().minusDays(30);
 		List<FcaFiling> filings = this.fcaClient.fetchAllSinceDate(sinceDate);
@@ -186,7 +243,10 @@ public class AdminController {
 	 * statistics of the associated SQS queues.
 	 */
 	@GetMapping("/admin/smoketest/queue")
-	public ModelAndView smokeTestSqsPage() {
+	public Object smokeTestSqsPage(HttpServletRequest request) {
+		if (!authenticateAdmin(request)) {
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		}
 		ModelAndView model = new ModelAndView("admin/smoketest/queue");
 		String queueStatus = queueManager.getStatus();
 		model.addObject("queueStatus", queueStatus);
