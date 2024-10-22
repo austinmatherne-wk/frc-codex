@@ -8,7 +8,6 @@ from processor.processor import Processor
 from processor.processor_options import ProcessorOptions
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s] %(message)s')
 
 
 def lambda_handler(event, context):
