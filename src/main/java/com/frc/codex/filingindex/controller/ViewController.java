@@ -1,7 +1,8 @@
 package com.frc.codex.filingindex.controller;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,19 +10,16 @@ import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.indexer.LambdaManager;
@@ -29,22 +27,21 @@ import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
 
+import jakarta.servlet.http.HttpServletResponse;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RestController
 public class ViewController {
 	private static final Logger LOG = LoggerFactory.getLogger(ViewController.class);
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private final DatabaseManager databaseManager;
 	private final LambdaManager lambdaManager;
 	private final FilingIndexProperties properties;
 	private final RestTemplate restTemplate;
-	private final S3ClientBuilder s3ClientBuilder;
+	private final S3Client s3Client;
 	private final ConcurrentHashMap<UUID, CompletableFuture<InvokeResponse>> invokeFutures;
 	public ViewController(
 			FilingIndexProperties properties,
@@ -55,8 +52,9 @@ public class ViewController {
 		this.databaseManager = databaseManager;
 		this.lambdaManager = lambdaManager;
 		this.restTemplate = new RestTemplate();
-		this.s3ClientBuilder = S3Client.builder()
-				.forcePathStyle(true);
+		this.s3Client = S3Client.builder()
+				.forcePathStyle(true)
+				.build();
 		this.invokeFutures = new ConcurrentHashMap<>();
 	}
 
@@ -95,17 +93,30 @@ public class ViewController {
 	}
 
 	@GetMapping("/view/{filingId}/public")
-	public ResponseEntity<byte[]> publicPage(
+	public void publicPage(
+			HttpServletResponse response,
 			@PathVariable("filingId") String filingId
 	) {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
-		return restTemplate.exchange(
+
+		response.setContentType("text/html");
+		response.setStatus(200);
+		ResponseExtractor<Void> responseExtractor = resp -> {
+			try (
+					InputStream inputStream = resp.getBody();
+					OutputStream outputStream = response.getOutputStream()
+			) {
+				inputStream.transferTo(outputStream);
+			}
+			return null;
+		};
+		restTemplate.execute(
 				filingUrl,
 				HttpMethod.GET,
-				new HttpEntity<>(null, new HttpHeaders()),
-				byte[].class
+				null,
+				responseExtractor
 		);
 	}
 
@@ -143,7 +154,8 @@ public class ViewController {
 	 */
 	@RequestMapping("/view/{jobId}/{assetKey}")
 	@ResponseBody
-	public ResponseEntity<String> viewerAssetPage(
+	public void viewerAssetPage(
+			HttpServletResponse response,
 			@PathVariable("jobId") String jobId,
 			@PathVariable("assetKey") String assetKey
 	) throws IOException {
@@ -152,11 +164,13 @@ public class ViewController {
 				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
-		try (S3Client s3 = s3ClientBuilder.build()) {
-			try (ResponseInputStream<GetObjectResponse> response = s3.getObject(getObjectRequest)) {
-				String decodedString = new String(response.readAllBytes(), StandardCharsets.UTF_8);
-				return ResponseEntity.ok(decodedString);
-			}
+		response.setContentType("text/html");
+		response.setStatus(200);
+		try(
+				ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest);
+				OutputStream outputStream = response.getOutputStream()
+		) {
+			responseInputStream.transferTo(outputStream);
 		}
 	}
 

@@ -177,7 +177,7 @@ public class IndexerImpl implements Indexer {
 					.externalFilingId(externalFilingId)
 					.externalViewUrl(downloadUrl)
 					.filingDate(filingDate)
-					.registryCode(RegistryCode.COMPANIES_HOUSE.toString())
+					.registryCode(RegistryCode.COMPANIES_HOUSE.getCode())
 					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing CH filing: {}", downloadUrl);
@@ -318,7 +318,7 @@ public class IndexerImpl implements Indexer {
 		// Example: Prod223_3785_13056435_20240331.html
 		for (String arcname : arcnames) {
 			if (arcname.endsWith(".xml")) {
-				LOG.info("Skipping entry in {}: {}", uri, arcname);
+				LOG.debug("Skipping entry in {}: {}", uri, arcname);
 				continue;
 			}
 			Matcher matcher = companiesHouseFilenamePattern.matcher(arcname);
@@ -403,7 +403,7 @@ public class IndexerImpl implements Indexer {
 					.externalFilingId(filing.sequenceId())
 					.externalViewUrl(filing.infoUrl())
 					.filingDate(filing.submittedDate())
-					.registryCode(RegistryCode.FCA.toString())
+					.registryCode(RegistryCode.FCA.getCode())
 					.build();
 			if (databaseManager.filingExists(newFilingRequest)) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
