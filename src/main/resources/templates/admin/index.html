@@ -5,56 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>FRC CODEx Filing Index</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style-admin.css">
 </head>
 <body>
 <div class="container">
-    <h1><a href="/">FRC CODEx Filing Index</a></h1>
-    <h2>Tests</h2>
-    <ul>
-        <li><a href="/nonexistent">Error Page</a></li>
-        <li><a href="/admin/smoketest/companieshouse/company/00324341">Companies House - Company</a></li>
-        <li><a href="/admin/smoketest/companieshouse/history">Companies House - History</a></li>
-        <li><a href="/admin/smoketest/database">Database</a></li>
-        <li><a href="/admin/smoketest/fca">FCA</a></li>
-        <li><a href="/admin/smoketest/indexer">Indexer</a></li>
-        <li><a href="/admin/smoketest/queue">Queue</a></li>
-    </ul>
-    <h2>Configuration</h2>
-    <table>
-        <tr>
-            <th>Companies House Document API URL</th>
-            <td th:text="${chDocumentUrl}">N/A</td>
-        </tr>
-        <tr>
-            <th>Companies House Information API URL</th>
-            <td th:text="${chInformationUrl}">N/A</td>
-        </tr>
-        <tr>
-            <th>Companies House Rate Limiter</th>
-            <td th:text="${chRateLimiter}">N/A</td>
-        </tr>
-        <tr>
-            <th>Companies House Stream API URL</th>
-            <td th:text="${chStreamUrl}">N/A</td>
-        </tr>
-        <tr>
-            <th>Companies House REST API Key Configured</th>
-            <td th:text="${chRestApiKey}">N/A</td>
-        </tr>
-        <tr>
-            <th>Companies House Stream API Key Configured</th>
-            <td th:text="${chStreamApiKey}">N/A</td>
-        </tr>
-        <tr>
-            <th>FCA Data API Base URL</th>
-            <td th:text="${fcaDataApiBaseUrl}">N/A</td>
-        </tr>
-        <tr>
-            <th>FCA Search API URL</th>
-            <td th:text="${fcaSearchApiUrl}">N/A</td>
-        </tr>
-    </table>
+    <h1><a href="/">FRC CODEx Admin</a></h1>
+    <a href="/admin/logout">Log Out</a>
+    <div class="container">
+        <h2>Tests</h2>
+        <ul>
+            <li><a href="/nonexistent">Error Page</a></li>
+            <li><a href="/admin/smoketest/companieshouse/company/00324341">Companies House - Company</a></li>
+            <li><a href="/admin/smoketest/companieshouse/history">Companies House - History</a></li>
+            <li><a href="/admin/smoketest/database">Database</a></li>
+            <li><a href="/admin/smoketest/fca">FCA</a></li>
+            <li><a href="/admin/smoketest/indexer">Indexer</a></li>
+            <li><a href="/admin/smoketest/queue">Queue</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        <h2>Configuration</h2>
+        <table>
+            <tr>
+                <th>Companies House Document API URL</th>
+                <td th:text="${chDocumentUrl}">N/A</td>
+            </tr>
+            <tr>
+                <th>Companies House Information API URL</th>
+                <td th:text="${chInformationUrl}">N/A</td>
+            </tr>
+            <tr>
+                <th>Companies House Rate Limiter</th>
+                <td th:text="${chRateLimiter}">N/A</td>
+            </tr>
+            <tr>
+                <th>Companies House Stream API URL</th>
+                <td th:text="${chStreamUrl}">N/A</td>
+            </tr>
+            <tr>
+                <th>Companies House REST API Key Configured</th>
+                <td th:text="${chRestApiKey}">N/A</td>
+            </tr>
+            <tr>
+                <th>Companies House Stream API Key Configured</th>
+                <td th:text="${chStreamApiKey}">N/A</td>
+            </tr>
+            <tr>
+                <th>FCA Data API Base URL</th>
+                <td th:text="${fcaDataApiBaseUrl}">N/A</td>
+            </tr>
+            <tr>
+                <th>FCA Search API URL</th>
+                <td th:text="${fcaSearchApiUrl}">N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="container">
+    <h2>Admin Tools</h2>
+    <div style="display:flex; justify-content: space-between; flex-wrap: wrap;">
+        <form class="container" method="post" action="/admin/filing/reset">
+            <h4>Reset Filing</h4>
+            <input type="text" name="filingId" placeholder="Filing ID">
+            <button type="submit">Reset</button>
+        </form>
+    </div>
 </div>
 </body>
 </html>

@@ -3,6 +3,9 @@ package com.frc.codex;
 import com.zaxxer.hikari.HikariConfig;
 
 public interface FilingIndexProperties {
+	String adminCookieName();
+	boolean adminEnabled();
+	String adminKey();
 	String awsLambdaFunctionName();
 	long awsLambdaTimeoutSeconds();
 	String companiesHouseDocumentApiBaseUrl();

@@ -77,3 +77,17 @@ You can attach to the composed Docker container within IntelliJ for debugging:
 5. Compose your docker environment
 6. Run the "Remote JVM Debug" configuration in IntelliJ.
 7. A successful attachment will show "Connected to the target VM (...)" or similar.
+
+## Features
+
+### Admin
+An admin area exists at `/admin` for managing the filing index.
+This area is not intended to be used in a production environment.
+Instead, it is meant to be enabled in development and staging environments for testing and debugging purposes.
+
+This feature is disabled by default and can be enabled with `ADMIN_ENABLED`.
+Rudimentary "authentication" for the admin area can be enabled by setting `ADMIN_KEY`.
+This will require a user to first navigate to `/admin/login/{ADMIN_KEY}` to gain access to the admin features.
+
+> [!WARNING]
+> This authentication is not secure and should not be used in a production environment.

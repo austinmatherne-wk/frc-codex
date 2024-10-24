@@ -128,6 +128,18 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.count();
 	}
 
+	public void resetFiling(UUID filingId) {
+		Filing newFiling = copyFiling(filingId)
+				.status(FilingStatus.PENDING.toString())
+				.error(null)
+				.logs(null)
+				.stubViewerUrl(null)
+				.oimCsvUrl(null)
+				.oimJsonUrl(null)
+				.build();
+		updateFiling(newFiling);
+	}
+
 	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
 		Stream<Filing> results = filings.values().stream();
 		if (searchFilingsRequest.getCompanyName() != null) {

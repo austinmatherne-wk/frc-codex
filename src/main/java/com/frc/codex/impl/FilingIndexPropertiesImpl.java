@@ -16,6 +16,9 @@ import com.zaxxer.hikari.HikariConfig;
 @Component
 @Profile("application")
 public class FilingIndexPropertiesImpl implements FilingIndexProperties {
+	private static final String ADMIN_COOKIE_NAME = "ADMIN_COOKIE_NAME";
+	private static final String ADMIN_ENABLED = "ADMIN_ENABLED";
+	private static final String ADMIN_KEY = "ADMIN_KEY";
 	private static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
 	private static final String AWS_LAMBDA_TIMEOUT_SECONDS = "AWS_LAMBDA_TIMEOUT_SECONDS";
 	private static final String AWS_REGION = "AWS_REGION";
@@ -44,6 +47,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
 	private static final String UNPROCESSED_COMPANIES_LIMIT = "UNPROCESSED_COMPANIES_LIMIT";
+	private final String adminCookieName;
+	private final boolean adminEnabled;
+	private final String adminKey;
 	private final String companiesHouseDocumentApiBaseUrl;
 	private final String companiesHouseInformationApiBaseUrl;
 	private final int companiesHouseRapidRateLimit;
@@ -74,6 +80,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 
 	public FilingIndexPropertiesImpl() {
+		adminCookieName = requireNonNull(getEnv(ADMIN_COOKIE_NAME, "frc_codex_admin_key"));
+		adminEnabled = Boolean.parseBoolean(requireNonNull(getEnv(ADMIN_ENABLED, "false")));
+		adminKey = requireNonNull(getEnv(ADMIN_KEY, ""));
+
 		awsLambdaFunctionName = requireNonNull(getEnv(AWS_LAMBDA_FUNCTION_NAME, "function"));
 		awsLambdaTimeoutSeconds = Long.parseLong(requireNonNull(getEnv(AWS_LAMBDA_TIMEOUT_SECONDS, "300")));
 
@@ -151,6 +161,18 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public String adminCookieName() {
+		return adminCookieName;
+	}
+
+	public boolean adminEnabled() {
+		return adminEnabled;
+	}
+
+	public String adminKey() {
+		return adminKey;
 	}
 
 	public String awsLambdaFunctionName() {

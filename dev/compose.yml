@@ -12,6 +12,7 @@ services:
       test: curl localhost:8080/health --fail || exit 1
       timeout: 2s
     environment:
+      ADMIN_ENABLED: "true"
       AWS: "false"
       AWS_ACCESS_KEY_ID: "local_aws_access_key_id"
       AWS_ENDPOINT_URL: "http://localstack.localhost:4566"
