@@ -198,6 +198,10 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouseFilings() throws IOException {
+		if (!companiesHouseClient.isEnabled()) {
+			LOG.info("Can not index from Companies House stream. Companies House client is disabled.");
+			return;
+		}
 		if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
 			return;
 		}
@@ -234,6 +238,10 @@ public class IndexerImpl implements Indexer {
 
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexFilingsFromCompaniesIndex() throws JsonProcessingException {
+		if (!companiesHouseClient.isEnabled()) {
+			LOG.info("Can not index filings from companies index: Companies House client is disabled.");
+			return;
+		}
 		LOG.info("Indexing filings from companies index.");
 		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANIES_BATCH_SIZE);
 		LOG.info("Loaded {} incomplete companies from companies index.", companies.size());

@@ -124,14 +124,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 		Properties secrets = getSecrets();
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
-			companiesHouseRestApiKey = requireNonNull(secrets.getProperty(COMPANIES_HOUSE_REST_API_KEY));
+			companiesHouseRestApiKey = secrets.getProperty(COMPANIES_HOUSE_REST_API_KEY);
 		} else {
-			companiesHouseRestApiKey = requireNonNull(getEnv(COMPANIES_HOUSE_REST_API_KEY));
+			companiesHouseRestApiKey = getEnv(COMPANIES_HOUSE_REST_API_KEY);
 		}
 		if (secrets.containsKey(COMPANIES_HOUSE_STREAM_API_KEY)) {
-			companiesHouseStreamApiKey = requireNonNull(secrets.getProperty(COMPANIES_HOUSE_STREAM_API_KEY));
+			companiesHouseStreamApiKey = secrets.getProperty(COMPANIES_HOUSE_STREAM_API_KEY);
 		} else {
-			companiesHouseStreamApiKey = requireNonNull(getEnv(COMPANIES_HOUSE_STREAM_API_KEY));
+			companiesHouseStreamApiKey = getEnv(COMPANIES_HOUSE_STREAM_API_KEY);
 		}
 	}
 

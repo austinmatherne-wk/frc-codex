@@ -27,9 +27,9 @@ public class CompaniesHouseConfigImpl implements CompaniesHouseConfig {
 		this.informationApiBaseUrl = Objects.toString(properties.companiesHouseInformationApiBaseUrl(), "");
 		this.rapidRateLimit = properties.companiesHouseRapidRateLimit();
 		this.rapidRateWindow = properties.companiesHouseRapidRateWindow();
-		this.restApiKey = Objects.toString(properties.companiesHouseRestApiKey(), "");
+		this.restApiKey = properties.companiesHouseRestApiKey();
 		this.streamApiBaseUrl = Objects.toString(properties.companiesHouseStreamApiBaseUrl(), "");
-		this.streamApiKey = Objects.toString(properties.companiesHouseStreamApiKey(), "");
+		this.streamApiKey = properties.companiesHouseStreamApiKey();
 	}
 
 	public String documentApiBaseUrl() {

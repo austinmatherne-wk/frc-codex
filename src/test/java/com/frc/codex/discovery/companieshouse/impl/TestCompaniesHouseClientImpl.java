@@ -27,6 +27,10 @@ public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
 		return null;
 	}
 
+	public boolean isEnabled() {
+		return true;
+	}
+
 	public void streamFilings(Long timepoint, Function<String, Boolean> callback) {
 
 	}
