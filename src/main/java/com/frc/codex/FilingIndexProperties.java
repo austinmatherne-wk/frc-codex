@@ -15,6 +15,7 @@ public interface FilingIndexProperties {
 	String companiesHouseRestApiKey();
 	String companiesHouseStreamApiBaseUrl();
 	String companiesHouseStreamApiKey();
+	String dbSeedScriptPath();
 	String fcaDataApiBaseUrl();
 	int fcaPastDays();
 	String fcaSearchApiUrl();

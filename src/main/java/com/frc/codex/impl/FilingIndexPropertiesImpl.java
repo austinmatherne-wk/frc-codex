@@ -33,6 +33,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_USERNAME = "DB_USERNAME";
 	private static final String DB_PASSWORD = "DB_PASSWORD";
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
+	private static final String DB_SEED_SCRIPT_PATH = "DB_SEED_SCRIPT_PATH";
 	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_PAST_DAYS = "FCA_PAST_DAYS";
@@ -61,6 +62,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String dbUsername;
 	private final String dbPassword;
 	private final long dbMaxLifetime;
+	private final String dbSeedScriptPath;
 	private final boolean enablePreprocessing;
 	private final String fcaDataApiBaseUrl;
 	private final int fcaPastDays;
@@ -98,6 +100,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		dbUsername = requireNonNull(getEnv(DB_USERNAME));
 		dbPassword = requireNonNull(getEnv(DB_PASSWORD));
 		dbMaxLifetime = Long.parseLong(requireNonNull(getEnv(DB_MAX_LIFETIME, "300000")));
+		dbSeedScriptPath = getEnv(DB_SEED_SCRIPT_PATH);
 
 		enablePreprocessing = Boolean.parseBoolean(requireNonNull(getEnv(ENABLE_PREPROCESSING, "false")));
 
@@ -209,6 +212,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String companiesHouseStreamApiKey() {
 		return companiesHouseStreamApiKey;
+	}
+
+	public String dbSeedScriptPath() {
+		return dbSeedScriptPath;
 	}
 
 	public boolean enablePreprocessing() {
