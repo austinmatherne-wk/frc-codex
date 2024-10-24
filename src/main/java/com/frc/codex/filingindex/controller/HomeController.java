@@ -2,20 +2,25 @@ package com.frc.codex.filingindex.controller;
 
 import java.time.DateTimeException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
-import com.frc.codex.model.FilingStatus;
-import com.frc.codex.RegistryCode;
+import com.frc.codex.model.HelpRequest;
 import com.frc.codex.model.SearchFilingsRequest;
+import com.frc.codex.support.SupportManager;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class HomeController {
@@ -23,14 +28,17 @@ public class HomeController {
 	private final DatabaseManager databaseManager;
 	private final long maximumSearchResults;
 	private final long searchPageSize;
+	private final SupportManager supportManager;
 
 	public HomeController(
 			DatabaseManager databaseManager,
-			FilingIndexProperties properties
+			FilingIndexProperties properties,
+			SupportManager supportManager
 	) {
 		this.databaseManager = databaseManager;
 		this.maximumSearchResults = properties.maximumSearchResults();
 		this.searchPageSize = properties.searchPageSize();
+		this.supportManager = supportManager;
 	}
 
 	@GetMapping("/health")
@@ -93,6 +101,26 @@ public class HomeController {
 		model.addObject("searchFilingsRequest", searchFilingsRequest);
 		model.addObject("maximumResultsReturned", maximumResultsReturned);
 		model.addObject("moreResultsLink", moreResultsLink);
+		return model;
+	}
+
+	@GetMapping("/help")
+	public ModelAndView helpPage(HttpServletRequest request) {
+		HelpRequest helpRequest = new HelpRequest();
+		helpRequest.setReferer(request.getHeader("Referer"));
+		ModelAndView model = new ModelAndView("help");
+		model.addObject("success", null);
+		model.addObject("helpRequest", helpRequest);
+		return model;
+	}
+
+	@PostMapping("/help")
+	public ModelAndView helpPost(HelpRequest helpRequest) {
+		UUID id = supportManager.sendHelpRequest(helpRequest);
+		ModelAndView model = new ModelAndView("help");
+		model.addObject("success", id != null);
+		model.addObject("id", id);
+		model.addObject("helpRequest", id != null ? new HelpRequest() : helpRequest);
 		return model;
 	}
 }

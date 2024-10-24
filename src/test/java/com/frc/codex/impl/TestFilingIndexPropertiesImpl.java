@@ -130,6 +130,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "frc_codex_results";
 	}
 
+	public String supportEmail() {
+		return null;
+	}
+
 	public int unprocessedCompaniesLimit() {
 		return 1000;
 	}

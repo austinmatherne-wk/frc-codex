@@ -31,6 +31,7 @@ public interface FilingIndexProperties {
 	long searchPageSize();
 	String sqsJobsQueueName();
 	String sqsResultsQueueName();
+	String supportEmail();
 
 	/**
 	 * @return The number of unprocessed `companies` records that can be queued before the indexer stops
