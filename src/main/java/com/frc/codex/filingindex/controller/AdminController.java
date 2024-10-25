@@ -129,6 +129,9 @@ public class AdminController extends BaseController {
 		if (!authenticateAdmin(request)) {
 			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
 		}
+		if (!companiesHouseClient.isEnabled()) {
+			return new ResponseEntity<>("Companies House client is disabled", HttpStatus.SERVICE_UNAVAILABLE);
+		}
 		Company company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
 		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber, "");

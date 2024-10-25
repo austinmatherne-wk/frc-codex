@@ -43,17 +43,30 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseClientImpl.class);
 	private final CompaniesHouseConfig config;
 	private final CompaniesHouseHttpClient document;
+	private boolean enabled;
 	private final CompaniesHouseHttpClient information;
 	public final CompaniesHouseStreamClient stream;
 
 	public CompaniesHouseClientImpl(CompaniesHouseConfig config, CompaniesHouseRateLimiter rateLimiter) {
 		this.config = requireNonNull(config);
-		this.document = new CompaniesHouseHttpClient(rateLimiter, config.documentApiBaseUrl(), config.restApiKey());
-		this.information = new CompaniesHouseHttpClient(rateLimiter, config.informationApiBaseUrl(), config.restApiKey());
-		this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
+		String restApiKey = config.restApiKey();
+		String streamApiKey = config.streamApiKey();
+		if (restApiKey != null && streamApiKey != null) {
+			this.enabled = true;
+			this.document = new CompaniesHouseHttpClient(rateLimiter, config.documentApiBaseUrl(), config.restApiKey());
+			this.information = new CompaniesHouseHttpClient(rateLimiter, config.informationApiBaseUrl(), config.restApiKey());
+			this.stream = new CompaniesHouseStreamClient(config.streamApiBaseUrl(), config.streamApiKey());
+		} else {
+			LOG.info("Companies House API key(s) not set. Client disabled.");
+			this.enabled = false;
+			this.document = null;
+			this.information = null;
+			this.stream = null;
+		}
 	}
 
 	public Company getCompany(String companyNumber) throws JsonProcessingException {
+		throwExceptionIfDisabled();
 		String json = information.get("/company/" + companyNumber);
 		JsonNode root = OBJECT_MAPPER.readTree(json);
 		String companyName = root.get("company_name").asText();
@@ -64,6 +77,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	}
 
 	public Set<String> getCompanyFilingUrls(String companyNumber, String filingId) throws JsonProcessingException {
+		throwExceptionIfDisabled();
 		String json;
 		try {
 			json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
@@ -79,10 +93,12 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	}
 
 	public String getCompanyFilingHistory(String companyNumber, int itemsPerPage, int startIndex) {
+		throwExceptionIfDisabled();
 		return information.get("/company/" + companyNumber + "/filing-history?category=accounts&items_per_page=" + itemsPerPage + "&start_index=" + startIndex);
 	}
 
 	public List<NewFilingRequest> getCompanyFilings(String companyNumber, String companyName) throws JsonProcessingException {
+		throwExceptionIfDisabled();
 		List<NewFilingRequest> filings = new ArrayList<>();
 		int index = 0;
 		int itemsPerPage = 100;
@@ -142,6 +158,7 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	}
 
 	private Set<String> getCompanyFilingUrls(JsonNode node) throws JsonProcessingException {
+		throwExceptionIfDisabled();
 		Set<String> filingUrls = new HashSet<>();
 		JsonNode links = node.get("links");
 		if (links == null) {
@@ -176,7 +193,18 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		return filingUrls;
 	}
 
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	public void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException {
+		throwExceptionIfDisabled();
 		stream.streamFilings(timepoint, callback);
+	}
+
+	private void throwExceptionIfDisabled() {
+		if (!enabled) {
+			throw new RuntimeException("Companies House API key(s) not set. Client disabled.");
+		}
 	}
 }
