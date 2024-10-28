@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -121,6 +122,7 @@ public class HomeController {
 		model.addObject("success", id != null);
 		model.addObject("id", id);
 		model.addObject("helpRequest", id != null ? new HelpRequest() : helpRequest);
+		model.setStatus(HttpStatusCode.valueOf(id != null ? 200 : 500));
 		return model;
 	}
 }
