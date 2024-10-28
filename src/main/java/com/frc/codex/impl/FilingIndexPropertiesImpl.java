@@ -21,7 +21,6 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String ADMIN_KEY = "ADMIN_KEY";
 	private static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
 	private static final String AWS_LAMBDA_TIMEOUT_SECONDS = "AWS_LAMBDA_TIMEOUT_SECONDS";
-	private static final String AWS_REGION = "AWS_REGION";
 	private static final String COMPANIES_HOUSE_DOCUMENT_API_BASE_URL = "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_INFORMATION_API_BASE_URL = "COMPANIES_HOUSE_INFORMATION_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_RAPID_RATE_LIMIT = "COMPANIES_HOUSE_RAPID_RATE_LIMIT";
@@ -47,6 +46,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String SECRETS_FILEPATH = "/run/secrets/frc-codex-server.secrets";
 	private static final String SQS_JOBS_QUEUE_NAME = "SQS_JOBS_QUEUE_NAME";
 	private static final String SQS_RESULTS_QUEUE_NAME = "SQS_RESULTS_QUEUE_NAME";
+	private static final String SUPPORT_EMAIL = "SUPPORT_EMAIL";
 	private static final String UNPROCESSED_COMPANIES_LIMIT = "UNPROCESSED_COMPANIES_LIMIT";
 	private final String adminCookieName;
 	private final boolean adminEnabled;
@@ -78,6 +78,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final long searchPageSize;
 	private final String sqsJobsQueueName;
 	private final String sqsResultsQueueName;
+	private final String supportEmail;
 	private final int unprocessedCompaniesLimit;
 
 
@@ -122,6 +123,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		s3ResultsBucketName = requireNonNull(getEnv(S3_RESULTS_BUCKET_NAME));
 		sqsJobsQueueName = requireNonNull(getEnv(SQS_JOBS_QUEUE_NAME));
 		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
+
+		supportEmail = getEnv(SUPPORT_EMAIL, null);
 
 		unprocessedCompaniesLimit = Integer.parseInt(requireNonNull(getEnv(UNPROCESSED_COMPANIES_LIMIT, "1000")));
 
@@ -285,6 +288,10 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public String sqsResultsQueueName() {
 		return sqsResultsQueueName;
+	}
+
+	public String supportEmail() {
+		return supportEmail;
 	}
 
 	public int unprocessedCompaniesLimit() {

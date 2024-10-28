@@ -50,6 +50,11 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: |
+          echo "Testing help form submission..."
+          curl i --fail -X POST http://localhost:8080/help \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "name=testname&email-address=test@email.com&message=testmessage&referer=http://localhost:8080/"
+          
           echo "Wait for smoke testing to be ready..."
           curl -i --fail --silent http://localhost:8080/admin/smoketest/wait
           echo "Test invocation"

@@ -31,6 +31,7 @@ services:
       S3_RESULTS_BUCKET_NAME: "frc-codex-results"
       SQS_JOBS_QUEUE_NAME: "frc_codex_jobs"
       SQS_RESULTS_QUEUE_NAME: "frc_codex_results"
+      SUPPORT_EMAIL: "support@arelle.org"
     secrets:
       - frc-codex-server.secrets
     ports:
@@ -96,10 +97,10 @@ services:
       test: curl localstack:4566/health || exit 1
       timeout: 4s
     environment:
+      REGION_NAME: 'eu-west-2'
       S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
       S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
-      S3_REGION_NAME: "eu-west-2"
-      SQS_REGION_NAME: "eu-west-2"
+      SUPPORT_EMAIL: 'support@arelle.org'
     ports:
       - 4566:4566
     networks:

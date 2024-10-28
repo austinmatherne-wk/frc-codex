@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>FRC CODEx Filing Index</title>
+    <title>Contact Us - FRC CODEx Filing Index</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b0c0c">
     <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
@@ -46,16 +46,81 @@
     </div>
 </header>
 <div class="govuk-width-container">
-    <main class="govuk-main-wrapper govuk-main-wrapper--l" id="main-content" role="main">
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Sorry, this viewer is currently unavailable.</h1>
-                <p class="govuk-body">Try again later.</p>
+    <div class="govuk-phase-banner">
+        <p class="govuk-phase-banner__content">
+            <strong class="govuk-tag govuk-phase-banner__content__tag">
+                Alpha
+            </strong>
+            <span class="govuk-phase-banner__text">
+          This is a new service – your <a class="govuk-link" href="#">feedback</a> will help us to improve it.
+        </span>
+        </p>
+    </div>
+    <main class="govuk-main-wrapper">
+        <h1 class="govuk-heading-l" id="main-content">Contact Us</h1>
+        <div th:if="${success == true}" class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+                <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                    Success
+                </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+                <h3 class="govuk-notification-banner__heading">
+                    Thank you! We've received your message.
+                </h3>
                 <p class="govuk-body">
-                    <a class="govuk-link" href="#">Contact us</a> if you need assistance.
+                    A member of our staff will respond to your request as soon as possible.
+                </p>
+                <p th:if="${id != null}" class="govuk-body-s">
+                    Request ID: <span th:text="${id}"></span>
                 </p>
             </div>
         </div>
+        <div th:if="${success == false}" class="govuk-error-summary" data-module="govuk-error-summary">
+            <div role="alert">
+                <h2 class="govuk-error-summary__title">
+                    An unexpected error occurred.
+                </h2>
+                <div class="govuk-error-summary__body">
+                    We were not able to process your request. Please try again later.
+                </div>
+            </div>
+        </div>
+        <p class="govuk-body">
+            Use this form to contact our staff with any questions, issues,
+            or feedback you have about the FRC CODEx Filing Index.<br>
+            Some helpful details may include the company name, company number,
+            or URL associated with a specific viewer or filing.
+        </p>
+        <form th:action="@{/help}" th:object="${helpRequest}" method="post">
+            <input class="govuk-input" id="referer" type="hidden" th:field="*{referer}">
+            <div class="govuk-form-group">
+                <label class="govuk-label" for="name">
+                    Your Name
+                </label>
+                <input class="govuk-input" id="name" type="text" th:field="*{name}">
+            </div>
+            <div class="govuk-form-group">
+                <label class="govuk-label" for="email-address">
+                    Your Email Address
+                </label>
+                <div id="email-address-hint" class="govuk-hint">
+                    We will use this to respond about your request.
+                </div>
+                <input class="govuk-input" id="email-address" type="text" aria-describedby="email-address-hint" th:field="*{emailAddress}">
+            </div>
+            <div class="govuk-form-group">
+                <label class="govuk-label" for="message">
+                    Message
+                </label>
+                <textarea class="govuk-textarea" id="message" name="message" rows="5" th:field="*{message}"></textarea>
+            </div>
+            <div class="govuk-button-group">
+                <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
+                    Send
+                </button>
+            </div>
+        </form>
     </main>
 </div>
 <footer class="govuk-footer">
