@@ -58,6 +58,10 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return "XXX";
 	}
 
+	public String dbSeedScriptPath() {
+		return null;
+	}
+
 	public boolean enablePreprocessing() {
 		return false;
 	}

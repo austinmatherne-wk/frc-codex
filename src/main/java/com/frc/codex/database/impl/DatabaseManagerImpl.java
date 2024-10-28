@@ -1,6 +1,9 @@
 package com.frc.codex.database.impl;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,12 +48,12 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManagerImpl.class);
 	public static final Calendar TIMEZONE_UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
-	private final boolean dbMigrateAsync;
+	private final FilingIndexProperties properties;
 	private final DataSource readDataSource;
 	private final DataSource writeDataSource;
 
 	public DatabaseManagerImpl(FilingIndexProperties properties) {
-		this.dbMigrateAsync = properties.isDbMigrateAsync();
+		this.properties = properties;
 		this.readDataSource = new HikariDataSource(properties.getDatabaseConfig("read"));
 		this.writeDataSource = new HikariDataSource(properties.getDatabaseConfig("write"));
 	}
@@ -299,6 +302,18 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	@PostConstruct
 	public void postConstruct() {
 		migrate();
+		String seedScriptPath = properties.dbSeedScriptPath();
+		if (seedScriptPath != null) {
+			LOG.info("Seeding database with script: {}", seedScriptPath);
+			try (Connection connection = getInitializedConnection(false)) {
+				String sql = Files.readString(Path.of(seedScriptPath));
+				PreparedStatement statement = connection.prepareStatement(sql);
+				statement.execute();
+				connection.commit();
+			} catch (IOException | SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	private Connection getInitializedConnection(boolean readOnly) throws SQLException {
@@ -447,7 +462,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	}
 
 	public void migrate() {
-		if (dbMigrateAsync) {
+		if (properties.isDbMigrateAsync()) {
 			new Thread(this::migrateImpl, "db-migrate").start();
 		} else {
 			migrateImpl();
