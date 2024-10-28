@@ -95,6 +95,7 @@ class IxbrlViewerWorker(Worker):
                 'useStubViewer': True,
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
+                'viewer_feature_support-link': '/help',
             },
             plugins=str(self._ixbrl_viewer_plugin_path),
             strictOptions=False,
