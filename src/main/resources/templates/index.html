@@ -300,14 +300,25 @@
             <h3 class="govuk-heading-m">Results</h3>
             <div th:each="filing, iter : ${filings}" th:id="|result-${iter.index}|">
                 <hr style="margin-bottom:2em;"/>
-                <h3 class="govuk-heading-m" th:text="${filing.companyName}"></h3>
+                <h3 class="govuk-heading-m" style="display:inline" th:text="${filing.companyName}"></h3>
+                <span th:switch="${filing.registryCode}">
+                    <strong th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
+                            th:class="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.tagClass}"
+                            th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.shortName}"></strong>
+                    <strong th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
+                            th:class="${T(com.frc.codex.RegistryCode).FCA.tagClass}"
+                            th:text="${T(com.frc.codex.RegistryCode).FCA.shortName}"></strong>
+                    <strong th:case="*">Company No.</strong>
+                </span>
                 <div class="govuk-grid-row">
                     <div class="govuk-grid-column-three-quarters" style="padding-left: 2em;">
                         <dl class="govuk-summary-list govuk-summary-list--no-border">
                             <div class="govuk-summary-list__row">
                                 <dt th:switch="${filing.registryCode}" class="govuk-summary-list__key">
-                                    <span th:case="'CH'">CRN</span>
-                                    <span th:case="'FCA'">LEI</span>
+                                    <span th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
+                                          th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.companyFileReference}" ></span>
+                                    <span th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
+                                          th:text="${T(com.frc.codex.RegistryCode).FCA.companyFileReference}" ></span>
                                     <span th:case="*">Company No.</span>
                                 </dt>
                                 <dd class="govuk-summary-list__value">
