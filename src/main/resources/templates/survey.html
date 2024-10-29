@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>FRC CODEx Filing Index</title>
+    <title>Survey - FRC CODEx Filing Index</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b0c0c">
     <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
@@ -46,21 +46,91 @@
     </div>
 </header>
 <div class="govuk-width-container">
-    <main class="govuk-main-wrapper govuk-main-wrapper--l" id="main-content" role="main">
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Page not found</h1>
-                <p class="govuk-body">
-                    If you typed the web address, check it is correct.
-                </p>
-                <p class="govuk-body">
-                    If you pasted the web address, check you copied the entire address.
-                </p>
-                <p class="govuk-body">
-                    If the web address is correct or you selected a link or button, <a href="#" class="govuk-link">contact us</a> if you need assistance.
+    <div class="govuk-phase-banner">
+        <p class="govuk-phase-banner__content">
+            <strong class="govuk-tag govuk-phase-banner__content__tag">
+                Alpha
+            </strong>
+            <span class="govuk-phase-banner__text">
+          This is a new service – your <a class="govuk-link" href="#">feedback</a> will help us to improve it.
+        </span>
+        </p>
+    </div>
+    <main class="govuk-main-wrapper">
+        <h1 class="govuk-heading-l" id="main-content">Customer Satisfaction Survey</h1>
+        <div id="success-banner" class="govuk-notification-banner govuk-notification-banner--success"
+             role="alert" aria-labelledby="govuk-notification-banner-title"
+             data-module="govuk-notification-banner" hidden>
+            <div class="govuk-notification-banner__header">
+                <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                    Success
+                </h2>
+            </div>
+            <div class="govuk-notification-banner__content">
+                <h3 class="govuk-notification-banner__heading">
+                    Thank you! We've received your response.
+                </h3>
+                <p th:if="${id != null}" class="govuk-body-s">
+                    Response ID: <span th:text="${id}"></span>
                 </p>
             </div>
         </div>
+        <div th:if="${success == false}" class="govuk-error-summary" data-module="govuk-error-summary">
+            <div role="alert">
+                <h2 class="govuk-error-summary__title">
+                    An unexpected error occurred.
+                </h2>
+                <div class="govuk-error-summary__body">
+                    We were not able to process your request. Please try again later.
+                </div>
+            </div>
+        </div>
+        <form id="survey-form" th:action="@{/survey}" th:object="${surveyRequest}" method="post" hidden>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend">
+                        How satisfied are you with the <b>usefulness</b> of the index search tool?
+                    </legend>
+                    <div class="govuk-radios" data-module="govuk-radios">
+                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                            <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.searchUtilityRating}" th:value="${rating.getValue()}">
+                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend">
+                        How satisfied are you with the <b>speed</b> of the index search tool?
+                    </legend>
+                    <div class="govuk-radios" data-module="govuk-radios">
+                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                            <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.searchSpeedRating}" th:value="${rating.getValue()}">
+                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend">
+                        How satisfied are you with the <b>loading speed</b> of the viewers?
+                    </legend>
+                    <div class="govuk-radios" data-module="govuk-radios">
+                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                            <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.viewerSpeedRating}" th:value="${rating.getValue()}">
+                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-button-group">
+                <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
+                    Send
+                </button>
+            </div>
+        </form>
     </main>
 </div>
 <footer class="govuk-footer">
@@ -117,6 +187,25 @@
     } from '/govuk-frontend.min.js'
     initAll()
 </script>
+<script th:if="${success == true}">
+    localStorage.setItem("survey_submitted_date", new Date().toString());
+</script>
+<script>
+    const lastSubmittedDateStr = localStorage.getItem("survey_submitted_date");
+    let showForm = true;
+    if (lastSubmittedDateStr != null) {
+        const lastSubmittedDate = new Date(lastSubmittedDateStr);
+        const threshold = new Date();
+        threshold.setDate(threshold.getDate() - 1);
+        if (lastSubmittedDate > threshold) {
+            showForm = false;
+        }
+    }
+    if (showForm) {
+        document.getElementById("survey-form").hidden = false;
+    } else {
+        document.getElementById("success-banner").hidden = false;
+    }
+</script>
 </body>
-
 </html>

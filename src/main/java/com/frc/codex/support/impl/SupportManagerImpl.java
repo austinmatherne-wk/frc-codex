@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.model.HelpRequest;
+import com.frc.codex.model.SurveyRequest;
 import com.frc.codex.support.SupportManager;
 
 import software.amazon.awssdk.services.ses.SesClient;
@@ -68,5 +69,19 @@ public class SupportManagerImpl implements SupportManager {
 			LOG.error("Failed to send help request email ({}).", helpRequest, e);
 			return null;
 		}
+	}
+
+	public UUID sendSurveyRequest(SurveyRequest surveyRequest) {
+		UUID id = UUID.randomUUID();
+		if (surveyRequest.getSearchUtilityRating() != null) {
+			LOG.info("[SURVEY RESPONSE] SEARCH_UTILITY={} (ID: {})", surveyRequest.getSearchUtilityRating(), id);
+		}
+		if (surveyRequest.getSearchSpeedRating() != null) {
+			LOG.info("[SURVEY RESPONSE] SEARCH_SPEED={} (ID: {})", surveyRequest.getSearchSpeedRating(), id);
+		}
+		if (surveyRequest.getViewerSpeedRating() != null) {
+			LOG.info("[SURVEY RESPONSE] VIEWER_SPEED={} (ID: {})", surveyRequest.getViewerSpeedRating(), id);
+		}
+		return id;
 	}
 }
