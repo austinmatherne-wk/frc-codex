@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class HomeController {
-
+	private static final Logger LOG = LoggerFactory.getLogger(HomeController.class);
 	private final DatabaseManager databaseManager;
 	private final long maximumSearchResults;
 	private final long searchPageSize;
@@ -71,9 +73,11 @@ public class HomeController {
 		boolean maximumResultsReturned = false;
 		String moreResultsLink = null;
 		if (searchFilingsRequest.isEmpty()) {
+			LOG.info("[ANALYTICS] HOME_PAGE");
 			filings = null;
 			message = "Please provide a company name and/or number.";
 		} else {
+			LOG.info("[ANALYTICS] SEARCH");
 			searchFilingsRequest.setLimit(
 					Math.max(
 							this.searchPageSize,

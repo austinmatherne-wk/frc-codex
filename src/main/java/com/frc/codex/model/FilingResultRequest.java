@@ -96,6 +96,10 @@ public class FilingResultRequest {
 		return workerTime;
 	}
 
+	public boolean isSuccess() {
+		return success;
+	}
+
 	public static class Builder {
 		private String companyName;
 		private String companyNumber;

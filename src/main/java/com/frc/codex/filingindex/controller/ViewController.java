@@ -129,6 +129,7 @@ public class ViewController {
 	) {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
+		LOG.info("[ANALYTICS] VIEWER (filingId=\"{}\",companyNumber=\"{}\")", filingId, filing.getCompanyNumber());
 		if (filing.getStatus().equals("completed")) {
 			// Already completed, redirect directly to viewer.
 			return viewerResult(filing.getFilingId(), filing.getStubViewerUrl());
@@ -178,6 +179,7 @@ public class ViewController {
 	public ModelAndView waitPage(
 			@PathVariable("filingId") String filingId
 	) {
+		LOG.info("[ANALYTICS] LOADING (filingId=\"{}\")", filingId);
 		UUID filingUuid = UUID.fromString(filingId);
 		if (!invokeFutures.containsKey(filingUuid)) {
 			onDemandResult(databaseManager.getFiling(filingUuid));
@@ -195,6 +197,11 @@ public class ViewController {
 					// occur after a future is removed but before the result is applied.
 					databaseManager.applyFilingResult(result);
 					invokeFutures.remove(filingUuid);
+					if (result.isSuccess()) {
+						LOG.info("[ANALYTICS] PROCESSING_COMPLETED (filingId=\"{}\")", filingId);
+					} else {
+						LOG.info("[ANALYTICS] PROCESSING_FAILED (filingId=\"{}\")", filingId);
+					}
 				}
 			}
 		} catch (InterruptedException | ExecutionException e) {
