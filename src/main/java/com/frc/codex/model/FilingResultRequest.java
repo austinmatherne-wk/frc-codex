@@ -13,21 +13,31 @@ public class FilingResultRequest {
 	private final String companyName;
 	private final String companyNumber;
 	private final LocalDateTime documentDate;
+	private final Double downloadTime;
 	private final String error;
 	private final UUID filingId;
 	private final String logs;
 	private final String stubViewerUrl;
 	private final boolean success;
+	private final Double totalProcessingTime;
+	private final Long totalUploadedBytes;
+	private final Double uploadTime;
+	private final Double workerTime;
 
 	private FilingResultRequest(Builder builder) {
 		this.companyName = builder.companyName;
 		this.companyNumber = builder.companyNumber;
 		this.documentDate = builder.documentDate;
+		this.downloadTime = builder.downloadTime;
 		this.error = builder.error;
 		this.filingId = builder.filingId;
 		this.logs = builder.logs;
 		this.stubViewerUrl = builder.stubViewerUrl;
 		this.success = builder.success;
+		this.totalProcessingTime = builder.totalProcessingTime;
+		this.totalUploadedBytes = builder.totalUploadedBytes;
+		this.uploadTime = builder.uploadTime;
+		this.workerTime = builder.workerTime;
 	}
 
 	public static Builder builder() {
@@ -44,6 +54,10 @@ public class FilingResultRequest {
 
 	public LocalDateTime getDocumentDate() {
 		return documentDate;
+	}
+
+	public Double getDownloadTime() {
+		return downloadTime;
 	}
 
 	public String getError() {
@@ -66,15 +80,36 @@ public class FilingResultRequest {
 		return success ? FilingStatus.COMPLETED : FilingStatus.FAILED;
 	}
 
+	public Double getTotalProcessingTime() {
+		return totalProcessingTime;
+	}
+
+	public Long getTotalUploadedBytes() {
+		return totalUploadedBytes;
+	}
+
+	public Double getUploadTime() {
+		return uploadTime;
+	}
+
+	public Double getWorkerTime() {
+		return workerTime;
+	}
+
 	public static class Builder {
 		private String companyName;
 		private String companyNumber;
 		private LocalDateTime documentDate;
+		private Double downloadTime;
 		private String error;
 		private UUID filingId;
 		private String logs;
 		private String stubViewerUrl;
 		private boolean success;
+		private Double totalProcessingTime;
+		private Long totalUploadedBytes;
+		private Double uploadTime;
+		private Double workerTime;
 
 		public Builder companyName(String companyName) {
 			this.companyName = companyName;
@@ -110,6 +145,14 @@ public class FilingResultRequest {
 			return this;
 		}
 
+		private Long getLong(JsonNode jsonNode, String key) {
+			return jsonNode.has(key) ? jsonNode.get(key).asLong() : null;
+		}
+
+		private Double getDouble(JsonNode jsonNode, String key) {
+			return jsonNode.has(key) ? jsonNode.get(key).asDouble() : null;
+		}
+
 		public Builder json(JsonNode jsonNode) {
 			boolean success = Objects.equals(jsonNode.get("Success").asText(), "true");
 			String error = null;
@@ -128,6 +171,12 @@ public class FilingResultRequest {
 			}
 			UUID filingId = UUID.fromString(Objects.requireNonNull(jsonNode.get("FilingId").asText()));
 			String logs = jsonNode.get("Logs").asText();
+			downloadTime = getDouble(jsonNode, "DownloadTime");
+			totalProcessingTime = getDouble(jsonNode, "TotalProcessingTime");
+			totalUploadedBytes = getLong(jsonNode, "TotalUploadedBytes");
+			uploadTime = getDouble(jsonNode, "UploadTime");
+			workerTime = getDouble(jsonNode, "WorkerTime");
+
 			return this
 					.companyName(companyName)
 					.companyNumber(companyNumber)

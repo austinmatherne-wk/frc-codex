@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from processor.base.queue_manager import JobMessage, ResultMessage
+from processor.base.job_message import JobMessage
 from processor.base.worker import WorkerResult
 from processor.processor import Processor
 from processor_tests.mock.mock_queue_manager import MockQueueManager
@@ -54,42 +54,24 @@ class TestProcessor(TestCase):
         queue_manager = MockQueueManager(job_messages=job_messages)
         worker_results = processor.run_from_queue(queue_manager)
 
-        self.assertEqual(worker_results, [
-            WorkerResult(
-                'filing_id1',
-                logs='logs1',
-                success=True,
-                viewer_entrypoint='viewer_entrypoint1',
-            ),
-            WorkerResult(
-                'filing_id2',
-                error='error2',
-                logs='logs2',
-                success=False,
-            )
-        ])
-        self.assertEqual(queue_manager.result_messages, [
-            ResultMessage(
-                company_name=None,
-                company_number=None,
-                document_date=None,
-                error='',
-                filing_id='filing_id1',
-                logs='logs1',
-                success=True,
-                viewer_entrypoint='viewer_entrypoint1',
-            ),
-            ResultMessage(
-                company_name=None,
-                company_number=None,
-                document_date=None,
-                error='error2',
-                filing_id='filing_id2',
-                logs='logs2',
-                success=False,
-                viewer_entrypoint='',
-            ),
-        ])
+        self.assertEqual(worker_results[0].company_name, None)
+        self.assertEqual(worker_results[0].company_number, None)
+        self.assertEqual(worker_results[0].document_date, None)
+        self.assertEqual(worker_results[0].error, '')
+        self.assertEqual(worker_results[0].filing_id, 'filing_id1')
+        self.assertEqual(worker_results[0].logs, 'logs1')
+        self.assertEqual(worker_results[0].success, True)
+        self.assertEqual(worker_results[0].viewer_entrypoint, 'viewer_entrypoint1')
+
+        self.assertEqual(worker_results[1].company_name, None)
+        self.assertEqual(worker_results[1].company_number, None)
+        self.assertEqual(worker_results[1].document_date, None)
+        self.assertEqual(worker_results[1].error, 'error2')
+        self.assertEqual(worker_results[1].filing_id, 'filing_id2')
+        self.assertEqual(worker_results[1].logs, 'logs2')
+        self.assertEqual(worker_results[1].success, False)
+        self.assertEqual(worker_results[1].viewer_entrypoint, '')
+
         self.assertEqual(upload_manager.uploads, [
             ('filing_id1', 'viewer'),
         ])

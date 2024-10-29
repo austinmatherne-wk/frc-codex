@@ -67,7 +67,12 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"stub_viewer_url = ?, " +
 					"company_name = COALESCE(company_name, ?), " +
 					"company_number = COALESCE(company_number, ?), " +
-					"document_date = COALESCE(document_date, ?) " +
+					"document_date = COALESCE(document_date, ?), " +
+					"download_time = ?, " +
+					"upload_time = ?, " +
+					"worker_time = ?, " +
+					"total_processing_time = ?, " +
+					"total_uploaded_bytes = ? " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;
@@ -78,6 +83,11 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			statement.setString(++i, filingResultRequest.getCompanyName());
 			statement.setString(++i, filingResultRequest.getCompanyNumber());
 			statement.setTimestamp(++i, getTimestamp(filingResultRequest.getDocumentDate()), TIMEZONE_UTC);
+			statement.setDouble(++i, filingResultRequest.getDownloadTime());
+			statement.setDouble(++i, filingResultRequest.getUploadTime());
+			statement.setDouble(++i, filingResultRequest.getWorkerTime());
+			statement.setDouble(++i, filingResultRequest.getTotalProcessingTime());
+			statement.setLong(++i, filingResultRequest.getTotalUploadedBytes());
 			statement.setObject(++i, filingResultRequest.getFilingId());
 
 			int affectedRows = statement.executeUpdate();

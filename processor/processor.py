@@ -1,11 +1,13 @@
 import json
 import logging
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
 from processor.base.download_manager import DownloadManager
-from processor.base.queue_manager import QueueManager, JobMessage, ResultMessage
+from processor.base.job_message import JobMessage
+from processor.base.queue_manager import QueueManager
 from processor.base.upload_manager import UploadManager
 from processor.base.worker import WorkerResult
 from processor.base.worker_factory import WorkerFactory
@@ -55,17 +57,7 @@ class Processor:
             "Processing finished for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
         )
-        result_message = ResultMessage(
-            company_name=worker_result.company_name,
-            company_number=worker_result.company_number,
-            document_date=worker_result.document_date,
-            error=worker_result.error,
-            filing_id=job_message.filing_id,
-            logs=worker_result.logs,
-            success=worker_result.success,
-            viewer_entrypoint=worker_result.viewer_entrypoint,
-        )
-        queue_manager.publish_result(result_message)
+        queue_manager.publish_result(worker_result)
         logger.info(
             "Added result message for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
@@ -78,11 +70,14 @@ class Processor:
         return worker_result
 
     def _process_filing(self, job_message: JobMessage) -> WorkerResult:
+        processing_start_ts = time.perf_counter()
         try:
             with tempfile.TemporaryDirectory(prefix='ixbrl-viewer_') as temp_dir:
                 temp_dir_path = Path(temp_dir)
                 # Download filing
+                download_start_ts = time.perf_counter()
                 target_path, namelist = self._download_filing(job_message, temp_dir_path)
+
                 if not target_path:
                     logger.error(
                         "Target path could not be determined in filing from %s: (Message: %s, Filing: %s)",
@@ -94,19 +89,31 @@ class Processor:
                     )
                 logger.info('Using target path: %s', target_path)
                 # Prepare directory for viewer files
+
                 viewer_directory = temp_dir_path / 'viewer'
                 viewer_directory.mkdir()
 
+                worker_start_ts = time.perf_counter()
                 worker = self._worker_factory.create_worker(job_message)
                 worker_result = worker.work(job_message, target_path, viewer_directory)
+
+                upload_start_ts = time.perf_counter()
                 if worker_result.success:
-                    self._upload_manager.upload_files(job_message.filing_id, viewer_directory)
+                    worker_result.total_uploaded_bytes = self._upload_manager.upload_files(
+                        job_message.filing_id,
+                        viewer_directory
+                    )
                 else:
                     logger.error(
                         "Worker failed to process filing: %s (Message: %s, Filing: %s)",
                         worker_result.error, job_message.message_id, job_message.filing_id
                     )
-                return worker_result
+                processing_end_ts = time.perf_counter()
+                worker_result.download_time = worker_start_ts - download_start_ts
+                worker_result.worker_time = upload_start_ts - worker_start_ts
+                worker_result.upload_time = processing_end_ts - upload_start_ts
+                worker_result.total_processing_time = processing_end_ts - processing_start_ts
+            return worker_result
         except Exception as e:
             logger.exception(
                 "An unexpected error occurred while processing the filing: (Message: %s, Filing: %s)",

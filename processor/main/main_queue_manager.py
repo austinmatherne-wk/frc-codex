@@ -1,11 +1,14 @@
+import json
 import logging
 from typing import Iterable
 
 import boto3
 from botocore.exceptions import ClientError
 
+from processor.base.job_message import JobMessage
+from processor.base.worker import WorkerResult
 from processor.processor_options import ProcessorOptions
-from processor.base.queue_manager import QueueManager, ResultMessage, JobMessage
+from processor.base.queue_manager import QueueManager
 
 logger = logging.getLogger(__name__)
 
@@ -58,44 +61,54 @@ class MainQueueManager(QueueManager):
             logger.exception("Couldn't receive messages from queue: %s", self._jobs_queue)
             raise error
 
-    def publish_result(self, result_message: ResultMessage) -> None:
+    def publish_result(self, worker_result: WorkerResult) -> None:
         message_attributes = {
             'FilingId': {
-                'StringValue': result_message.filing_id,
+                'StringValue': worker_result.filing_id,
                 'DataType': 'String'
             },
             'Success': {
-                'StringValue': 'true' if result_message.success else 'false',
+                'StringValue': 'true' if worker_result.success else 'false',
                 'DataType': 'String'
             },
         }
-        if result_message.company_name:
+        if worker_result.company_name:
             message_attributes['CompanyName'] = {
-                'StringValue': result_message.company_name,
+                'StringValue': worker_result.company_name,
                 'DataType': 'String'
             }
-        if result_message.company_number:
+        if worker_result.company_number:
             message_attributes['CompanyNumber'] = {
-                'StringValue': result_message.company_number,
+                'StringValue': worker_result.company_number,
                 'DataType': 'String'
             }
-        if result_message.document_date:
+        if worker_result.document_date:
             message_attributes['DocumentDate'] = {
-                'StringValue': result_message.document_date.strftime('%Y-%m-%d'),
+                'StringValue': worker_result.document_date.strftime('%Y-%m-%d'),
                 'DataType': 'String'
             }
-        if result_message.error:
+        if worker_result.error:
             message_attributes['Error'] = {
-                'StringValue': result_message.error,
+                'StringValue': worker_result.error,
                 'DataType': 'String'
             }
-        if result_message.viewer_entrypoint:
+        message_attributes['Analytics'] = {
+            'StringValue': json.dumps({
+                'download_time': worker_result.download_time,
+                'total_processing_time': worker_result.total_processing_time,
+                'total_uploaded_bytes': worker_result.total_uploaded_bytes,
+                'upload_time': worker_result.upload_time,
+                'worker_time': worker_result.worker_time,
+            }),
+            'DataType': 'String'
+        }
+        if worker_result.viewer_entrypoint:
             message_attributes['ViewerEntrypoint'] = {
-                'StringValue': result_message.viewer_entrypoint,
+                'StringValue': worker_result.viewer_entrypoint,
                 'DataType': 'String'
             }
         self._results_queue.send_message(
-            MessageBody=result_message.logs,
+            MessageBody=worker_result.logs,
             MessageAttributes=message_attributes
         )
 

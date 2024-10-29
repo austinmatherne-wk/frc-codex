@@ -3,10 +3,10 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from processor.base.queue_manager import JobMessage
+from processor.base.job_message import JobMessage
 
 
-@dataclass(frozen=True)
+@dataclass
 class WorkerResult:
     filing_id: str
     error: str = ''
@@ -16,6 +16,13 @@ class WorkerResult:
     document_date: datetime.datetime | None = None
     viewer_entrypoint: str = ''
     success: bool = False
+
+    # Analytics
+    download_time: float | None = None
+    total_processing_time: float | None = None
+    total_uploaded_bytes: int | None = None
+    upload_time: float | None = None
+    worker_time: float | None = None
 
 
 class Worker:
