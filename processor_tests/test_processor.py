@@ -59,6 +59,7 @@ class TestProcessor(TestCase):
                 'filing_id1',
                 logs='logs1',
                 success=True,
+                total_uploaded_bytes=1024,
                 viewer_entrypoint='viewer_entrypoint1',
             ),
             WorkerResult(
@@ -66,6 +67,7 @@ class TestProcessor(TestCase):
                 error='error2',
                 logs='logs2',
                 success=False,
+                total_uploaded_bytes=0,
             )
         ])
         self.assertEqual(queue_manager.worker_results, [
@@ -77,6 +79,7 @@ class TestProcessor(TestCase):
                 filing_id='filing_id1',
                 logs='logs1',
                 success=True,
+                total_uploaded_bytes=1024,
                 viewer_entrypoint='viewer_entrypoint1',
             ),
             WorkerResult(
@@ -87,6 +90,7 @@ class TestProcessor(TestCase):
                 filing_id='filing_id2',
                 logs='logs2',
                 success=False,
+                total_uploaded_bytes=0,
                 viewer_entrypoint='',
             ),
         ])

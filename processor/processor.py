@@ -91,7 +91,10 @@ class Processor:
                 worker = self._worker_factory.create_worker(job_message)
                 worker_result = worker.work(job_message, target_path, viewer_directory)
                 if worker_result.success:
-                    self._upload_manager.upload_files(job_message.filing_id, viewer_directory)
+                    worker_result.total_uploaded_bytes = self._upload_manager.upload_files(
+                        job_message.filing_id,
+                        viewer_directory
+                    )
                 else:
                     logger.error(
                         "Worker failed to process filing: %s (Message: %s, Filing: %s)",

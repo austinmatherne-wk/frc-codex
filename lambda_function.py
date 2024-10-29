@@ -27,6 +27,7 @@ def lambda_handler(event, context):
         'FilingId': worker_result.filing_id,
         'Logs': worker_result.logs,
         'Success': worker_result.success,
+        'TotalUploadedBytes': worker_result.total_uploaded_bytes,
         'ViewerEntrypoint': worker_result.viewer_entrypoint,
     }
     if worker_result.document_date is not None:

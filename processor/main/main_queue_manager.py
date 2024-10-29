@@ -91,6 +91,10 @@ class MainQueueManager(QueueManager):
                 'StringValue': worker_result.error,
                 'DataType': 'String'
             }
+        message_attributes['TotalUploadedBytes'] = {
+            'StringValue': worker_result.total_uploaded_bytes,
+            'DataType': 'String'
+        }
         if worker_result.viewer_entrypoint:
             message_attributes['ViewerEntrypoint'] = {
                 'StringValue': worker_result.viewer_entrypoint,

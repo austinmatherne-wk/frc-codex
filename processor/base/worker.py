@@ -6,7 +6,7 @@ from pathlib import Path
 from processor.base.job_message import JobMessage
 
 
-@dataclass(frozen=True)
+@dataclass
 class WorkerResult:
     filing_id: str
     error: str = ''
@@ -16,6 +16,7 @@ class WorkerResult:
     document_date: datetime.datetime | None = None
     viewer_entrypoint: str = ''
     success: bool = False
+    total_uploaded_bytes: int = 0
 
 
 class Worker:
