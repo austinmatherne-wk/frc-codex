@@ -28,5 +28,11 @@ class WorkerResult:
 class Worker:
 
     @abstractmethod
-    def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
+    def work(
+            self,
+            job_message: JobMessage,
+            target_path: Path,
+            viewer_directory: Path,
+            taxonomy_package_urls: list[str]
+    ) -> WorkerResult:
         pass

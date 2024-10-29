@@ -33,6 +33,10 @@ To run typing tests:
 mypy .
 ```
 
+To prepare taxonomy packages:
+1. Create `./dev/taxonomy_packages` directory.
+2. Place taxonomy packages in the directory.
+
 ## Docker
 The preferred method to run any part of the FRC CODEx is using Docker Compose.
 

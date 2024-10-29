@@ -12,12 +12,6 @@ from processor.base.job_message import JobMessage
 from processor.base.worker import Worker, WorkerResult
 from processor.processor_options import ProcessorOptions
 
-DEFAULT_TAXONOMY_PACKAGES = [
-    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip",
-    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2020.zip",
-    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2021.zip",
-    "https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2022.zip",
-]
 VIEWER_HTML_FILENAME = 'ixbrlviewer.html'
 
 
@@ -39,8 +33,14 @@ class IxbrlViewerWorker(Worker):
         self._http_cache_directory = http_cache_directory or processor_options.http_cache_directory
         self._ixbrl_viewer_plugin_path = processor_options.ixbrl_viewer_plugin_path
 
-    def work(self, job_message: JobMessage, target_path: Path, viewer_directory: Path) -> WorkerResult:
-        packages = list(DEFAULT_TAXONOMY_PACKAGES)
+    def work(
+            self,
+            job_message: JobMessage,
+            target_path: Path,
+            viewer_directory: Path,
+            taxonomy_package_urls: list[str],
+    ) -> WorkerResult:
+        packages = list(taxonomy_package_urls)
         report_path = None
         for parent in target_path.parents:
             if parent.name == 'reports':
