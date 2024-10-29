@@ -11,6 +11,14 @@ echo "Initializing localstack S3 bucket: $S3_HTTP_CACHE_BUCKET_NAME"
 awslocal s3 mb "s3://$S3_HTTP_CACHE_BUCKET_NAME" --region "$REGION_NAME"
 echo "Initializing localstack S3 bucket: $S3_RESULTS_BUCKET_NAME"
 awslocal s3 mb "s3://$S3_RESULTS_BUCKET_NAME" --region "$REGION_NAME"
+echo "Initializing localstack S3 bucket: $S3_TAXONOMY_PACKAGES_BUCKET_NAME"
+awslocal s3 mb "s3://$S3_TAXONOMY_PACKAGES_BUCKET_NAME" --region "$REGION_NAME"
+
+# Populating S3 bucket with test data
+echo "Initializing taxonomy packages in bucket: $S3_TAXONOMY_PACKAGES_BUCKET_NAME"
+awslocal s3 sync --exclude "*" --include "*.zip" \
+  "/tmp/taxonomy_packages" \
+  "s3://$S3_TAXONOMY_PACKAGES_BUCKET_NAME"
 
 # Create SES Identity
 echo "Initializing localstack SES identity: $SES_EMAIL"

@@ -6,7 +6,6 @@ from pathlib import Path
 class ProcessorOptions:
 
     def __init__(self, secrets_filepath):
-        self.secrets_filepath = secrets_filepath
         with open(secrets_filepath) as f:
             self._secrets = {
                 key.strip(): value.strip()
@@ -14,6 +13,10 @@ class ProcessorOptions:
                     line.split('=') for line in f.readlines()
                 ]
             }
+
+    @cached_property
+    def aws_endpoint_url(self):
+        return os.getenv('AWS_ENDPOINT_URL')
 
     @cached_property
     def http_cache_directory(self) -> Path:
@@ -37,6 +40,10 @@ class ProcessorOptions:
     @cached_property
     def s3_results_bucket_name(self):
         return os.getenv('S3_RESULTS_BUCKET_NAME')
+
+    @cached_property
+    def s3_taxonomy_packages_bucket_name(self):
+        return os.getenv('S3_TAXONOMY_PACKAGES_BUCKET_NAME')
 
     @cached_property
     def s3_region_name(self):

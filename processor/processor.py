@@ -76,6 +76,7 @@ class Processor:
                 temp_dir_path = Path(temp_dir)
                 # Download filing
                 download_start_ts = time.perf_counter()
+                taxonomy_package_urls = self._download_manager.get_package_urls()
                 target_path, namelist = self._download_filing(job_message, temp_dir_path)
 
                 if not target_path:
@@ -95,7 +96,12 @@ class Processor:
 
                 worker_start_ts = time.perf_counter()
                 worker = self._worker_factory.create_worker(job_message)
-                worker_result = worker.work(job_message, target_path, viewer_directory)
+                worker_result = worker.work(
+                    job_message,
+                    target_path,
+                    viewer_directory,
+                    taxonomy_package_urls
+                )
 
                 upload_start_ts = time.perf_counter()
                 if worker_result.success:

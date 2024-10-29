@@ -2,6 +2,7 @@ import logging
 import re
 from pathlib import Path
 
+import boto3
 import requests
 
 from processor.base.download_manager import DownloadManager
@@ -14,6 +15,7 @@ class MainDownloadManager(DownloadManager):
 
     def __init__(self, processor_options: ProcessorOptions):
         self._processor_options = processor_options
+        self._package_urls: list[str] | None = None
 
     def _download_ch_filing(self, filing_id, download_url, directory) -> Path:
         logger.info(
@@ -59,3 +61,19 @@ class MainDownloadManager(DownloadManager):
         if registry_code == 'FCA':
             return self._download_fca_filing(filing_id, download_url, directory)
         raise ValueError(f"Unknown registry code: {registry_code}")
+
+    def get_package_urls(self) -> list[str]:
+        if self._package_urls is None:
+            bucket_name = self._processor_options.s3_taxonomy_packages_bucket_name
+            try:
+                s3_client = boto3.client('s3')
+                response = s3_client.list_objects_v2(Bucket=bucket_name)
+                self._package_urls = sorted([
+                    f"{self._processor_options.aws_endpoint_url}/{bucket_name}/{item['Key']}"
+                    for item in response['Contents']
+                ])
+                logger.info("Discovered (%s) package(s): (%s)", len(self._package_urls), self._package_urls)
+            except Exception as e:
+                logger.error("Failed to discover taxonomy packages from %s: %s", bucket_name, e)
+                self._package_urls = []
+        return self._package_urls
