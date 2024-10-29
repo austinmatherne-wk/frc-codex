@@ -19,6 +19,7 @@ import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.HelpRequest;
 import com.frc.codex.model.SearchFilingsRequest;
+import com.frc.codex.model.SurveyRequest;
 import com.frc.codex.support.SupportManager;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -122,6 +123,26 @@ public class HomeController {
 		model.addObject("success", id != null);
 		model.addObject("id", id);
 		model.addObject("helpRequest", id != null ? new HelpRequest() : helpRequest);
+		model.setStatus(HttpStatusCode.valueOf(id != null ? 200 : 500));
+		return model;
+	}
+
+	@GetMapping("/survey")
+	public ModelAndView surveyPage() {
+		SurveyRequest surveyRequest = new SurveyRequest();
+		ModelAndView model = new ModelAndView("survey");
+		model.addObject("success", null);
+		model.addObject("surveyRequest", surveyRequest);
+		return model;
+	}
+
+	@PostMapping("/survey")
+	public ModelAndView surveyPost(SurveyRequest surveyRequest) {
+		UUID id = supportManager.sendSurveyRequest(surveyRequest);
+		ModelAndView model = new ModelAndView("survey");
+		model.addObject("success", id != null);
+		model.addObject("id", id);
+		model.addObject("surveyRequest", id != null ? new SurveyRequest() : surveyRequest);
 		model.setStatus(HttpStatusCode.valueOf(id != null ? 200 : 500));
 		return model;
 	}
