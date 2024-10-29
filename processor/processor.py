@@ -5,7 +5,8 @@ import zipfile
 from pathlib import Path
 
 from processor.base.download_manager import DownloadManager
-from processor.base.queue_manager import QueueManager, JobMessage, ResultMessage
+from processor.base.job_message import JobMessage
+from processor.base.queue_manager import QueueManager
 from processor.base.upload_manager import UploadManager
 from processor.base.worker import WorkerResult
 from processor.base.worker_factory import WorkerFactory
@@ -55,17 +56,7 @@ class Processor:
             "Processing finished for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id
         )
-        result_message = ResultMessage(
-            company_name=worker_result.company_name,
-            company_number=worker_result.company_number,
-            document_date=worker_result.document_date,
-            error=worker_result.error,
-            filing_id=job_message.filing_id,
-            logs=worker_result.logs,
-            success=worker_result.success,
-            viewer_entrypoint=worker_result.viewer_entrypoint,
-        )
-        queue_manager.publish_result(result_message)
+        queue_manager.publish_result(worker_result)
         logger.info(
             "Added result message for job message: (Message: %s, Filing: %s)",
             job_message.message_id, job_message.filing_id

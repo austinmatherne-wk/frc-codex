@@ -3,7 +3,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from processor.base.queue_manager import JobMessage
+from processor.base.job_message import JobMessage
 
 
 @dataclass(frozen=True)

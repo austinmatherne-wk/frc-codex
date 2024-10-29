@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from processor.base.queue_manager import JobMessage, ResultMessage
+from processor.base.job_message import JobMessage
 from processor.base.worker import WorkerResult
 from processor.processor import Processor
 from processor_tests.mock.mock_queue_manager import MockQueueManager
@@ -68,8 +68,8 @@ class TestProcessor(TestCase):
                 success=False,
             )
         ])
-        self.assertEqual(queue_manager.result_messages, [
-            ResultMessage(
+        self.assertEqual(queue_manager.worker_results, [
+            WorkerResult(
                 company_name=None,
                 company_number=None,
                 document_date=None,
@@ -79,7 +79,7 @@ class TestProcessor(TestCase):
                 success=True,
                 viewer_entrypoint='viewer_entrypoint1',
             ),
-            ResultMessage(
+            WorkerResult(
                 company_name=None,
                 company_number=None,
                 document_date=None,

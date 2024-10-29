@@ -8,7 +8,7 @@ from typing import cast
 from arelle.RuntimeOptions import RuntimeOptions  # type: ignore
 from arelle.api.Session import Session  # type: ignore
 
-from processor.base.queue_manager import JobMessage
+from processor.base.job_message import JobMessage
 from processor.base.worker import Worker, WorkerResult
 from processor.processor_options import ProcessorOptions
 

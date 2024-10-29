@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from processor.base.queue_manager import JobMessage
+from processor.base.job_message import JobMessage
 from processor.base.worker import Worker, WorkerResult
 
 
