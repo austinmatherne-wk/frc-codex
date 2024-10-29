@@ -421,6 +421,16 @@
     } from '/govuk-frontend.min.js'
     initAll()
 </script>
+<script>
+    sessionStorage.removeItem('ixbrl-viewer-home-link-query');
+    let query = window.location.search;
+    if (query && query.length > 0) {
+        if (query[0] === '?') {
+            query = query.substring(1);
+        }
+        sessionStorage.setItem('ixbrl-viewer-home-link-query', query);
+    }
+</script>
 </body>
 
 </html>
