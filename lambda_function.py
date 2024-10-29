@@ -27,8 +27,13 @@ def lambda_handler(event, context):
         'FilingId': worker_result.filing_id,
         'Logs': worker_result.logs,
         'Success': worker_result.success,
-        'TotalUploadedBytes': worker_result.total_uploaded_bytes,
         'ViewerEntrypoint': worker_result.viewer_entrypoint,
+        # Analytics
+        'DownloadTime': worker_result.download_time,
+        'TotalProcessingTime': worker_result.total_processing_time,
+        'TotalUploadedBytes': worker_result.total_uploaded_bytes,
+        'UploadTime': worker_result.upload_time,
+        'WorkerTime': worker_result.worker_time,
     }
     if worker_result.document_date is not None:
         result['DocumentDate'] = worker_result.document_date.strftime('%Y-%m-%d')

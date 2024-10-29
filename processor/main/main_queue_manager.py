@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Iterable
 
@@ -91,8 +92,14 @@ class MainQueueManager(QueueManager):
                 'StringValue': worker_result.error,
                 'DataType': 'String'
             }
-        message_attributes['TotalUploadedBytes'] = {
-            'StringValue': worker_result.total_uploaded_bytes,
+        message_attributes['Analytics'] = {
+            'StringValue': json.dumps({
+                'download_time': worker_result.download_time,
+                'total_processing_time': worker_result.total_processing_time,
+                'total_uploaded_bytes': worker_result.total_uploaded_bytes,
+                'upload_time': worker_result.upload_time,
+                'worker_time': worker_result.worker_time,
+            }),
             'DataType': 'String'
         }
         if worker_result.viewer_entrypoint:

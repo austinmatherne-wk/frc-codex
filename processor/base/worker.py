@@ -16,7 +16,13 @@ class WorkerResult:
     document_date: datetime.datetime | None = None
     viewer_entrypoint: str = ''
     success: bool = False
-    total_uploaded_bytes: int = 0
+
+    # Analytics
+    download_time: float | None = None
+    total_processing_time: float | None = None
+    total_uploaded_bytes: int | None = None
+    upload_time: float | None = None
+    worker_time: float | None = None
 
 
 class Worker:

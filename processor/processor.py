@@ -1,6 +1,7 @@
 import json
 import logging
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -69,11 +70,14 @@ class Processor:
         return worker_result
 
     def _process_filing(self, job_message: JobMessage) -> WorkerResult:
+        processing_start_ts = time.perf_counter()
         try:
             with tempfile.TemporaryDirectory(prefix='ixbrl-viewer_') as temp_dir:
                 temp_dir_path = Path(temp_dir)
                 # Download filing
+                download_start_ts = time.perf_counter()
                 target_path, namelist = self._download_filing(job_message, temp_dir_path)
+
                 if not target_path:
                     logger.error(
                         "Target path could not be determined in filing from %s: (Message: %s, Filing: %s)",
@@ -85,11 +89,15 @@ class Processor:
                     )
                 logger.info('Using target path: %s', target_path)
                 # Prepare directory for viewer files
+
                 viewer_directory = temp_dir_path / 'viewer'
                 viewer_directory.mkdir()
 
+                worker_start_ts = time.perf_counter()
                 worker = self._worker_factory.create_worker(job_message)
                 worker_result = worker.work(job_message, target_path, viewer_directory)
+
+                upload_start_ts = time.perf_counter()
                 if worker_result.success:
                     worker_result.total_uploaded_bytes = self._upload_manager.upload_files(
                         job_message.filing_id,
@@ -100,7 +108,12 @@ class Processor:
                         "Worker failed to process filing: %s (Message: %s, Filing: %s)",
                         worker_result.error, job_message.message_id, job_message.filing_id
                     )
-                return worker_result
+                processing_end_ts = time.perf_counter()
+                worker_result.download_time = worker_start_ts - download_start_ts
+                worker_result.worker_time = upload_start_ts - worker_start_ts
+                worker_result.upload_time = processing_end_ts - upload_start_ts
+                worker_result.total_processing_time = processing_end_ts - processing_start_ts
+            return worker_result
         except Exception as e:
             logger.exception(
                 "An unexpected error occurred while processing the filing: (Message: %s, Filing: %s)",
