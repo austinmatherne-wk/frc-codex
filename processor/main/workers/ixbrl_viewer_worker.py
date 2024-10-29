@@ -96,6 +96,8 @@ class IxbrlViewerWorker(Worker):
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
                 'viewer_feature_support-link': '/help',
+                'viewer_feature_home-link-url': '/',
+                'viewer_feature_home-link-label': 'FRC CODEx Filing Index',
             },
             plugins=str(self._ixbrl_viewer_plugin_path),
             strictOptions=False,
