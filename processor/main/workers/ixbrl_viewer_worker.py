@@ -101,7 +101,6 @@ class IxbrlViewerWorker(Worker):
                 'viewer_feature_survey-link': '/survey',
             },
             plugins=str(self._ixbrl_viewer_plugin_path),
-            strictOptions=False,
         )
         with Session() as session:
             success = session.run(runtime_options)
