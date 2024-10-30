@@ -28,9 +28,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseFiling;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
-import com.frc.codex.model.Company;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
@@ -43,9 +44,11 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseClientImpl.class);
 	private final CompaniesHouseConfig config;
 	private final CompaniesHouseHttpClient document;
-	private boolean enabled;
+	private final boolean enabled;
 	private final CompaniesHouseHttpClient information;
 	public final CompaniesHouseStreamClient stream;
+	private final HashSet<String> companiesHouseExcludeCategories;
+	private final HashSet<String> companiesHouseIncludeCategories;
 
 	public CompaniesHouseClientImpl(CompaniesHouseConfig config, CompaniesHouseRateLimiter rateLimiter) {
 		this.config = requireNonNull(config);
@@ -63,14 +66,47 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 			this.information = null;
 			this.stream = null;
 		}
+		// TODO: Make dynamic
+		this.companiesHouseExcludeCategories = new HashSet<>(List.of(
+				"address",
+				"capital",
+				"change-of-name",
+				"confirmation-statement",
+				"dissolution",
+				"incorporation",
+				"insolvency",
+				"mortgage",
+				"officers",
+				"other",
+				"persons-with-significant-controlxR",
+				"resolution"
+		));
+		this.companiesHouseIncludeCategories = new HashSet<>(List.of(
+				"accounts"
+		));
 	}
 
-	public Company getCompany(String companyNumber) throws JsonProcessingException {
+	public boolean filterCategory(String category) {
+		if (category == null) {
+			// Not clear what category being unset indicates, but probably safe to assume
+			// it won't have IXBRL until the filing is categorized.
+			return false;
+		}
+		if (companiesHouseExcludeCategories.contains(category)) {
+			return false;
+		}
+		if (!companiesHouseIncludeCategories.contains(category)) {
+			LOG.warn("Unknown filing category: {}", category);
+		}
+		return true;
+	}
+
+	public CompaniesHouseCompany getCompany(String companyNumber) throws JsonProcessingException {
 		throwExceptionIfDisabled();
 		String json = information.get("/company/" + companyNumber);
 		JsonNode root = OBJECT_MAPPER.readTree(json);
 		String companyName = root.get("company_name").asText();
-		return Company.builder()
+		return CompaniesHouseCompany.builder()
 				.companyName(companyName)
 				.companyNumber(companyNumber)
 				.build();
@@ -112,26 +148,12 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 			}
 			totalItems = node.get("total_count").asInt();
 			for (JsonNode item : items) {
-				JsonNode filingDateNode = item.get("date");
-				LocalDateTime filingDate = null;
-				if (filingDateNode != null) {
-					String dateStr = filingDateNode.asText();
-					try {
-						filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
-					} catch (Exception e) {
-						throw new RuntimeException("Failed to parse date: " + dateStr, e);
-					}
+				String category = item.get("category").asText();
+				if (!filterCategory(category)) {
+					continue;
 				}
-				JsonNode documentDateNode = item.get("action_date");
-				LocalDateTime documentDate = null;
-				if (documentDateNode != null) {
-					String dateStr = documentDateNode.asText();
-					try {
-						documentDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
-					} catch (Exception e) {
-						throw new RuntimeException("Failed to parse date: " + dateStr, e);
-					}
-				}
+				LocalDateTime filingDate = parseDate(item.get("date"));
+				LocalDateTime documentDate = parseDate(item.get("action_date"));
 				String externalFilingId = item.get("transaction_id").asText();
 				Set<String> filingUrls = getCompanyFilingUrls(item);
 				if (!filingUrls.isEmpty()) {
@@ -193,13 +215,101 @@ public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 		return filingUrls;
 	}
 
+	public CompaniesHouseFiling getFiling(String companyNumber, String filingId) throws JsonProcessingException {
+		throwExceptionIfDisabled();
+		String json = information.get("/company/" + companyNumber + "/filing-history/" + filingId);
+		return parseFiling(json, companyNumber);
+	}
+
+	private LocalDateTime parseDate(JsonNode dateNode) {
+		LocalDateTime date = null;
+		if (dateNode != null) {
+			String dateStr = dateNode.asText();
+			try {
+				date = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to parse date: " + dateStr, e);
+			}
+		}
+		return date;
+	}
+
+	public CompaniesHouseFiling parseFiling(String json, String companyNumber) throws JsonProcessingException {
+		JsonNode data = OBJECT_MAPPER.readTree(json);
+
+		// Note: `action_date` is not a documented field but appears to consistently represent
+		// the document date for the filing.
+		LocalDateTime actionDate = parseDate(data.get("action_date"));
+		String category = data.get("category").asText();
+		LocalDateTime date = parseDate(data.get("date"));
+		String transactionId = data.get("transaction_id").asText();
+		return new CompaniesHouseFiling(
+				actionDate,
+				category,
+				companyNumber,
+				date,
+				null,
+				transactionId,
+				null,
+				null,
+				transactionId
+		);
+	}
+
+	public CompaniesHouseFiling parseStreamedFiling(String json) throws JsonProcessingException {
+		JsonNode filing = OBJECT_MAPPER.readTree(json);
+		JsonNode data = filing.get("data");
+		JsonNode event = filing.get("event");
+		String resourceUri = filing.get("resource_uri").asText();
+		String[] resourceUriSplit = resourceUri.split("/");
+
+		// Note: `action_date` is not a documented field but appears to consistently represent
+		// the document date for the filing.
+		LocalDateTime actionDate = parseDate(data.get("action_date"));
+		String category = null;
+		if (data.has("category")) {
+			category = data.get("category").asText();
+		}
+		String companyNumber = resourceUriSplit[2];
+		LocalDateTime date = parseDate(data.get("date"));
+		String eventType = event.get("type").asText();
+		String resourceKind = filing.get("resource_kind").asText();
+		String resourceId = filing.get("resource_id").asText();
+		long timepoint = event.get("timepoint").asLong();
+		String transactionId = data.get("transaction_id").asText();
+		return new CompaniesHouseFiling(
+				actionDate,
+				category,
+				companyNumber,
+				date,
+				eventType,
+				resourceId,
+				resourceKind,
+				timepoint,
+				transactionId
+		);
+	}
+
 	public boolean isEnabled() {
 		return enabled;
 	}
 
-	public void streamFilings(Long timepoint, Function<String, Boolean> callback) throws IOException {
+	public void streamFilings(Long timepoint, Function<CompaniesHouseFiling, Boolean> callback) throws IOException {
+		Function<String, Boolean> parseCallback = json -> {
+			if (json == null || json.length() <= 1) {
+				// The stream emits blank "heartbeat" lines.
+				return true;
+			}
+			CompaniesHouseFiling filing;
+			try {
+				filing = parseStreamedFiling(json);
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
+			return callback.apply(filing);
+		};
 		throwExceptionIfDisabled();
-		stream.streamFilings(timepoint, callback);
+		stream.streamFilings(timepoint, parseCallback);
 	}
 
 	private void throwExceptionIfDisabled() {

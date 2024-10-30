@@ -3,21 +3,17 @@ package com.frc.codex.indexer.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -29,18 +25,17 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
-import com.frc.codex.discovery.companieshouse.RateLimitException;
+import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseCompaniesIndexerImpl;
+import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseStreamIndexerImpl;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
+import com.frc.codex.indexer.IndexerJob;
 import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.indexer.QueueManager;
 import com.frc.codex.model.Company;
@@ -56,22 +51,19 @@ import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 @Component
 @Profile("application")
 public class IndexerImpl implements Indexer {
-	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final int COMPANIES_BATCH_SIZE = 100;
 	private static final Logger LOG = LoggerFactory.getLogger(IndexerImpl.class);
+	private final CompaniesHouseCompaniesIndexerImpl companiesHouseCompaniesIndexer;
 	private final CompaniesHouseClient companiesHouseClient;
 	private final CompaniesHouseHistoryClient companiesHouseHistoryClient;
+	private final CompaniesHouseStreamIndexerImpl companiesHouseStreamIndexer;
 	private final DatabaseManager databaseManager;
 	private final FcaClient fcaClient;
+	private final List<IndexerJob> jobs;
 	private final LambdaManager lambdaManager;
 	private final FilingIndexProperties properties;
 	private final QueueManager queueManager;
 
 	private final Pattern companiesHouseFilenamePattern;
-	private int companiesHouseSessionFilingCount;
-	private Date companiesHouseStreamLastOpenedDate;
-	private Long companiesHouseSessionLatestTimepoint;
-	private Long companiesHouseSessionStartTimepoint;
 	private Date fcaSessionLastStartedDate;
 	private Date fcaSessionLastEndedDate;
 
@@ -85,8 +77,10 @@ public class IndexerImpl implements Indexer {
 			QueueManager queueManager
 	) {
 		this.properties = properties;
+		this.companiesHouseCompaniesIndexer = new CompaniesHouseCompaniesIndexerImpl(companiesHouseClient, databaseManager); // TODO: Dependency injection?
 		this.companiesHouseClient = companiesHouseClient;
 		this.companiesHouseHistoryClient = companiesHouseHistoryClient;
+		this.companiesHouseStreamIndexer = new CompaniesHouseStreamIndexerImpl(companiesHouseClient, databaseManager); // TODO: Dependency injection?
 		this.databaseManager = databaseManager;
 		this.fcaClient = fcaClient;
 		this.lambdaManager = lambdaManager;
@@ -94,194 +88,58 @@ public class IndexerImpl implements Indexer {
 		this.companiesHouseFilenamePattern = Pattern.compile(
 				"Prod\\d+_\\d+_([a-zA-Z0-9]+)_(\\d{8})\\.html"
 		);
+		this.jobs = List.of(
+				companiesHouseCompaniesIndexer,
+				companiesHouseStreamIndexer
+		);
 	}
 
 	public String getStatus() {
-		boolean healthy = companiesHouseStreamLastOpenedDate != null &&
-				companiesHouseSessionStartTimepoint != null;
+		boolean healthy = jobs.stream().allMatch(IndexerJob::isHealthy);
 		return String.format("""
 						Indexer Status: %s
-						Companies House:
-						\tStream last opened: %s
-						\tFilings discovered this session: %s
-						\tEarliest timepoint this session: %s
-						\tLatest timepoint this session: %s
+						%s
 						FCA:
 						\tLast started: %s
 						\tLast finished: %s""",
 				healthy ? "Healthy" : "Unhealthy",
-				companiesHouseStreamLastOpenedDate,
-				companiesHouseSessionFilingCount,
-				companiesHouseSessionStartTimepoint,
-				companiesHouseSessionLatestTimepoint,
+				String.join("\n", jobs.stream().map(IndexerJob::getStatus).toList()),
 				fcaSessionLastStartedDate,
 				fcaSessionLastEndedDate
 		);
 	}
 
 	/*
-	 * Processes a filing event JSON from the Companies House streaming API.
-	 * Returns the timepoint of the event.
-	 */
-	private long handleFilingStreamEvent(String json) throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode filing = mapper.readTree(json);
-		JsonNode event = filing.get("event");
-		long timepoint = event.get("timepoint").asLong();
-		String resourceKind = filing.get("resource_kind").asText();
-		if (!"filing-history".equals(resourceKind)) {
-			return timepoint;
-		}
-		String eventType = event.get("type").asText();
-		if (!"changed".equals(eventType)) {
-			// Only other possible value is "deleted".
-			return timepoint;
-		}
-		JsonNode data = filing.get("data");
-		JsonNode filingDateNode = data.get("date");
-		LocalDateTime filingDate = null;
-		if (filingDateNode != null) {
-			String dateStr = filingDateNode.asText();
-			try {
-				filingDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to parse date: " + dateStr, e);
-			}
-		}
-		// Note: `action_date` is not a documented field but appears to consistently represent
-		// the document date for the filing.
-		JsonNode documentDateNode = data.get("action_date");
-		LocalDateTime documentDate = null;
-		if (documentDateNode != null) {
-			String dateStr = documentDateNode.asText();
-			try {
-				documentDate = LocalDate.parse(dateStr, CH_JSON_DATE_FORMAT).atStartOfDay();
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to parse date: " + dateStr, e);
-			}
-		}
-		String resourceUri = filing.get("resource_uri").asText();
-		String[] resourceUriSplit = resourceUri.split("/");
-		String companyNumber = resourceUriSplit[2];
-		String resourceId = filing.get("resource_id").asText();
-		String externalFilingId = data.get("transaction_id").asText();
-		Set<String> filingUrls = this.companiesHouseClient.getCompanyFilingUrls(companyNumber, resourceId);
-		if (!filingUrls.isEmpty()) {
-			String downloadUrl = "https://find-and-update.company-information.service.gov.uk/company/"
-					+ companyNumber + "/filing-history/" + externalFilingId
-					+ "/document?format=xhtml&download=0";
-			NewFilingRequest newFilingRequest = NewFilingRequest.builder()
-					.companyNumber(companyNumber)
-					.documentDate(documentDate)
-					.downloadUrl(downloadUrl)
-					.externalFilingId(externalFilingId)
-					.externalViewUrl(downloadUrl)
-					.filingDate(filingDate)
-					.registryCode(RegistryCode.COMPANIES_HOUSE.getCode())
-					.build();
-			if (databaseManager.filingExists(newFilingRequest)) {
-				LOG.info("Skipping existing CH filing: {}", downloadUrl);
-			} else {
-				UUID filingId = this.databaseManager.createFiling(newFilingRequest);
-				LOG.info("Created CH filing for {}: {}", downloadUrl, filingId);
-				this.companiesHouseSessionFilingCount += 1;
-			}
-		}
-		return timepoint;
-	}
-
-	/*
-	 * Indexes Companies House filings.
+	 * Indexes Companies House filings from stream.
 	 * Runs continuously as long as HTTP connection remains open.
 	 * If the connection closes, resumes after one minute.
 	 * One scheduler thread is effectively dedicated to this task.
 	 */
 	@Scheduled(fixedDelay = 60 * 1000)
 	public void indexCompaniesHouseFilings() throws IOException {
-		if (!companiesHouseClient.isEnabled()) {
-			LOG.info("Can not index from Companies House stream. Companies House client is disabled.");
-			return;
-		}
-		if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
-			return;
-		}
-		LOG.info("Starting Companies House indexing at {}", System.currentTimeMillis() / 1000);
-		Function<String, Boolean> callback = (String filing) -> {
-			if (filing == null || filing.length() <= 1) {
-				// The stream emits blank "heartbeat" lines.
-				return true;
-			}
-			long timepoint;
-			try {
-				timepoint = handleFilingStreamEvent(filing);
-			} catch (JsonProcessingException e) {
-				LOG.error("Failed to process filing event.", e);
-				return false; // Stop streaming
-			}
-			if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
+		Supplier<Boolean> continueCallback = () -> {
+			if (!companiesHouseClient.isEnabled()) {
+				LOG.info("Can not index from Companies House stream. Companies House client is disabled.");
 				return false;
 			}
-			if (companiesHouseSessionStartTimepoint == null) {
-				companiesHouseSessionStartTimepoint = timepoint;
-			}
-			companiesHouseSessionLatestTimepoint = timepoint;
-			return true; // Continue streaming
+			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
 		};
-		long startTimepoint = this.databaseManager.getLatestStreamTimepoint(null);
-		this.companiesHouseStreamLastOpenedDate = new Date();
-		try {
-			this.companiesHouseClient.streamFilings(startTimepoint, callback);
-		} catch (RateLimitException e) {
-			LOG.warn("Rate limit exceeded while streaming CH filings. Resuming later.", e);
-		}
+		companiesHouseStreamIndexer.run(continueCallback);
 	}
 
+	/*
+	 * Indexes Companies House filings from local companies index.
+	 */
 	@Scheduled(fixedDelay = 60 * 1000)
-	public void indexFilingsFromCompaniesIndex() throws JsonProcessingException {
-		if (!companiesHouseClient.isEnabled()) {
-			LOG.info("Can not index filings from companies index: Companies House client is disabled.");
-			return;
-		}
-		LOG.info("Indexing filings from companies index.");
-		List<Company> companies = databaseManager.getIncompleteCompanies(COMPANIES_BATCH_SIZE);
-		LOG.info("Loaded {} incomplete companies from companies index.", companies.size());
-		for (Company company : companies) {
-			String companyNumber = company.getCompanyNumber();
-			String companyName = company.getCompanyName();
-			if (companyName == null) {
-				// If we don't already have the company's name, pull it from the API.
-				Company updateCompany = companiesHouseClient.getCompany(companyNumber);
-				companyName = updateCompany.getCompanyName();
-				databaseManager.updateCompany(updateCompany);
+	public void indexFilingsFromCompaniesIndex() throws IOException {
+		Supplier<Boolean> continueCallback = () -> {
+			if (!companiesHouseClient.isEnabled()) {
+				LOG.info("Can not index filings from companies index: Companies House client is disabled.");
+				return false;
 			}
-			LOG.info("Retrieving filings for company {}.", companyNumber);
-			List<NewFilingRequest> filings;
-			try {
-				filings = companiesHouseClient.getCompanyFilings(companyNumber, companyName);
-			} catch (RateLimitException e) {
-				LOG.warn("Rate limit exceeded while retrieving CH filing history. Resuming later.", e);
-				return;
-			}
-			LOG.info("Retrieved {} filings for company {}.", filings.size(), companyNumber);
-			for (NewFilingRequest filing : filings) {
-				if (databaseManager.filingExists(filing)) {
-					LOG.info("Skipping existing filing: {}", filing.getDownloadUrl());
-					continue;
-				}
-				if (databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse())) {
-					break;
-				}
-				UUID filingId = databaseManager.createFiling(filing);
-				LOG.info("Created CH filing for {}: {}", filing.getDownloadUrl(), filingId);
-
-			}
-			Company updatedCompany = Company.builder()
-					.companyNumber(companyNumber)
-					.completedDate(new Timestamp(System.currentTimeMillis()))
-					.build();
-			databaseManager.updateCompany(updatedCompany);
-			LOG.info("Completed company: {}", companyNumber);
-		}
+			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
+		};
+		companiesHouseCompaniesIndexer.run(continueCallback);
 	}
 
 	/*
@@ -393,6 +251,7 @@ public class IndexerImpl implements Indexer {
 	 */
 	@Scheduled(fixedDelay = 60 * 60 * 1000)
 	public void indexFca() {
+		// TODO: Implement as IndexerJob
 		fcaSessionLastStartedDate = new Date();
 		LOG.info("Starting FCA indexing at {}", fcaSessionLastStartedDate);
 		if (databaseManager.checkRegistryLimit(RegistryCode.FCA, properties.filingLimitFca())) {
@@ -413,7 +272,7 @@ public class IndexerImpl implements Indexer {
 					.filingDate(filing.submittedDate())
 					.registryCode(RegistryCode.FCA.getCode())
 					.build();
-			if (databaseManager.filingExists(newFilingRequest)) {
+			if (databaseManager.filingExists(newFilingRequest.getRegistryCode(), newFilingRequest.getExternalFilingId())) {
 				LOG.info("Skipping existing FCA filing: {}", filing.downloadUrl());
 				continue;
 			}

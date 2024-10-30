@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.FilingIndexProperties;

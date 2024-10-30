@@ -27,13 +27,13 @@ import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.database.impl.DatabaseManagerImpl;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.QueueManager;
-import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingStatus;
 import com.frc.codex.model.NewFilingRequest;
@@ -132,7 +132,7 @@ public class AdminController extends BaseController {
 		if (!companiesHouseClient.isEnabled()) {
 			return new ResponseEntity<>("Companies House client is disabled", HttpStatus.SERVICE_UNAVAILABLE);
 		}
-		Company company = this.companiesHouseClient.getCompany(companyNumber);
+		CompaniesHouseCompany company = this.companiesHouseClient.getCompany(companyNumber);
 		model.addAttribute("company", company);
 		List<NewFilingRequest> filings = this.companiesHouseClient.getCompanyFilings(companyNumber, "");
 		String filingUrls = filings.stream()

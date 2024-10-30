@@ -8,14 +8,22 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.model.Company;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
+import com.frc.codex.discovery.companieshouse.CompaniesHouseFiling;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
 @Profile("test")
 public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
+	public boolean filterCategory(String category) {
+		return true;
+	}
 
-	public Company getCompany(String companyNumber) {
+	public CompaniesHouseCompany getCompany(String companyNumber) {
+		return null;
+	}
+
+	public CompaniesHouseFiling getFiling(String companyNumber, String transactionId) {
 		return null;
 	}
 
@@ -31,7 +39,7 @@ public class TestCompaniesHouseClientImpl implements CompaniesHouseClient {
 		return true;
 	}
 
-	public void streamFilings(Long timepoint, Function<String, Boolean> callback) {
+	public void streamFilings(Long timepoint, Function<CompaniesHouseFiling, Boolean> callback) {
 
 	}
 }

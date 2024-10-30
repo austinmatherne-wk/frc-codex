@@ -192,7 +192,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		return filingId;
 	}
 
-	public boolean filingExists(NewFilingRequest newFilingRequest) {
+	public boolean filingExists(String registryCode, String externalFilingId) {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT filing_id FROM filings " +
 					"WHERE registry_code = ? " +
@@ -200,8 +200,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"LIMIT 1";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;
-			statement.setObject(++i, newFilingRequest.getRegistryCode());
-			statement.setObject(++i, newFilingRequest.getExternalFilingId());
+			statement.setObject(++i, registryCode);
+			statement.setObject(++i, externalFilingId);
 			ResultSet resultSet = statement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
