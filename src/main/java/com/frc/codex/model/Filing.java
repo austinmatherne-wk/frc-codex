@@ -54,7 +54,7 @@ public class Filing {
 
 	public String displayDocumentDate() {
 		if (documentDate == null) {
-			return "";
+			return "Available in viewer.";
 		}
 		return DISPLAY_DATE_FORMAT.format(documentDate);
 	}

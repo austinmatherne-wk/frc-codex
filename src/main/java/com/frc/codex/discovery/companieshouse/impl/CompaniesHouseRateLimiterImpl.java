@@ -1,8 +1,6 @@
 package com.frc.codex.discovery.companieshouse.impl;
 
 import java.sql.Timestamp;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +10,10 @@ import org.springframework.stereotype.Component;
 
 import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.tools.RateLimiter;
 
 @Component
-public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
+public class CompaniesHouseRateLimiterImpl extends RateLimiter implements CompaniesHouseRateLimiter
 {
 	private static final String HEADER_RATE_LIMIT = "X-Ratelimit-Limit";
 	private static final String HEADER_RATE_REMAINING = "X-Ratelimit-Remain";
@@ -25,16 +24,11 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 	private long limit;
 	private long remaining;
 	private Timestamp updated;
-	private final Queue<Timestamp> timestamps;
-	private final int rapidRateLimit;
-	private final int rapidRateWindow;
 	private Timestamp reset;
 	private Timestamp lastRejection;
 
 	public CompaniesHouseRateLimiterImpl(CompaniesHouseConfig config) {
-		this.rapidRateLimit = config.rapidRateLimit();
-		this.rapidRateWindow = config.rapidRateWindow();
-		this.timestamps = new ConcurrentLinkedQueue<>();
+		super(config.rapidRateLimit(), config.rapidRateWindow());
 	}
 
 	public long getLimit() {
@@ -90,17 +84,6 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 		lastRejection = new Timestamp(System.currentTimeMillis());
 	}
 
-	private void registerTimestamp() {
-		Timestamp now = new Timestamp(System.currentTimeMillis());
-		timestamps.add(now);
-
-		// Remove timestamps older than one minute
-		Timestamp oneMinuteAgo = new Timestamp(now.getTime() - rapidRateWindow);
-		while (!timestamps.isEmpty() && timestamps.peek().before(oneMinuteAgo)) {
-			timestamps.poll();
-		}
-	}
-
 	public String toString() {
 		return "CompaniesHouseRateLimiterImpl [" +
 				"limit=" + limit + ", " +
@@ -109,21 +92,6 @@ public class CompaniesHouseRateLimiterImpl implements CompaniesHouseRateLimiter
 				"reset=" + reset + ", " +
 				"lastRejection=" + lastRejection +
 				"]";
-	}
-
-	public synchronized void waitForRapidRateLimit() throws InterruptedException {
-		Timestamp now = new Timestamp(System.currentTimeMillis());
-		if (timestamps.size() >= rapidRateLimit) {
-			Timestamp oldest = timestamps.peek();
-			if (oldest == null) {
-				return;
-			}
-			long waitTime = rapidRateWindow - (now.getTime() - oldest.getTime());
-			if (waitTime > 0) {
-				LOG.info("Waiting for rapid rate limit: {} ms", waitTime);
-				Thread.sleep(waitTime);
-			}
-		}
 	}
 
 	public void updateLimits(ResponseEntity<?> response, String url) {

@@ -82,11 +82,11 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		return filing.getFilingId();
 	}
 
-	public boolean filingExists(NewFilingRequest newFilingRequest) {
+	public boolean filingExists(String registryCode, String externalFilingId) {
 		return filings.values().stream()
 				.anyMatch(f ->
-						f.getRegistryCode().equals(newFilingRequest.getRegistryCode()) &&
-						f.getExternalFilingId().equals(newFilingRequest.getExternalFilingId())
+						f.getRegistryCode().equals(registryCode) &&
+						f.getExternalFilingId().equals(externalFilingId)
 				);
 	}
 

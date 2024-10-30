@@ -20,7 +20,7 @@ public interface DatabaseManager {
 	boolean companiesHouseArchiveExists(String filename);
 	String createCompaniesHouseArchive(CompaniesHouseArchive archive);
 	UUID createFiling(NewFilingRequest newFilingRequest);
-	boolean filingExists(NewFilingRequest newFilingRequest);
+	boolean filingExists(String registryCode, String externalFilingId);
 	Filing getFiling(UUID filingId);
 	List<Filing> getFilingsByStatus(FilingStatus status);
 	List<Filing> getFilingsByStatus(FilingStatus status, RegistryCode registryCode);
