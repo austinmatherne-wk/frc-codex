@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,7 @@ import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.tools.RateLimiter;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -108,8 +111,8 @@ public class ViewController {
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
 
-		response.setContentType("text/html");
-		response.setStatus(200);
+		response.setContentType(MediaType.TEXT_HTML_VALUE);
+		response.setStatus(HttpStatus.OK.value());
 		ResponseExtractor<Void> responseExtractor = resp -> {
 			try (
 					InputStream inputStream = resp.getBody();
@@ -148,11 +151,11 @@ public class ViewController {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		LOG.info("[ANALYTICS] VIEWER (filingId=\"{}\",companyNumber=\"{}\")", filingId, filing.getCompanyNumber());
-		if (filing.getStatus().equals("completed")) {
+		if (filing.getStatus().equals(FilingStatus.COMPLETED.toString())) {
 			// Already completed, redirect directly to viewer.
 			return viewerResult(filing.getFilingId(), filing.getStubViewerUrl());
 		}
-		if (filing.getStatus().equals("failed")) {
+		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
 			// Generation failed, show error message.
 			return unavailableResult();
 		}
@@ -181,8 +184,8 @@ public class ViewController {
 				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
-		response.setContentType("text/html");
-		response.setStatus(200);
+		response.setContentType(MediaType.TEXT_HTML_VALUE);
+		response.setStatus(HttpStatus.OK.value());
 		try(
 				ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest);
 				OutputStream outputStream = response.getOutputStream()
