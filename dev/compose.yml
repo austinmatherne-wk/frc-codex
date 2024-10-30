@@ -91,6 +91,26 @@ services:
       - frc-codex-server.secrets
     volumes:
       - ../tmp:/tmp
+  frc-codex-support:
+    image: frc-codex-support:latest
+    healthcheck:
+      interval: 1s
+      retries: 0
+      test: exit 0 # TODO: Improve healthcheck
+      timeout: 1s
+    environment:
+      DB_DATABASE: 'frc_codex'
+      DB_HOST: 'postgres.localhost'
+      DB_PASSWORD: 'frc_codex'
+      DB_PORT: '5432'
+      DB_USERNAME: 'frc_codex'
+    platform: linux/amd64
+    ports:
+      - 8082:8080
+    networks:
+      default:
+        aliases:
+          - support.localhost
   localstack:
     image: localstack/localstack:3.4.0
     healthcheck:
