@@ -154,9 +154,7 @@ public class ViewController {
 		}
 		if (filing.getStatus().equals("failed")) {
 			// Generation failed, show error message.
-			ModelAndView modelAndView = new ModelAndView("view/unavailable");
-			modelAndView.addObject("message", "Viewer generation failed. Please try again later.");
-			return modelAndView;
+			return unavailableResult();
 		}
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 		if (future == null) {
@@ -193,6 +191,12 @@ public class ViewController {
 		}
 	}
 
+	private ModelAndView unavailableResult() {
+		ModelAndView modelAndView = new ModelAndView("view/unavailable");
+		modelAndView.addObject("message", "Viewer generation failed. Please try again later.");
+		return modelAndView;
+	}
+
 	@GetMapping("/view/{filingId}/wait")
 	public ModelAndView waitPage(
 			@PathVariable("filingId") String filingId
@@ -200,6 +204,7 @@ public class ViewController {
 		LOG.info("[ANALYTICS] LOADING (filingId=\"{}\")", filingId);
 		UUID filingUuid = UUID.fromString(filingId);
 		if (!invokeFutures.containsKey(filingUuid)) {
+			// We want to invoke on-demand processing here, but not actually return the /loading result.
 			onDemandResult(databaseManager.getFiling(filingUuid));
 		}
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
@@ -219,11 +224,13 @@ public class ViewController {
 						LOG.info("[ANALYTICS] PROCESSING_COMPLETED (filingId=\"{}\")", filingId);
 					} else {
 						LOG.info("[ANALYTICS] PROCESSING_FAILED (filingId=\"{}\")", filingId);
+						return unavailableResult();
 					}
 				}
 			}
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
+			return unavailableResult();
 		}
 		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 	}
