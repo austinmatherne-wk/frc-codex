@@ -1,3 +1,7 @@
 html, body {
     overscroll-behavior: none;
 }
+
+* {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
