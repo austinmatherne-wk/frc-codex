@@ -64,6 +64,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"error = ?, " +
 					"logs = ?, " +
 					"status = ?, " +
+					"oim_directory = ?, " +
 					"stub_viewer_url = ?, " +
 					"company_name = COALESCE(company_name, ?), " +
 					"company_number = COALESCE(company_number, ?), " +
@@ -79,6 +80,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			statement.setString(++i, filingResultRequest.getError());
 			statement.setString(++i, filingResultRequest.getLogs());
 			statement.setString(++i, filingResultRequest.getStatus().toString());
+			statement.setString(++i, filingResultRequest.getOimDirectory());
 			statement.setString(++i, filingResultRequest.getStubViewerUrl());
 			statement.setString(++i, filingResultRequest.getCompanyName());
 			statement.setString(++i, filingResultRequest.getCompanyNumber());
@@ -463,9 +465,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 							resultSet.getTimestamp("document_date", TIMEZONE_UTC)
 					))
 					.streamTimepoint(resultSet.getLong("stream_timepoint"))
+					.oimDirectory(resultSet.getString("oim_directory"))
 					.stubViewerUrl(resultSet.getString("stub_viewer_url"))
-					.oimCsvUrl(resultSet.getString("oim_csv_url"))
-					.oimJsonUrl(resultSet.getString("oim_json_url"))
 					.build());
 		}
 		return results.build();
@@ -498,7 +499,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "UPDATE filings SET " +
 					"status = 'pending', error = NULL, logs = NULL, " +
-					"stub_viewer_url = NULL, oim_csv_url = NULL, oim_json_url = NULL " +
+					"stub_viewer_url = NULL, oim_directory = NULL, " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setObject(1, filingId);
