@@ -1,0 +1,736 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: template
+Parameters:
+  CertificateArn:
+    Type: String
+    Default: arn:aws:acm:eu-west-2:390403885523:certificate/e3e73ab8-e2bb-49b3-93a9-ad1e10b05ebc
+  CompaniesHouseRapidRateLimit:
+    Type: Number
+    Default: 5
+    Description: "The number of requests allowed in the rate limit window."
+  CompaniesHouseRapidRateWindow:
+    Type: Number
+    Default: 10000
+    Description: "The duration of the rate limit window in milliseconds."
+  CompaniesHouseRESTAPIKey:
+    Type: String
+  CompaniesHouseStreamAPIKey:
+    Type: String
+  DBInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+  DBPassword:
+    Type: String
+  EnvironmentName:
+    Type: String
+    Description: "The name of the environment.  Use \"prod\" without quotes for the production environment."
+  HostedZoneID:
+    Type: AWS::Route53::HostedZone::Id
+    Default: Z02063853KTXA6TSBLX05
+  Region:
+    Type: String
+    Default: eu-west-2
+  ProcessorImage:
+    Type: String
+    Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/processor-lambda
+  ServerImage:
+    Type: String
+    Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/server
+  SupportImage:
+    Type: String
+    Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/support
+  Version:
+    Type: String
+    Description: "The docker tag to use.  See ECR for available tags."
+
+  CompaniesHouseFilingLimit:
+    Type: Number
+    Default: -1
+  FCAFilingLimit:
+    Type: Number
+    Default: -1
+  UnprocessedCompaniesLimit:
+    Type: Number
+    Default: -1
+  LambdaPreprocessingConcurrency:
+    Type: Number
+    Default: 2
+Conditions:
+  IsProduction:
+    Fn::Equals:
+    - !Ref EnvironmentName
+    - prod
+Resources:
+  S3ResultsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-codex-results"
+      AccessControl: "Private"
+      VersioningConfiguration:
+        Status: "Enabled"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  S3HttpCacheBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-codex-http-cache"
+      AccessControl: "Private"
+      VersioningConfiguration:
+        Status: "Enabled"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  S3TaxonomyPackagesBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-codex-taxonomy-packages"
+      AccessControl: "Private"
+      VersioningConfiguration:
+        Status: "Enabled"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  IAMPolicyReadResultsBucket:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexReadResultsBucket"
+      Path: "/"
+      Description: !Sub "Permission for read-only actions on the S3 bucket ${S3ResultsBucket}."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "${S3ResultsBucket.Arn}"
+          - !Sub "${S3ResultsBucket.Arn}/*"
+          Action:
+          - "s3:Describe*"
+          - "s3:Get*"
+          - "s3:List*"
+          Effect: "Allow"
+  IAMPolicyReadTaxonomyPackagesBucket:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexReadTaxonomyPackagesBucket"
+      Path: "/"
+      Description: !Sub "Permission for read-only actions on the S3 bucket ${S3TaxonomyPackagesBucket}."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "${S3TaxonomyPackagesBucket.Arn}"
+          - !Sub "${S3TaxonomyPackagesBucket.Arn}/*"
+          Action:
+          - "s3:Describe*"
+          - "s3:Get*"
+          - "s3:List*"
+          Effect: "Allow"
+  IAMPolicyWriteECSLogs:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexWriteECSLogs"
+      Path: "/"
+      Description: !Sub "Permission to write ECS logs."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource: !Sub "arn:aws:logs:${Region}:${AWS::AccountId}:log-group:/ecs/${EnvironmentName}/server*"
+          Action:
+          - "logs:CreateLogGroup"
+          - "logs:CreateLogStream"
+          - "logs:PutLogEvents"
+          Effect: "Allow"
+  IAMPolicyReadWriteResultsBucket:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexReadWriteResultsBucket"
+      Path: "/"
+      Description: !Sub "Permission for read and write actions on the S3 bucket ${S3ResultsBucket}."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "${S3ResultsBucket.Arn}"
+          Action:
+          - "s3:ListBucket"
+          Effect: "Allow"
+          Sid: "ListObjectsInBucket"
+        - Resource:
+          - !Sub "${S3ResultsBucket.Arn}/*"
+          Action: "s3:*Object"
+          Effect: "Allow"
+          Sid: "AllObjectActions"
+  IAMPolicyReadWriteHttpCacheBucket:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexReadWriteHttpCacheBucket"
+      Path: "/"
+      Description: !Sub "Permission for read and write actions on the S3 bucket ${S3HttpCacheBucket}."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "${S3HttpCacheBucket.Arn}"
+          Action:
+          - "s3:ListBucket"
+          Effect: "Allow"
+          Sid: "ListObjectsInBucket"
+        - Resource:
+          - !Sub "${S3HttpCacheBucket.Arn}/*"
+          Action: "s3:*Object"
+          Effect: "Allow"
+          Sid: "AllObjectActions"
+  IAMPolicySendEmail:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "${EnvironmentName}CodexSendEmail"
+      Path: "/"
+      Description: !Sub "Permission to send email using SES."
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "arn:*:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
+          - !Sub "arn:*:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*"
+          Action:
+          - "ses:SendEmail"
+          - "ses:SendRawEmail"
+          Effect: "Allow"
+          Sid: "SendEmail"
+  IAMRoleECSTaskExecution:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${EnvironmentName}ECSTaskExecutionRole"
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+      - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      - Ref: IAMPolicyWriteECSLogs
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Condition:
+            ArnLike:
+              aws:SourceArn: !Sub "arn:aws:ecs:${Region}:${AWS::AccountId}:*"
+            StringEquals:
+              aws:SourceAccount: !Ref AWS::AccountId
+          Principal:
+            Service: "ecs-tasks.amazonaws.com"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  IAMRoleECSTask:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${EnvironmentName}ECSTaskRole"
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+      - Ref: IAMPolicyReadResultsBucket
+      - Ref: IAMPolicySendEmail
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Condition:
+            ArnLike:
+              aws:SourceArn: !Sub "arn:aws:ecs:${Region}:${AWS::AccountId}:*"
+            StringEquals:
+              aws:SourceAccount: !Ref AWS::AccountId
+          Principal:
+            Service: "ecs-tasks.amazonaws.com"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  ECSTaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      Cpu: "1024"
+      EphemeralStorage:
+        SizeInGiB: 21
+      ExecutionRoleArn: !GetAtt IAMRoleECSTaskExecution.Arn
+      Family: !Sub "${EnvironmentName}-server"
+      Memory: "3072"
+      NetworkMode: "awsvpc"
+      RequiresCompatibilities:
+      - "FARGATE"
+      RuntimePlatform:
+        OperatingSystemFamily: "LINUX"
+        CpuArchitecture: "X86_64"
+      TaskRoleArn: !GetAtt IAMRoleECSTask.Arn
+      ContainerDefinitions:
+      - Name: "server"
+        Cpu: 0
+        Essential: true
+        Image: !Sub "${ServerImage}:${Version}"
+        LogConfiguration:
+          Options:
+            awslogs-create-group: "true"
+            awslogs-group: !Sub "/ecs/${EnvironmentName}/server"
+            mode: "non-blocking"
+            max-buffer-size: "25m"
+            awslogs-region: !Ref Region
+            awslogs-stream-prefix: !Sub "${EnvironmentName}-ecs-server"
+          LogDriver: "awslogs"
+        PortMappings:
+        - ContainerPort: 8080
+          AppProtocol: "http"
+          Protocol: "tcp"
+          HostPort: 8080
+          Name: "server-8080-tcp"
+        Environment:
+        - Name: "AWS"
+          Value: "true"
+        - Name: "AWS_REGION"
+          Value: !Ref Region
+        - Name: "AWS_LAMBDA_FUNCTION_NAME"
+          Value: !Ref Lambda
+        - Name: "AWS_LAMBDA_TIMEOUT_SECONDS"
+          Value: "900"
+        - Name: "COMPANIES_HOUSE_DOCUMENT_API_BASE_URL"
+          Value: "https://document-api.companieshouse.gov.uk"
+        - Name: "COMPANIES_HOUSE_INFORMATION_API_BASE_URL"
+          Value: "https://api.companieshouse.gov.uk"
+        - Name: "COMPANIES_HOUSE_RAPID_RATE_LIMIT"
+          Value: !Ref CompaniesHouseRapidRateLimit
+        - Name: "COMPANIES_HOUSE_RAPID_RATE_WINDOW"
+          Value: !Ref CompaniesHouseRapidRateWindow
+        - Name: "COMPANIES_HOUSE_REST_API_KEY"
+          Value: !Ref CompaniesHouseRESTAPIKey
+        - Name: "COMPANIES_HOUSE_STREAM_API_BASE_URL"
+          Value: "https://stream.companieshouse.gov.uk"
+        - Name: "COMPANIES_HOUSE_STREAM_API_KEY"
+          Value: !Ref CompaniesHouseStreamAPIKey
+        - Name: "DB_PASSWORD"
+          Value: !Ref DBPassword
+        - Name: "DB_URL"
+          Value: !Sub "jdbc:postgresql://${RDSDBInstance.Endpoint.Address}:${RDSDBInstance.Endpoint.Port}/${RDSDBInstance.DBName}"
+        - Name: "DB_USERNAME"
+          Value: !GetAtt RDSDBInstance.MasterUsername
+        - Name: "FCA_DATA_API_BASE_URL"
+          Value: "https://data.fca.org.uk/artefacts/"
+        - Name: "FCA_SEARCH_API_URL"
+          Value: "https://api.data.fca.org.uk/search?index=fca-nsm-searchdata"
+        - Name: "FILING_LIMIT_COMPANIES_HOUSE"
+          Value: !Ref CompaniesHouseFilingLimit
+        - Name: "FILING_LIMIT_FCA"
+          Value: !Ref FCAFilingLimit
+        - Name: "JAVA_TOOL_OPTIONS"
+          Value: "-XX:MaxRAMPercentage=80"
+        - Name: "LAMBDA_PREPROCESSING_CONCURRENCY"
+          Value: !Ref LambdaPreprocessingConcurrency
+        - Name: S3_TAXONOMY_PACKAGES_BUCKET_NAME
+          Value: !Ref S3TaxonomyPackagesBucket
+        - Name: "SQS_JOBS_QUEUE_NAME"
+          Value: unused
+        - Name: "S3_RESULTS_BUCKET_NAME"
+          Value: !Ref S3ResultsBucket
+        - Name: "SQS_RESULTS_QUEUE_NAME"
+          Value: unused
+        - Name: "SUPPORT_EMAIL"
+          Value: "support@arelle.org"
+        - Name: "UNPROCESSED_COMPANIES_LIMIT"
+          Value: !Ref UnprocessedCompaniesLimit
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  S3LoadBalancerLogsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-codex-load-balancer-logs"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      VersioningConfiguration:
+        Status: "Enabled"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  S3LoadBalancerLogsBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3LoadBalancerLogsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource: !Sub "${S3LoadBalancerLogsBucket.Arn}/*"
+          Action: "s3:PutObject"
+          Effect: "Allow"
+          Principal:
+            AWS: "arn:aws:iam::652711504416:root"
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      InstanceTenancy: "default"
+      EnableDnsHostnames: true
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  SubnetA:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Sub "${Region}a"
+      CidrBlock: "10.0.1.0/24"
+      VpcId: !Ref VPC
+      # Public because ECS resolves ECR to a public IP.
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  SubnetB:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Sub "${Region}b"
+      CidrBlock: "10.0.2.0/24"
+      # Public because ECS resolves ECR to a public IP.
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  SubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetA
+      RouteTableId: !Ref RouteTable
+  SubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetB
+      RouteTableId: !Ref RouteTable
+  LoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: !Sub "${EnvironmentName}-load-balancer"
+      LoadBalancerAttributes:
+        - Key: "access_logs.s3.enabled"
+          Value: "true"
+        - Key: "access_logs.s3.bucket"
+          Value: !Ref S3LoadBalancerLogsBucket
+        - Key: "idle_timeout.timeout_seconds"
+          Value: "3600"
+      SecurityGroups:
+        - Ref: SecurityGroupInternal
+        - Ref: SecurityGroupExternal
+      Subnets:
+        - Ref: SubnetA
+        - Ref: SubnetB
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+    DependsOn: S3LoadBalancerLogsBucketPolicy
+  DNSRecordSubdomain:
+    Type: "AWS::Route53::RecordSet"
+    Properties:
+      HostedZoneId: !Ref HostedZoneID
+      Name: !Sub "${EnvironmentName}.ukixbrlviewer.org.uk"
+      Type: "A"
+      AliasTarget:
+        DNSName: !GetAtt LoadBalancer.DNSName
+        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
+  DNSRecord:
+    Type: "AWS::Route53::RecordSet"
+    Condition: IsProduction
+    Properties:
+      HostedZoneId: !Ref HostedZoneID
+      Name: "ukixbrlviewer.org.uk"
+      Type: "A"
+      AliasTarget:
+        DNSName: !GetAtt LoadBalancer.DNSName
+        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: !Sub "${EnvironmentName}-cluster"
+      CapacityProviders:
+        - "FARGATE"
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: "FARGATE"
+          Base: 1
+          Weight: 1
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: server
+      Cluster: !Ref ECSCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      EnableECSManagedTags: true
+      LoadBalancers:
+        - ContainerName: server
+          ContainerPort: 8080
+          TargetGroupArn: !Ref TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: SecurityGroupInternal
+          Subnets:
+            - Ref: SubnetA
+            - Ref: SubnetB
+      PlatformVersion: LATEST
+      PropagateTags: TASK_DEFINITION
+      SchedulingStrategy: REPLICA
+      ServiceConnectConfiguration:
+        Enabled: false
+      TaskDefinition: !Ref ECSTaskDefinition
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${EnvironmentName}-ecs-server"
+      HealthCheckPath: /
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckProtocol: HTTP
+      VpcId: !Ref VPC
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS13-1-1-2021-06
+  SecurityGroupInternalIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId:
+        Ref: SecurityGroupInternal
+      IpProtocol: "-1"
+      SourceSecurityGroupId:
+        Ref: SecurityGroupInternal
+  SecurityGroupInternal:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} internal security group"
+      GroupName: !Sub "${EnvironmentName}-internal-security-group"
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  SecurityGroupExternal:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} external security group"
+      GroupName: !Sub "${EnvironmentName}-external-security-group"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        FromPort: 443
+        ToPort: 443
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  RDSDBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupName: !Sub "${EnvironmentName}-db-subnet-group"
+      DBSubnetGroupDescription: !Sub "${EnvironmentName} DB subnet group"
+      SubnetIds:
+      - Ref: SubnetA
+      - Ref: SubnetB
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  RDSDBInstance:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::RDS::DBInstance"
+    DeletionPolicy: "Retain"
+    Properties:
+      AllocatedStorage: "20"
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: 7
+      CopyTagsToSnapshot: true
+      DBInstanceClass: !Ref DBInstanceClass
+      DBInstanceIdentifier: !Sub "${EnvironmentName}-db"
+      DBName: "frc_codex"
+      DBSubnetGroupName: !Ref RDSDBSubnetGroup
+      EnableCloudwatchLogsExports:
+      - "postgresql"
+      EnablePerformanceInsights: true
+      Engine: "postgres"
+      EngineVersion: "16.4"
+      MasterUsername: "postgres"
+      MasterUserPassword: !Ref DBPassword
+      MaxAllocatedStorage: 500
+      MonitoringInterval: 60
+      MonitoringRoleArn: "arn:aws:iam::390403885523:role/rds-monitoring-role"
+      MultiAZ: true
+      NetworkType: "IPV4"
+      PerformanceInsightsRetentionPeriod: 7
+      Port: "5432"
+      PreferredBackupWindow: "02:46-03:16"
+      PreferredMaintenanceWindow: "thu:03:39-thu:04:09"
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      StorageType: "gp3"
+      VPCSecurityGroups:
+      - Ref: SecurityGroupInternal
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  IAMRoleProcessorLambda:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      - Ref: IAMPolicyReadWriteResultsBucket
+      - Ref: IAMPolicyReadTaxonomyPackagesBucket
+      MaxSessionDuration: 3600
+      RoleName: !Sub "${EnvironmentName}CodexProcessorLambda"
+      Description: !Sub "Role for the processor lambda in ${EnvironmentName}."
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service: "lambda.amazonaws.com"
+  IAMRoleSupport:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      MaxSessionDuration: 3600
+      RoleName: !Sub "${EnvironmentName}CodexSupport"
+      Description: !Sub "Role for the support lambda in ${EnvironmentName}."
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service: "lambda.amazonaws.com"
+  Lambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-processor"
+      Architectures:
+      - "x86_64"
+      Code:
+        ImageUri: !Sub "${ProcessorImage}:${Version}"
+      Environment:
+        Variables:
+          AWS_LAMBDA_LOG_LEVEL: "INFO"
+          S3_REGION_NAME: !Ref Region
+          S3_HTTP_CACHE_BUCKET_NAME: !Ref S3HttpCacheBucket
+          S3_RESULTS_BUCKET_NAME: !Ref S3ResultsBucket
+          S3_TAXONOMY_PACKAGES_BUCKET_NAME: !Ref S3TaxonomyPackagesBucket
+      EphemeralStorage:
+        Size: 512
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: !Sub "/aws/lambda/${EnvironmentName}-processor"
+      MemorySize: 3008
+      Role: !GetAtt IAMRoleProcessorLambda.Arn
+      PackageType: "Image"
+      RecursiveLoop: "Terminate"
+      Timeout: 900
+      TracingConfig:
+        Mode: "PassThrough"
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
+  LambdaSupport:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-support"
+      Architectures:
+      - "x86_64"
+      Code:
+        ImageUri: !Sub "${SupportImage}:${Version}"
+      Environment:
+        Variables:
+          AWS_LAMBDA_LOG_LEVEL: "INFO"
+          DB_HOST: !GetAtt RDSDBInstance.Endpoint.Address
+          DB_DATABASE: !GetAtt RDSDBInstance.DBName
+          DB_PASSWORD: !Ref DBPassword
+          DB_PORT: !GetAtt RDSDBInstance.Endpoint.Port
+          DB_USERNAME: !GetAtt RDSDBInstance.MasterUsername
+      EphemeralStorage:
+        Size: 512
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: !Sub "/aws/lambda/${EnvironmentName}-support"
+      MemorySize: 512
+      Role: !GetAtt IAMRoleSupport.Arn
+      PackageType: "Image"
+      RecursiveLoop: "Terminate"
+      Timeout: 60
+      TracingConfig:
+        Mode: "PassThrough"
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: SecurityGroupInternal
+        SubnetIds:
+          - Ref: SubnetA
+          - Ref: SubnetB
+      Tags:
+      - Key: "Environment"
+        Value: !Ref EnvironmentName
