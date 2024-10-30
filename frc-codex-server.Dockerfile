@@ -8,8 +8,10 @@ FROM amazoncorretto:21
 COPY gradle/ /gradle/
 COPY build.gradle /build.gradle
 COPY gradlew /gradlew
-COPY gradlew.bat /gradlew.bat
 COPY settings.gradle /settings.gradle
+
+# Download the Gradle distribution
+RUN ./gradlew --version
 
 COPY --from=node /usr/app/node_modules /node_modules
 COPY src/ /src/

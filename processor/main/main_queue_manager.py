@@ -107,6 +107,11 @@ class MainQueueManager(QueueManager):
                 'StringValue': worker_result.viewer_entrypoint,
                 'DataType': 'String'
             }
+        if worker_result.oim_directory:
+            message_attributes['OimDirectory'] = {
+                'StringValue': worker_result.oim_directory,
+                'DataType': 'String'
+            }
         self._results_queue.send_message(
             MessageBody=worker_result.logs,
             MessageAttributes=message_attributes

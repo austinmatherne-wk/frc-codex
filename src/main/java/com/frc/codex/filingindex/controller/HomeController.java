@@ -1,6 +1,7 @@
 package com.frc.codex.filingindex.controller;
 
 import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -50,7 +51,7 @@ public class HomeController {
 		return ResponseEntity.ok().build();
 	}
 
-	private String getDateValidation(Callable callable) throws Exception {
+	private String getDateValidation(Callable<LocalDateTime> callable) throws Exception {
 		try {
 			callable.call();
 			return null;

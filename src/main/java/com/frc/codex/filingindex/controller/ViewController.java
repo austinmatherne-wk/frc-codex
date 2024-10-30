@@ -3,14 +3,19 @@ package com.frc.codex.filingindex.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +31,7 @@ import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.model.FilingStatus;
 import com.frc.codex.tools.RateLimiter;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +40,9 @@ import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 @RestController
 public class ViewController {
@@ -69,7 +78,12 @@ public class ViewController {
 		return new ModelAndView("redirect:/view/" + filing.getFilingId() + "/loading");
 	}
 
-	private ModelAndView onDemandResult(Filing filing) {
+	private ModelAndView onDemandViewer(Filing filing) {
+		this.processFiling(filing);
+		return loadingResult(filing);
+	}
+
+	private void processFiling(Filing filing) {
 		UUID filingId = filing.getFilingId();
 		try {
 			LOG.info("Processing filing on demand: {}", filingId);
@@ -79,7 +93,6 @@ public class ViewController {
 					filing.getRegistryCode()
 			));
 			invokeFutures.put(filingId, invokeResponse);
-			return loadingResult(filing);
 		} catch (Exception e) {
 			invokeFutures.remove(filingId);
 			throw e;
@@ -98,6 +111,63 @@ public class ViewController {
 		model.addObject("iframeSrc", "/view/" + filingId + "/public");
 		return model;
 	}
+
+	@GetMapping("/download/{filingId}/oim")
+	@ResponseBody
+	public void downloadOim(
+			HttpServletResponse response,
+			@PathVariable("filingId") String filingId) throws IOException {
+		UUID filingUuid = UUID.fromString(filingId);
+		Filing filing = databaseManager.getFiling(filingUuid);
+		boolean internalError = false;
+		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
+			internalError = true;
+		} else if (!filing.getStatus().equals(FilingStatus.COMPLETED.toString())) {
+			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
+			if (future == null) {
+				// No request in progress. We'll start one.
+				this.processFiling(filing);
+			}
+			internalError = !waitForFiling(filingUuid);
+		}
+		if (internalError) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+			response.getWriter().write("Failed to process filing.");
+			return;
+		}
+		filing = databaseManager.getFiling(filingUuid);
+		String s3Prefix = filingId + "/" + filing.getOimDirectory() + "/";
+		ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
+				.bucket(properties.s3ResultsBucketName())
+				.prefix(s3Prefix)
+				.build();
+
+		ListObjectsV2Response listObjectsResponse = s3Client.listObjectsV2(listObjectsRequest);
+
+		response.setContentType("application/zip");
+		response.setStatus(HttpServletResponse.SC_OK);
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
+		String filename = filing.getCompanyName().replace(" ", "_") + "-"
+				+ dateTimeFormatter.format(filing.getDocumentDate()) + ".zip";
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+		try (ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
+			for (S3Object s3Object : listObjectsResponse.contents()) {
+				GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+						.bucket(properties.s3ResultsBucketName())
+						.key(s3Object.key())
+						.build();
+
+				try (ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest)) {
+					zipOutputStream.putNextEntry(new ZipEntry(s3Object.key().substring(s3Prefix.length())));
+					responseInputStream.transferTo(zipOutputStream);
+					zipOutputStream.closeEntry();
+				}
+			}
+		}
+	}
+
 	@GetMapping("/view/{filingId}/public")
 	public void publicPage(
 			HttpServletResponse response,
@@ -108,8 +178,8 @@ public class ViewController {
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
 
-		response.setContentType("text/html");
-		response.setStatus(200);
+		response.setContentType(MediaType.TEXT_HTML_VALUE);
+		response.setStatus(HttpStatus.OK.value());
 		ResponseExtractor<Void> responseExtractor = resp -> {
 			try (
 					InputStream inputStream = resp.getBody();
@@ -148,18 +218,18 @@ public class ViewController {
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		LOG.info("[ANALYTICS] VIEWER (filingId=\"{}\",companyNumber=\"{}\")", filingId, filing.getCompanyNumber());
-		if (filing.getStatus().equals("completed")) {
+		if (filing.getStatus().equals(FilingStatus.COMPLETED.toString())) {
 			// Already completed, redirect directly to viewer.
 			return viewerResult(filing.getFilingId(), filing.getStubViewerUrl());
 		}
-		if (filing.getStatus().equals("failed")) {
+		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
 			// Generation failed, show error message.
 			return unavailableResult();
 		}
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 		if (future == null) {
 			// No request in progress. We'll start one.
-			return onDemandResult(filing);
+			return onDemandViewer(filing);
 		} else {
 			// A request is already in progress, we'll redirect to the loading page to wait.
 			return loadingResult(filing);
@@ -181,8 +251,8 @@ public class ViewController {
 				.bucket(properties.s3ResultsBucketName())
 				.key(key)
 				.build();
-		response.setContentType("text/html");
-		response.setStatus(200);
+		response.setContentType(MediaType.TEXT_HTML_VALUE);
+		response.setStatus(HttpStatus.OK.value());
 		try(
 				ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest);
 				OutputStream outputStream = response.getOutputStream()
@@ -205,8 +275,16 @@ public class ViewController {
 		UUID filingUuid = UUID.fromString(filingId);
 		if (!invokeFutures.containsKey(filingUuid)) {
 			// We want to invoke on-demand processing here, but not actually return the /loading result.
-			onDemandResult(databaseManager.getFiling(filingUuid));
+			onDemandViewer(databaseManager.getFiling(filingUuid));
 		}
+		if (waitForFiling(filingUuid)) {
+			return new ModelAndView("redirect:/view/" + filingId + "/viewer");
+		} else {
+			return unavailableResult();
+		}
+	}
+
+	private boolean waitForFiling(UUID filingUuid) {
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 		try {
 			LOG.info("Awaiting Lambda result for filing: {}", filingUuid);
@@ -221,17 +299,16 @@ public class ViewController {
 					databaseManager.applyFilingResult(result);
 					invokeFutures.remove(filingUuid);
 					if (result.isSuccess()) {
-						LOG.info("[ANALYTICS] PROCESSING_COMPLETED (filingId=\"{}\")", filingId);
+						LOG.info("[ANALYTICS] PROCESSING_COMPLETED (filingId=\"{}\")", filingUuid);
 					} else {
-						LOG.info("[ANALYTICS] PROCESSING_FAILED (filingId=\"{}\")", filingId);
-						return unavailableResult();
+						LOG.info("[ANALYTICS] PROCESSING_FAILED (filingId=\"{}\")", filingUuid);
 					}
+					return result.isSuccess();
 				}
 			}
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("Encountered exception while awaiting Lambda result for filing: {}", filingUuid, e);
-			return unavailableResult();
 		}
-		return new ModelAndView("redirect:/view/" + filingId + "/viewer");
+		return false;
 	}
 }

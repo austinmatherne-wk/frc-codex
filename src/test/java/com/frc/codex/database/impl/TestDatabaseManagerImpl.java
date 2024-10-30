@@ -39,6 +39,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.status(filingResultRequest.getStatus().toString())
 				.error(filingResultRequest.getError())
 				.logs(filingResultRequest.getLogs())
+				.oimDirectory(filingResultRequest.getOimDirectory())
 				.stubViewerUrl(filingResultRequest.getStubViewerUrl())
 				.build();
 		updateFiling(newFiling);
@@ -134,8 +135,7 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 				.error(null)
 				.logs(null)
 				.stubViewerUrl(null)
-				.oimCsvUrl(null)
-				.oimJsonUrl(null)
+				.oimDirectory(null)
 				.build();
 		updateFiling(newFiling);
 	}

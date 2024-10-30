@@ -4,7 +4,6 @@ import com.frc.codex.RegistryCode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,8 +26,7 @@ public class Filing {
 	private final String error;
 	private final String logs;
 	private final String stubViewerUrl;
-	private final String oimCsvUrl;
-	private final String oimJsonUrl;
+	private final String oimDirectory;
 
 	public Filing(Builder b) {
 		this.filingId = b.filingId;
@@ -48,8 +46,7 @@ public class Filing {
 		this.error = b.error;
 		this.logs = b.logs;
 		this.stubViewerUrl = b.stubViewerUrl;
-		this.oimCsvUrl = b.oimCsvUrl;
-		this.oimJsonUrl = b.oimJsonUrl;
+		this.oimDirectory = b.oimDirectory;
 	}
 
 	public String displayDocumentDate() {
@@ -126,12 +123,12 @@ public class Filing {
 		return stubViewerUrl;
 	}
 
-	public String getOimCsvUrl() {
-		return oimCsvUrl;
+	public String getOimDirectory() {
+		return oimDirectory;
 	}
 
-	public String getOimJsonUrl() {
-		return oimJsonUrl;
+	public String getOIMDownloadLink() {
+		return "download/" + filingId.toString() + "/oim";
 	}
 
 	public String getViewerLink() {
@@ -176,8 +173,7 @@ public class Filing {
 		private String error;
 		private String logs;
 		private String stubViewerUrl;
-		private String oimCsvUrl;
-		private String oimJsonUrl;
+		private String oimDirectory;
 
 		public Filing build() {
 			return new Filing(this);
@@ -269,13 +265,8 @@ public class Filing {
 			return this;
 		}
 
-		public Builder oimCsvUrl(String oimCsvUrl) {
-			this.oimCsvUrl = oimCsvUrl;
-			return this;
-		}
-
-		public Builder oimJsonUrl(String oimJsonUrl) {
-			this.oimJsonUrl = oimJsonUrl;
+		public Builder oimDirectory(String oimDirectory) {
+			this.oimDirectory = oimDirectory;
 			return this;
 		}
 	}

@@ -139,10 +139,12 @@ public class QueueManagerImpl implements QueueManager {
 			for(Message message : messages) {
 				boolean success = Objects.equals(getMessageAttribute(message, "Success"), "true");
 				String error = null;
+				String oimDirectory = null;
 				String viewerEntrypoint = null;
 				if (!success) {
 					error = getMessageAttribute(message, "Error");
 				} else {
+					oimDirectory = getMessageAttribute(message, "OimDirectory");
 					viewerEntrypoint = getMessageAttribute(message, "ViewerEntrypoint");
 				}
 				String companyName = getMessageAttribute(message, "CompanyName");
@@ -162,6 +164,7 @@ public class QueueManagerImpl implements QueueManager {
 						.error(error)
 						.filingId(filingId)
 						.logs(logs)
+						.oimDirectory(oimDirectory)
 						.stubViewerUrl(viewerEntrypoint)
 						.success(success)
 						.build();

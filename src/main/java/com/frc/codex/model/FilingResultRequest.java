@@ -18,6 +18,7 @@ public class FilingResultRequest {
 	private final UUID filingId;
 	private final String logs;
 	private final String stubViewerUrl;
+	private final String oimDirectory;
 	private final boolean success;
 	private final Double totalProcessingTime;
 	private final Long totalUploadedBytes;
@@ -32,6 +33,7 @@ public class FilingResultRequest {
 		this.error = builder.error;
 		this.filingId = builder.filingId;
 		this.logs = builder.logs;
+		this.oimDirectory = builder.oimDirectory;
 		this.stubViewerUrl = builder.stubViewerUrl;
 		this.success = builder.success;
 		this.totalProcessingTime = builder.totalProcessingTime;
@@ -72,6 +74,10 @@ public class FilingResultRequest {
 		return logs;
 	}
 
+	public String getOimDirectory() {
+		return oimDirectory;
+	}
+
 	public String getStubViewerUrl() {
 		return stubViewerUrl;
 	}
@@ -108,6 +114,7 @@ public class FilingResultRequest {
 		private String error;
 		private UUID filingId;
 		private String logs;
+		private String oimDirectory;
 		private String stubViewerUrl;
 		private boolean success;
 		private Double totalProcessingTime;
@@ -160,10 +167,12 @@ public class FilingResultRequest {
 		public Builder json(JsonNode jsonNode) {
 			boolean success = Objects.equals(jsonNode.get("Success").asText(), "true");
 			String error = null;
+			String oimDirectory = null;
 			String viewerEntrypoint = null;
 			if (!success) {
 				error = jsonNode.get("Error").asText();
 			} else {
+				oimDirectory = jsonNode.get("OimDirectory").asText();
 				viewerEntrypoint = jsonNode.get("ViewerEntrypoint").asText();
 			}
 			String companyName = jsonNode.get("CompanyName").asText();
@@ -188,12 +197,18 @@ public class FilingResultRequest {
 					.error(error)
 					.filingId(filingId)
 					.logs(logs)
+					.oimDirectory(oimDirectory)
 					.stubViewerUrl(viewerEntrypoint)
 					.success(success);
 		}
 
 		public Builder logs(String logs) {
 			this.logs = logs;
+			return this;
+		}
+
+		public Builder oimDirectory(String oimDirectory) {
+			this.oimDirectory = oimDirectory;
 			return this;
 		}
 
