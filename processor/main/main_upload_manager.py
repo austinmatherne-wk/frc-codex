@@ -20,7 +20,7 @@ class MainUploadManager(UploadManager):
     def upload_files(self, filing_id: str, viewer_directory: Path) -> int:
         bucket_name = self._processor_options.s3_results_bucket_name
         total_bytes = 0
-        for viewer_file in viewer_directory.iterdir():
+        for viewer_file in viewer_directory.rglob('*'):
             if not viewer_file.is_file():
                 continue
             total_bytes += viewer_file.stat().st_size

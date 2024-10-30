@@ -15,6 +15,7 @@ class WorkerResult:
     company_number: str | None = None
     document_date: datetime.datetime | None = None
     viewer_entrypoint: str = ''
+    oim_directory: str = ''
     success: bool = False
 
     # Analytics

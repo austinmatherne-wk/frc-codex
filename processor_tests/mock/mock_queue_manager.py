@@ -18,8 +18,7 @@ class MockQueueManager(QueueManager):
         self.job_messages.remove(job_message)
 
     def get_jobs(self) -> Iterable[JobMessage]:
-        for job_message in list(self.job_messages):
-            yield job_message
+        yield from list(self.job_messages)
 
     def publish_result(self, result_message: WorkerResult) -> None:
         self.worker_results.append(result_message)

@@ -36,6 +36,7 @@ class TestProcessor(TestCase):
                 logs='logs1',
                 success=True,
                 viewer_entrypoint='viewer_entrypoint1',
+                oim_directory='oim_directory',
             ),
             'filing_id2': WorkerResult(
                 'filing_id2',
@@ -62,6 +63,7 @@ class TestProcessor(TestCase):
         self.assertEqual(worker_results[0].logs, 'logs1')
         self.assertEqual(worker_results[0].success, True)
         self.assertEqual(worker_results[0].viewer_entrypoint, 'viewer_entrypoint1')
+        self.assertEqual(worker_results[0].oim_directory, 'oim_directory')
 
         self.assertEqual(worker_results[1].company_name, None)
         self.assertEqual(worker_results[1].company_number, None)
@@ -71,6 +73,7 @@ class TestProcessor(TestCase):
         self.assertEqual(worker_results[1].logs, 'logs2')
         self.assertEqual(worker_results[1].success, False)
         self.assertEqual(worker_results[1].viewer_entrypoint, '')
+        self.assertEqual(worker_results[1].oim_directory, '')
 
         self.assertEqual(upload_manager.uploads, [
             ('filing_id1', 'viewer'),

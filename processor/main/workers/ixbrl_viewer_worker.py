@@ -13,6 +13,7 @@ from processor.base.worker import Worker, WorkerResult
 from processor.processor_options import ProcessorOptions
 
 VIEWER_HTML_FILENAME = 'ixbrlviewer.html'
+OIM_DIRECTORY = 'OIM'
 
 
 logger = logging.getLogger(__name__)
@@ -63,10 +64,33 @@ class IxbrlViewerWorker(Worker):
                 error='Arelle reported success but viewer was not found. Check the logs for details.',
                 logs=result.logs
             )
+        oim_path = viewer_directory / OIM_DIRECTORY
+        xbrl_csv_files = []
+        xbrl_json_files = []
+        for f in oim_path.iterdir():
+            if f.name.endswith(('.csv', 'metadata.json')):
+                xbrl_csv_files.append(f)
+            elif f.name.endswith('.json'):
+                xbrl_json_files.append(f)
+            else:
+                logger.warning(f'Unexpected file found in OIM directory: {f.name}')
+        if len(xbrl_json_files) == 0:
+            return WorkerResult(
+                job_message.filing_id,
+                error='Arelle reported success but no xBRL-JSON reports found. Check the logs for details.',
+                logs=result.logs
+            )
+        if len(xbrl_csv_files) == 0:
+            return WorkerResult(
+                job_message.filing_id,
+                error='Arelle reported success but no xBRL-CSV reports found. Check the logs for details.',
+                logs=result.logs
+            )
         return WorkerResult(
             job_message.filing_id,
             success=True,
             viewer_entrypoint=VIEWER_HTML_FILENAME,
+            oim_directory=OIM_DIRECTORY,
             logs=result.logs,
             company_name=result.company_name,
             company_number=result.company_number,
@@ -91,6 +115,7 @@ class IxbrlViewerWorker(Worker):
             logFile='logToBuffer',
             packages=packages,
             pluginOptions={
+                'saveLoadableOIMDirectory': str(viewer_directory / OIM_DIRECTORY),
                 'saveViewerDest': str(viewer_directory),
                 'useStubViewer': True,
                 'viewerNoCopyScript': True,
@@ -100,7 +125,7 @@ class IxbrlViewerWorker(Worker):
                 'viewer_feature_support-link': '/help',
                 'viewer_feature_survey-link': '/survey',
             },
-            plugins=str(self._ixbrl_viewer_plugin_path),
+            plugins=f"{self._ixbrl_viewer_plugin_path}|saveLoadableOIM",
         )
         with Session() as session:
             success = session.run(runtime_options)

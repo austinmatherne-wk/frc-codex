@@ -28,6 +28,7 @@ def lambda_handler(event, context):
         'Logs': worker_result.logs,
         'Success': worker_result.success,
         'ViewerEntrypoint': worker_result.viewer_entrypoint,
+        'OimDirectory': worker_result.oim_directory,
         # Analytics
         'DownloadTime': worker_result.download_time,
         'TotalProcessingTime': worker_result.total_processing_time,
