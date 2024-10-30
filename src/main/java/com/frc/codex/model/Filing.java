@@ -127,6 +127,10 @@ public class Filing {
 		return oimDirectory;
 	}
 
+	public String getOIMDownloadLink() {
+		return "download/" + filingId.toString() + "/oim";
+	}
+
 	public String getViewerLink() {
 		String path = Objects.equals(status, FilingStatus.COMPLETED.name()) ? stubViewerUrl : "viewer";
 		return "view/" + filingId.toString() + "/" + path;
