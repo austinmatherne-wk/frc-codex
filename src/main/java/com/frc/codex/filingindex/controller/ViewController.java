@@ -26,6 +26,7 @@ import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;
+import com.frc.codex.tools.RateLimiter;
 
 import jakarta.servlet.http.HttpServletResponse;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -43,6 +44,7 @@ public class ViewController {
 	private final RestTemplate restTemplate;
 	private final S3Client s3Client;
 	private final ConcurrentHashMap<UUID, CompletableFuture<InvokeResponse>> invokeFutures;
+	private final RateLimiter publicPageRateLimiter;
 	public ViewController(
 			FilingIndexProperties properties,
 			DatabaseManager databaseManager,
@@ -56,6 +58,11 @@ public class ViewController {
 				.forcePathStyle(true)
 				.build();
 		this.invokeFutures = new ConcurrentHashMap<>();
+		this.publicPageRateLimiter = new RateLimiter(
+				properties.companiesHouseRapidRateLimit(),
+				properties.companiesHouseRapidRateWindow()
+		);
+
 	}
 
 	private ModelAndView loadingResult(Filing filing) {
@@ -91,12 +98,12 @@ public class ViewController {
 		model.addObject("iframeSrc", "/view/" + filingId + "/public");
 		return model;
 	}
-
 	@GetMapping("/view/{filingId}/public")
 	public void publicPage(
 			HttpServletResponse response,
 			@PathVariable("filingId") String filingId
-	) {
+	) throws InterruptedException {
+
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
@@ -112,12 +119,23 @@ public class ViewController {
 			}
 			return null;
 		};
+
+		// Wait for rate limiting
+		publicPageRateLimiter.waitForRapidRateLimit();
+
+		// Register timestamp for rate limiting
+		publicPageRateLimiter.registerTimestamp();
+
 		restTemplate.execute(
 				filingUrl,
 				HttpMethod.GET,
 				null,
 				responseExtractor
 		);
+
+		// Register another timestamp for rate limiting, so long-running requests
+		// aren't ignored.
+		publicPageRateLimiter.registerTimestamp();
 	}
 
 	/**
