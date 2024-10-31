@@ -82,6 +82,13 @@ You can attach to the composed Docker container within IntelliJ for debugging:
 6. Run the "Remote JVM Debug" configuration in IntelliJ.
 7. A successful attachment will show "Connected to the target VM (...)" or similar.
 
+## Running Puppeteer Tests
+All commands should be run from repository root.
+1. Install npm. Instructions can be found here: <https://www.npmjs.com/get-npm>
+2. Install the dependencies for puppeteer by running: `npm install`.
+3. Start the docker containers by running: `SEEDED=true ./dev/env-setup.sh`
+4. Run the tests by running: `npm run test`.
+
 ## Features
 
 ### Admin
