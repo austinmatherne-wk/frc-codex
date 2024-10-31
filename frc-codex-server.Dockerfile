@@ -1,7 +1,7 @@
 FROM node:22 AS node
 WORKDIR /usr/app
 COPY package.json ./
-RUN npm install
+RUN npm install --omit=dev
 
 FROM amazoncorretto:21
 
