@@ -5,6 +5,12 @@ set -e
 if [ -f "./dev/compose-local.yml" ]; then
    EXTRA_ARGS=(-f "./dev/compose-local.yml")
 fi
+
+if ${SEEDED:-false}; then
+  echo "Using seeded database"
+  EXTRA_ARGS+=(-f "./dev/compose-seeded.yml")
+fi
+
 docker compose -f ./dev/compose.yml "${EXTRA_ARGS[@]}" up -d
 
 # Set up the logging
