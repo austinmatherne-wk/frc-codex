@@ -83,3 +83,47 @@ jobs:
         with:
           name: docker-logs
           path: ./dev/logs
+
+  puppeteer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          check-latest: true
+          python-version: 3.12
+      - name: Install dependencies
+        shell: bash
+        run: python -m pip install --upgrade pip setuptools wheel
+      - name: Checkout frc-ixbrl-viewer
+        uses: actions/checkout@v4
+        with:
+          repository: Arelle/frc-ixbrl-viewer
+          path: processor/plugins/frc-ixbrl-viewer
+          token: ${{ secrets.FRC_IXBRL_VIEWER_CHECKOUT_PAT }}
+      - uses: actions/setup-node@v4.1.0
+        with:
+          cache: 'npm'
+          check-latest: true
+          node-version: 22
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
+      - name: "Create Dummy Secrets File"
+        shell: bash
+        run: touch ./frc-codex-server.secrets # Seeded DB does not require secrets
+      - name: "Compose"
+        timeout-minutes: 5
+        shell: bash
+        run: SEEDED=true ./dev/env-setup.sh
+      - name: "Test"
+        shell: bash
+        run: npm run test
+      - uses: actions/upload-artifact@v4.4.3
+        if: failure()
+        with:
+          name: puppeteer-artifacts
+          path: |
+            ./puppeteer/artifacts
+            ./dev/logs
