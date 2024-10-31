@@ -3,6 +3,7 @@ _HTTP_CACHE
 .idea
 **/__pycache__
 /puppeteer/artifacts/
+bin
 build
 dev/compose-local.yml
 dev/logs
