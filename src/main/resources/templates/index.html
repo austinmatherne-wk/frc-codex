@@ -72,7 +72,7 @@
                 </div>
                 <input class="govuk-input" id="company-number" type="text" th:field="*{companyNumber}">
             </div>
-            <details class="govuk-details">
+            <details id="advanced-search" class="govuk-details">
                 <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text">
                       Advanced Search
@@ -440,6 +440,19 @@
         }
         sessionStorage.setItem('ixbrl-viewer-home-link-query', query);
     }
+</script>
+<script>
+    (function() {
+        // If any input elements within #advanced-search have values, open the details element
+        const advancedSearch = document.getElementById('advanced-search');
+        const inputs = advancedSearch.querySelectorAll('input, select');
+        for (const input of inputs) {
+            if (input.value) {
+                advancedSearch.setAttribute('open', '');
+                break;
+            }
+        }
+    })();
 </script>
 </body>
 
