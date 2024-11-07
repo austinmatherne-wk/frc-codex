@@ -1,3 +1,14 @@
 html, body {
     overscroll-behavior: none;
 }
+
+* {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+
+@media (min-width: 48.0625em) {
+    .govuk-header__logo {
+        width: 10%; /* Reduce width of logo container */
+    }
+}
