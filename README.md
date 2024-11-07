@@ -11,7 +11,11 @@ To build and test:
 ```
 
 ### Processor
-The processor receives jobs from the filing index, processes them, and publishes the results.
+As standalone application: Receives jobs from an SQS queue, processes them, 
+published the result assets to S3, and pushes notification to another SQS queue.
+
+As AWS Lambda function: Can be manually invoked for individual generations. Publishes
+result assets to S3 and includes result details in invocation response.
 
 To install dependencies:
 ```bash
@@ -36,6 +40,13 @@ mypy .
 To prepare taxonomy packages:
 1. Create `./dev/taxonomy_packages` directory.
 2. Place taxonomy packages in the directory.
+
+
+### Support
+To avoid the need to maintain an authenticated application or area of the filing index,
+support operations can be performed within the AWS console by invoking the `frc-codex-support`
+Lambda function.
+
 
 ## Docker
 The preferred method to run any part of the FRC CODEx is using Docker Compose.
