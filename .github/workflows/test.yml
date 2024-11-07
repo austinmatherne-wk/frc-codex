@@ -77,6 +77,12 @@ jobs:
           curl -i --fail http://localhost:8080/admin/smoketest/queue
           echo "Test database page"
           curl -i --fail http://localhost:8080/admin/smoketest/database
+          echo "Test support action: list_errors"
+          curl -i --fail 'localhost:8082/2015-03-31/functions/function/invocations' \
+            --data '{"action":"list_errors"}'
+          echo "Test support action: reset_filings"
+          curl -i --fail 'localhost:8082/2015-03-31/functions/function/invocations' \
+            --data '{"action":"reset_filings","company_number":"1234567890"}'
 
       - uses: actions/upload-artifact@v4
         if: always()
