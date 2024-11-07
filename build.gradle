@@ -43,7 +43,7 @@ tasks.named('test') {
 
 tasks.register('npmInstall', Exec) {
 	description = 'Run npm install.'
-	commandLine 'npm', 'install'
+	commandLine 'npm', 'install', '--omit=dev'
 }
 
 tasks.register('copyNodeModules', Copy) {

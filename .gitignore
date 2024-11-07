@@ -10,7 +10,7 @@ dev/logs
 frc-codex-server.secrets
 govuk-frontend.**
 node_modules
-package-lock.json
 src/main/resources/static/assets
 tmp
 dev/taxonomy_packages/*.zip
+/puppeteer/artifacts/

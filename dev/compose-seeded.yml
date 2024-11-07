@@ -1,0 +1,8 @@
+services:
+  frc-codex-server:
+    environment:
+      DB_SEED_SCRIPT_PATH: "/tmp/sql/seed-database.sql"
+      LAMBDA_PREPROCESSING_CONCURRENCY: 0 # Prevents server from invoking Lambda in the background
+      UNPROCESSED_COMPANIES_LIMIT: 0 # Prevents server from downloading CH .zips for indexing
+    volumes:
+      - ./sql:/tmp/sql
