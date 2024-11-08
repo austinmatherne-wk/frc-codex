@@ -10,6 +10,8 @@ from processor.processor_options import ProcessorOptions
 
 logger = logging.getLogger(__name__)
 
+LOCAL_PACKAGES_DIRECTORY = Path('/tmp/local_packages')
+
 
 class MainDownloadManager(DownloadManager):
 
@@ -33,6 +35,22 @@ class MainDownloadManager(DownloadManager):
         response = self._retrieve(download_url, auth=None, headers=None)
         self._save(response, filing_path)
         return filing_path
+
+    def _download_packages(self) -> list[str]:
+        LOCAL_PACKAGES_DIRECTORY.mkdir(parents=True, exist_ok=True)
+        bucket_name = self._processor_options.s3_taxonomy_packages_bucket_name
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(Bucket=bucket_name)
+        downloaded_paths = []
+        for item in response.get('Contents', []):
+            key = item['Key']
+            file_path = LOCAL_PACKAGES_DIRECTORY / key
+            if file_path.exists():
+                continue
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            s3_client.download_file(bucket_name, key, str(file_path))
+            downloaded_paths.append(file_path)
+        return downloaded_paths
 
     def _get_ch_download_path(self, directory, response):
         # Get original filename from: 'inline;filename="..."'
@@ -64,16 +82,13 @@ class MainDownloadManager(DownloadManager):
 
     def get_package_urls(self) -> list[str]:
         if self._package_urls is None:
+            LOCAL_PACKAGES_DIRECTORY.mkdir(parents=True, exist_ok=True)
             bucket_name = self._processor_options.s3_taxonomy_packages_bucket_name
             try:
-                s3_client = boto3.client('s3')
-                response = s3_client.list_objects_v2(Bucket=bucket_name)
-                self._package_urls = sorted([
-                    f"{self._processor_options.aws_endpoint_url}/{bucket_name}/{item['Key']}"
-                    for item in response['Contents']
-                ])
-                logger.info("Discovered (%s) package(s): (%s)", len(self._package_urls), self._package_urls)
+                downloaded_paths = self._download_packages()
+                logger.info("Downloaded (%s) package(s): (%s)", len(downloaded_paths), downloaded_paths)
             except Exception as e:
-                logger.error("Failed to discover taxonomy packages from %s: %s", bucket_name, e)
-                self._package_urls = []
+                logger.error("Failed to download taxonomy packages from bucket %s: %s", bucket_name, e)
+            self._package_urls = sorted(str(file) for file in LOCAL_PACKAGES_DIRECTORY.glob('*.zip'))
+            logger.info("Discovered (%s) local package(s): (%s)", len(self._package_urls), self._package_urls)
         return self._package_urls
