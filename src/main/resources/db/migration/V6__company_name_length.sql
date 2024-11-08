@@ -1,0 +1,2 @@
+ALTER TABLE filings ALTER COLUMN company_name TYPE VARCHAR(500);
+ALTER TABLE companies ALTER COLUMN company_name TYPE VARCHAR(500);
