@@ -1,5 +1,6 @@
 {
   "features": {
+    "guide_link": "/FRC_Codex_User_Guide.pdf",
     "home_link_label": "FRC CODEx Filing Index",
     "home_link_url": "/",
     "support_link": "/help",
