@@ -266,9 +266,9 @@
                                     </div>
                                     <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
                                         <option value="" selected>Any</option>
-                                        <option th:each="registry : ${registryCodes}"
+                                        <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
                                                 th:value="${registry.getCode()}"
-                                        th:text="${registry.getDisplayName()}"></option>
+                                                th:text="${registry.getDisplayName()}"></option>
                                     </select>
                                 </div>
                             </div>
@@ -296,13 +296,11 @@
                     <div class="govuk-grid-column-three-quarters">
                         <h3 class="govuk-heading-m" style="display:inline" th:text="${filing.companyName}"></h3>
                         <span th:switch="${filing.registryCode}">
-                            <strong th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
-                                    th:class="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.tagClass}"
-                                    th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.shortName}"></strong>
-                            <strong th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
-                                    th:class="${T(com.frc.codex.RegistryCode).FCA.tagClass}"
-                                    th:text="${T(com.frc.codex.RegistryCode).FCA.shortName}"></strong>
-                            <strong th:case="*">Company No.</strong>
+                            <strong th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                    th:case="${registryCode.code}"
+                                    th:class="${registryCode.tagClass}"
+                                    th:text="${registryCode.shortName}"
+                                    style="padding-bottom:0;"></strong>
                         </span>
                     </div>
                 </div>
@@ -311,10 +309,9 @@
                         <dl class="govuk-summary-list govuk-summary-list--no-border">
                             <div class="govuk-summary-list__row">
                                 <dt th:switch="${filing.registryCode}" class="govuk-summary-list__key">
-                                    <span th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
-                                          th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.companyFileReference}" ></span>
-                                    <span th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
-                                          th:text="${T(com.frc.codex.RegistryCode).FCA.companyFileReference}" ></span>
+                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                          th:case="${registryCode.code}"
+                                          th:text="${registryCode.companyFileReference}" ></span>
                                     <span th:case="*">Company No.</span>
                                 </dt>
                                 <dd class="govuk-summary-list__value">

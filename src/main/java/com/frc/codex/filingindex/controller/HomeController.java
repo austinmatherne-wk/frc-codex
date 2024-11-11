@@ -67,7 +67,6 @@ public class HomeController {
 		model.addObject("minFilingDateError", getDateValidation(searchFilingsRequest::getMinFilingDate));
 		model.addObject("maxDocumentDateError", getDateValidation(searchFilingsRequest::getMaxDocumentDate));
 		model.addObject("maxFilingDateError", getDateValidation(searchFilingsRequest::getMaxFilingDate));
-		model.addObject("registryCodes", RegistryCode.values());
 		searchFilingsRequest.setStatus(null);
 		List<Filing> filings;
 		String message = null;
