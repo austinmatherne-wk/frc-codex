@@ -139,10 +139,6 @@ class IxbrlViewerWorker(Worker):
                 'useStubViewer': True,
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
-                'viewer_feature_home-link-label': 'FRC CODEx Filing Index',
-                'viewer_feature_home-link-url': '/',
-                'viewer_feature_support-link': '/help',
-                'viewer_feature_survey-link': '/survey',
             },
             plugins=f"{self._ixbrl_viewer_plugin_path}|saveLoadableOIM",
         )
