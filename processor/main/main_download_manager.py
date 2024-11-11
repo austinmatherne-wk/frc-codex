@@ -36,7 +36,7 @@ class MainDownloadManager(DownloadManager):
         self._save(response, filing_path)
         return filing_path
 
-    def _download_packages(self) -> list[str]:
+    def _download_packages(self) -> list[Path]:
         LOCAL_PACKAGES_DIRECTORY.mkdir(parents=True, exist_ok=True)
         bucket_name = self._processor_options.s3_taxonomy_packages_bucket_name
         s3_client = boto3.client('s3')
@@ -83,12 +83,11 @@ class MainDownloadManager(DownloadManager):
     def get_package_urls(self) -> list[str]:
         if self._package_urls is None:
             LOCAL_PACKAGES_DIRECTORY.mkdir(parents=True, exist_ok=True)
-            bucket_name = self._processor_options.s3_taxonomy_packages_bucket_name
             try:
                 downloaded_paths = self._download_packages()
                 logger.info("Downloaded (%s) package(s): (%s)", len(downloaded_paths), downloaded_paths)
             except Exception as e:
-                logger.error("Failed to download taxonomy packages from bucket %s: %s", bucket_name, e)
+                logger.error("Failed to download taxonomy packages.", e)
             self._package_urls = sorted(str(file) for file in LOCAL_PACKAGES_DIRECTORY.glob('*.zip'))
             logger.info("Discovered (%s) local package(s): (%s)", len(self._package_urls), self._package_urls)
         return self._package_urls

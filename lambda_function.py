@@ -12,8 +12,7 @@ logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s
 
 
 def lambda_handler(event, context):
-    secrets_filepath = os.getenv('SECRETS_FILEPATH')
-    processor_options = ProcessorOptions(secrets_filepath)
+    processor_options = ProcessorOptions()
     processor = Processor(
         download_manager=MainDownloadManager(processor_options),
         upload_manager=MainUploadManager(processor_options),
