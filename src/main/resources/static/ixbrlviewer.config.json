@@ -1,8 +1,8 @@
 {
   "features": {
-    "home-link-label": "FRC CODEx Filing Index",
-    "home-link-url": "/",
-    "support-link": "/help",
-    "survey-link": "/survey"
+    "home_link_label": "FRC CODEx Filing Index",
+    "home_link_url": "/",
+    "support_link": "/help",
+    "survey_link": "/survey"
   }
 }
