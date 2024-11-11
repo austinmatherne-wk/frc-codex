@@ -166,13 +166,17 @@ public class ViewController {
 		Filing filing = databaseManager.getFiling(filingUuid);
 		String filingUrl = filing.getExternalViewUrl();
 
-		response.setContentType(MediaType.TEXT_HTML_VALUE);
 		response.setStatus(HttpStatus.OK.value());
 		ResponseExtractor<Void> responseExtractor = resp -> {
 			try (
 					InputStream inputStream = resp.getBody();
 					OutputStream outputStream = response.getOutputStream()
 			) {
+				MediaType contentType = resp.getHeaders().getContentType();
+				if (contentType == null) {
+					contentType = MediaType.APPLICATION_XHTML_XML; // application/xhtml+xml
+				}
+				response.setContentType(contentType.toString());
 				inputStream.transferTo(outputStream);
 			}
 			return null;
