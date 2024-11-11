@@ -297,6 +297,7 @@ public class IndexerImpl implements Indexer {
 		}
 		LOG.info("Starting preprocessing of FCA filings via Lambda.");
 		Queue<Filing> filings = new LinkedList<>(databaseManager.getFilingsByStatus(FilingStatus.PENDING, RegistryCode.FCA));
+		@SuppressWarnings("unchecked")
 		CompletableFuture<InvokeResponse>[] futures = new CompletableFuture[concurrency];
 		while (Arrays.stream(futures).anyMatch(Objects::nonNull) || !filings.isEmpty()) {
 			for (int i = 0; i < futures.length; i++) {

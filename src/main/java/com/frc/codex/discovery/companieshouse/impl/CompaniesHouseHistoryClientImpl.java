@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +31,6 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 	private final URI DOWNLOAD_ARCHIVE_PAGE_URL = URI.create("https://download.companieshouse.gov.uk/historicmonthlyaccountsdata.html");
 	private final URI DOWNLOAD_DAILY_PAGE_URL = URI.create("https://download.companieshouse.gov.uk/en_accountsdata.html");
 	private final URI DOWNLOAD_MONTHLY_PAGE_URL = URI.create("https://download.companieshouse.gov.uk/en_monthlyaccountsdata.html");
-	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseHistoryClientImpl.class);
 
 	private final Pattern archiveHrefPattern;
 	private final Pattern dailyHrefPattern;
@@ -41,12 +38,12 @@ public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryCli
 	private final Pattern monthlyHrefPattern;
 	private final RestTemplate restTemplate;
 
-	public CompaniesHouseHistoryClientImpl() {
+	public CompaniesHouseHistoryClientImpl(RestTemplate restTemplate) {
 		this.archiveHrefPattern = Pattern.compile("archive/Accounts_Monthly_Data-.*\\.zip");
 		this.dailyHrefPattern = Pattern.compile("Accounts_Bulk_Data-.*\\.zip");
 		this.hrefPattern = Pattern.compile("<a href=\"(.*?)\">");
 		this.monthlyHrefPattern = Pattern.compile("Accounts_Monthly_Data-.*\\.zip");
-		this.restTemplate = new RestTemplate();
+		this.restTemplate = requireNonNull(restTemplate);
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Base64;
 import java.util.function.Function;
@@ -21,7 +22,7 @@ public class CompaniesHouseStreamClient {
 	}
 
 	private void stream(String url, Function<String, Boolean> callback) throws IOException {
-		URL fullUrl = new URL(baseUrl + url);
+		URL fullUrl = URI.create(baseUrl + url).toURL();
 		HttpURLConnection conn = (HttpURLConnection) fullUrl.openConnection();
 		conn.setRequestMethod("GET");
 		// https://developer-specs.company-information.service.gov.uk/streaming-api/guides/authentication

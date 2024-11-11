@@ -1,7 +1,5 @@
 package com.frc.codex.discovery.companieshouse;
 
-import java.sql.Timestamp;
-
 public class CompaniesHouseCompany {
 	private final String companyNumber;
 	private final String companyName;

@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -30,7 +31,8 @@ class MainDownloadManager(DownloadManager):
         return filing_path
 
     def _download_fca_filing(self, filing_id: str, download_url: str, directory: Path) -> Path:
-        filing_path = directory / 'filing.zip'
+        filename = os.path.basename(download_url) if download_url.endswith(".zip") else "filing.zip"
+        filing_path = directory / filename
         logger.info("Downloading filing from FCA: (%s) from %s to %s", filing_id, download_url, filing_path)
         response = self._retrieve(download_url, auth=None, headers=None)
         self._save(response, filing_path)

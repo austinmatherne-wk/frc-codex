@@ -17,6 +17,7 @@
             <th>Discovered</th>
             <th>Status</th>
             <th>Registry</th>
+            <th>Company Name</th>
             <th>Download</th>
         </tr>
         <th:block th:each="filing : ${unprocessedFilings}">
@@ -25,6 +26,7 @@
                 <td th:text="${filing.getDiscoveredDate()}">...</td>
                 <td th:text="${filing.getStatus()}">...</td>
                 <td th:text="${filing.getRegistryCode()}">...</td>
+                <td th:text="${filing.getCompanyName()}">...</td>
                 <td th:text="${filing.getDownloadUrl()}">...</td>
             </tr>
         </th:block>
@@ -35,6 +37,7 @@
             <th>Filings (<span th:text="(${failedFilings.size()})"></span>)</th>
             <th>Discovered</th>
             <th>Registry</th>
+            <th>Company Name</th>
             <th>Download</th>
         </tr>
         <th:block th:each="filing : ${failedFilings}">
@@ -42,6 +45,7 @@
                 <td th:text="${filing.getFilingId()}">...</td>
                 <td th:text="${filing.getDiscoveredDate()}">...</td>
                 <td th:text="${filing.getRegistryCode()}">...</td>
+                <td th:text="${filing.getCompanyName()}">...</td>
                 <td th:text="${filing.getDownloadUrl()}">...</td>
             </tr>
         </th:block>
@@ -52,6 +56,7 @@
             <th>Filings (<span th:text="(${completedFilings.size()})"></span>)</th>
             <th>Discovered</th>
             <th>Registry</th>
+            <th>Company Name</th>
             <th>Stub Viewer</th>
         </tr>
         <th:block th:each="filing : ${completedFilings}">
@@ -59,6 +64,7 @@
                 <td th:text="${filing.getFilingId()}">...</td>
                 <td th:text="${filing.getDiscoveredDate()}">...</td>
                 <td th:text="${filing.getRegistryCode()}">...</td>
+                <td th:text="${filing.getCompanyName()}">...</td>
                 <td th:text="${filing.getStubViewerUrl()}">...</td>
             </tr>
         </th:block>

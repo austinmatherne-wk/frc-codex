@@ -1,19 +1,24 @@
 import datetime
 import logging
+import shutil
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from arelle.RuntimeOptions import RuntimeOptions  # type: ignore
 from arelle.api.Session import Session  # type: ignore
+from arelle.packages.report.DetectReportPackage import isReportPackageExtension  # type: ignore
+from arelle.RuntimeOptions import RuntimeOptions  # type: ignore
 
+from processor.base.filing_download_result import FilingDownloadResult
 from processor.base.job_message import JobMessage
 from processor.base.worker import Worker, WorkerResult
 from processor.processor_options import ProcessorOptions
 
 VIEWER_HTML_FILENAME = 'ixbrlviewer.html'
 OIM_DIRECTORY = 'OIM'
+XBRL_CSV_DIRECTORY = 'CSV'
+XBRL_JSON_DIRECTORY = 'JSON'
 
 
 logger = logging.getLogger(__name__)
@@ -37,20 +42,21 @@ class IxbrlViewerWorker(Worker):
     def work(
             self,
             job_message: JobMessage,
-            target_path: Path,
+            filing_download: FilingDownloadResult,
             viewer_directory: Path,
             taxonomy_package_urls: list[str],
     ) -> WorkerResult:
+        assert filing_download.target_path is not None
         packages = list(taxonomy_package_urls)
         report_path = None
-        for parent in target_path.parents:
+        for parent in filing_download.target_path.parents:
             if parent.name == 'reports':
                 report_path = parent
                 continue
             if report_path and zipfile.is_zipfile(parent):
                 packages.append(str(parent))
                 break
-        result = self._generate_viewer(target_path, viewer_directory, packages)
+        result = self._generate_viewer(filing_download.target_path, viewer_directory, packages)
         if not result.success:
             return WorkerResult(
                 job_message.filing_id,
@@ -73,7 +79,7 @@ class IxbrlViewerWorker(Worker):
             elif f.name.endswith('.json'):
                 xbrl_json_files.append(f)
             else:
-                logger.warning(f'Unexpected file found in OIM directory: {f.name}')
+                logger.error(f'Unexpected file found in OIM directory: {f.name}')
         if len(xbrl_json_files) == 0:
             return WorkerResult(
                 job_message.filing_id,
@@ -86,12 +92,25 @@ class IxbrlViewerWorker(Worker):
                 error='Arelle reported success but no xBRL-CSV reports found. Check the logs for details.',
                 logs=result.logs
             )
+        xbrl_csv_path = oim_path / XBRL_CSV_DIRECTORY
+        xbrl_csv_path.mkdir(exist_ok=True)
+        for f in xbrl_csv_files:
+            shutil.move(f, xbrl_csv_path)
+        xbrl_json_path = oim_path / XBRL_JSON_DIRECTORY
+        xbrl_json_path.mkdir(exist_ok=True)
+        for f in xbrl_json_files:
+            shutil.move(f, xbrl_json_path)
+        if isReportPackageExtension(filing_download.download_path.name):
+            # Save packages for constructing OIM versions of the packages.
+            oim_package_dest = oim_path / filing_download.download_path.name
+            shutil.copy(filing_download.download_path, oim_package_dest)
         return WorkerResult(
             job_message.filing_id,
             success=True,
             viewer_entrypoint=VIEWER_HTML_FILENAME,
             oim_directory=OIM_DIRECTORY,
             logs=result.logs,
+            filename=filing_download.download_path.name,
             company_name=result.company_name,
             company_number=result.company_number,
             document_date=result.document_date,
