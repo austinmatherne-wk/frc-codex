@@ -305,7 +305,7 @@
                     </div>
                 </div>
                 <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-three-quarters" style="padding-left: 2em;">
+                    <div class="govuk-grid-column-one-half" style="padding-left: 2em;">
                         <dl class="govuk-summary-list govuk-summary-list--no-border">
                             <div class="govuk-summary-list__row">
                                 <dt th:switch="${filing.registryCode}" class="govuk-summary-list__key">
@@ -315,7 +315,9 @@
                                     <span th:case="*">Company No.</span>
                                 </dt>
                                 <dd class="govuk-summary-list__value">
-                                    <a th:text="${filing.getCompanyNumber()}" th:href="@{/(companyNumber=${filing.getCompanyNumber()})}"></a>
+                                    <a class="govuk-link govuk-link--no-underline"
+                                       th:text="${filing.getCompanyNumber()}"
+                                       th:href="@{/(companyNumber=${filing.getCompanyNumber()})}"></a>
                                 </dd>
                             </div>
                             <div class="govuk-summary-list__row">
@@ -345,18 +347,23 @@
                         </dl>
                     </div>
                     <div class="govuk-grid-column-one-quarter">
+                        <p class="govuk-body">
+                            <b class="govuk-!-display-block">Download:</b>
+                            <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
+                                xBRL-CSV
+                            </a>
+                            <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
+                                xBRL-JSON
+                            </a>
+                            <a th:href="${filing.getDownloadUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
+                                Filing
+                            </a>
+                        </p>
+                    </div>
+                    <div class="govuk-grid-column-one-quarter">
                         <div class="govuk-button-group">
                             <a th:href="${filing.getViewerLink()}" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
                                 Viewer
-                            </a>
-                            <a th:href="${filing.getXbrlCsvUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                                xBRL-CSV
-                            </a>
-                            <a th:href="${filing.getXbrlJsonUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                                xBRL-JSON
-                            </a>
-                            <a th:href="${filing.getDownloadUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                                Filing
                             </a>
                         </div>
                     </div>
