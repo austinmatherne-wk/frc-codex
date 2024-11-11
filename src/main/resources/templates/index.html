@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b0c0c">
     <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
-    <link rel="icon" sizes="any" href="/assets/images/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="any" href="/favicon.svg" type="image/svg+xml">
     <link rel="mask-icon" href="/assets/images/govuk-icon-mask.svg" color="#0b0c0c">
     <link rel="apple-touch-icon" href="/assets/images/govuk-icon-180.png">
     <link rel="manifest" href="/assets/manifest.json">
@@ -266,9 +266,9 @@
                                     </div>
                                     <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
                                         <option value="" selected>Any</option>
-                                        <option th:each="registry : ${registryCodes}"
+                                        <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
                                                 th:value="${registry.getCode()}"
-                                        th:text="${registry.getDisplayName()}"></option>
+                                                th:text="${registry.getDisplayName()}"></option>
                                     </select>
                                 </div>
                             </div>
@@ -292,33 +292,32 @@
             <h3 class="govuk-heading-m">Results</h3>
             <div th:each="filing, iter : ${filings}" th:id="|result-${iter.index}|">
                 <hr style="margin-bottom:2em;"/>
-                <div class="govuk-grid-row">
+                <div class="govuk-grid-row" style="margin-bottom: 1rem;">
                     <div class="govuk-grid-column-three-quarters">
                         <h3 class="govuk-heading-m" style="display:inline" th:text="${filing.companyName}"></h3>
                         <span th:switch="${filing.registryCode}">
-                            <strong th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
-                                    th:class="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.tagClass}"
-                                    th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.shortName}"></strong>
-                            <strong th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
-                                    th:class="${T(com.frc.codex.RegistryCode).FCA.tagClass}"
-                                    th:text="${T(com.frc.codex.RegistryCode).FCA.shortName}"></strong>
-                            <strong th:case="*">Company No.</strong>
+                            <strong th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                    th:case="${registryCode.code}"
+                                    th:class="${registryCode.tagClass}"
+                                    th:text="${registryCode.shortName}"
+                                    style="padding-bottom:0;"></strong>
                         </span>
                     </div>
                 </div>
                 <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-three-quarters" style="padding-left: 2em;">
+                    <div class="govuk-grid-column-one-half" style="padding-left: 2em;">
                         <dl class="govuk-summary-list govuk-summary-list--no-border">
                             <div class="govuk-summary-list__row">
                                 <dt th:switch="${filing.registryCode}" class="govuk-summary-list__key">
-                                    <span th:case="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.code}"
-                                          th:text="${T(com.frc.codex.RegistryCode).COMPANIES_HOUSE.companyFileReference}" ></span>
-                                    <span th:case="${T(com.frc.codex.RegistryCode).FCA.code}"
-                                          th:text="${T(com.frc.codex.RegistryCode).FCA.companyFileReference}" ></span>
+                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                          th:case="${registryCode.code}"
+                                          th:text="${registryCode.companyFileReference}" ></span>
                                     <span th:case="*">Company No.</span>
                                 </dt>
                                 <dd class="govuk-summary-list__value">
-                                    <a th:text="${filing.getCompanyNumber()}" th:href="@{/(companyNumber=${filing.getCompanyNumber()})}"></a>
+                                    <a class="govuk-link govuk-link--no-underline"
+                                       th:text="${filing.getCompanyNumber()}"
+                                       th:href="@{/(companyNumber=${filing.getCompanyNumber()})}"></a>
                                 </dd>
                             </div>
                             <div class="govuk-summary-list__row">
@@ -348,18 +347,23 @@
                         </dl>
                     </div>
                     <div class="govuk-grid-column-one-quarter">
-                        <div class="govuk-button-group">
-                            <a th:href="${filing.getViewerLink()}" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                                Viewer
-                            </a>
-                            <a th:href="${filing.getXbrlCsvUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        <p class="govuk-body">
+                            <b class="govuk-!-display-block">Download:</b>
+                            <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
                                 xBRL-CSV
                             </a>
-                            <a th:href="${filing.getXbrlJsonUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                            <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
                                 xBRL-JSON
                             </a>
-                            <a th:href="${filing.getDownloadUrl()}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                            <a th:href="${filing.getDownloadUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
                                 Filing
+                            </a>
+                        </p>
+                    </div>
+                    <div class="govuk-grid-column-one-quarter">
+                        <div class="govuk-button-group" style="justify-content: flex-end;">
+                            <a th:href="${filing.getViewerLink()}" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                                Viewer
                             </a>
                         </div>
                     </div>
