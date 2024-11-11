@@ -57,8 +57,7 @@ def _run_processor(processor_options: ProcessorOptions, http_cache_directory: Pa
 
 
 def main():
-    secrets_filepath = os.getenv('SECRETS_FILEPATH')
-    processor_options = ProcessorOptions(secrets_filepath)
+    processor_options = ProcessorOptions()
 
     with tempfile.TemporaryDirectory(prefix='shared-cache_') as global_dir:
         cache_zip_path = Path(global_dir) / '_HTTP_CACHE.zip'

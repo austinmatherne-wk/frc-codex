@@ -5,15 +5,6 @@ from pathlib import Path
 
 class ProcessorOptions:
 
-    def __init__(self, secrets_filepath):
-        with open(secrets_filepath) as f:
-            self._secrets = {
-                key.strip(): value.strip()
-                for key, value in [
-                    line.split('=') for line in f.readlines()
-                ]
-            }
-
     @cached_property
     def aws_endpoint_url(self):
         return os.getenv('AWS_ENDPOINT_URL')
