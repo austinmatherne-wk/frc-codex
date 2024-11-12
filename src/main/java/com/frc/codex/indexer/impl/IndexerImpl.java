@@ -196,13 +196,13 @@ public class IndexerImpl implements Indexer {
 				continue;
 			}
 			String companyNumber = matcher.group(1);
-			Company company = Company.builder()
-					.companyNumber(companyNumber)
-					.build();
 			if (existingCompanyNumbers.contains(companyNumber)) {
 				LOG.debug("Skipping existing company: {}", companyNumber);
 				continue;
 			}
+			Company company = Company.builder()
+					.companyNumber(companyNumber)
+					.build();
 			databaseManager.createCompany(company);
 			LOG.debug("Created company {}.", companyNumber);
 			existingCompanyNumbers.add(companyNumber);
