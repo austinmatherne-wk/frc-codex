@@ -1,8 +1,11 @@
 package com.frc.codex.indexer.impl;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
@@ -158,21 +161,34 @@ public class IndexerImpl implements Indexer {
 			LOG.debug("Skipping existing CH archive: {}", uri);
 			return true;
 		}
+		Path tempFile;
+		try {
+			tempFile = Files.createTempFile(filename, ".zip");
+		} catch (IOException e) {
+			LOG.error("Failed to create temporary file", e);
+			return false;
+		}
+		try (Closeable ignored = () -> Files.deleteIfExists(tempFile)) {
+			return processCompaniesHouseArchiveUsingTempFile(uri, archiveType, filename, tempFile, existingCompanyNumbers);
+		} catch (IOException e) {
+			LOG.error("Failed to delete temporary file: {}", tempFile, e);
+			return false;
+		}
+	}
+
+	private boolean processCompaniesHouseArchiveUsingTempFile(URI uri, String archiveType, String filename, Path tempFile, Set<String> existingCompanyNumbers) {
 		boolean completed = true;
 		LOG.info("Downloading archive: {}", uri);
-		File tempFile;
 		try {
-			tempFile = File.createTempFile(filename, ".zip");
-			tempFile.deleteOnExit();
-			this.companiesHouseHistoryClient.downloadArchive(uri, tempFile.toPath());
+			this.companiesHouseHistoryClient.downloadArchive(uri, tempFile);
 		} catch (IOException e) {
 			LOG.error("Failed to download archive: {}", uri, e);
 			return false;
 		}
-		LOG.info("Downloaded archive: {}", tempFile.toPath());
+		LOG.info("Downloaded archive: {}", tempFile);
 
 		List<String> arcnames;
-		try (ZipFile zipFile = new ZipFile(tempFile)) {
+		try (ZipFile zipFile = new ZipFile(tempFile.toFile())) {
 			arcnames = zipFile.stream()
 					.map(ZipEntry::getName)
 					.sorted()
