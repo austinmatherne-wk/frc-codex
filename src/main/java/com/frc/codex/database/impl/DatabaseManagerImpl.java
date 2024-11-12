@@ -74,7 +74,8 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					"upload_time = ?, " +
 					"worker_time = ?, " +
 					"total_processing_time = ?, " +
-					"total_uploaded_bytes = ? " +
+					"total_uploaded_bytes = ?, " +
+					"result_timestamp = CURRENT_TIMESTAMP " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			int i = 0;
