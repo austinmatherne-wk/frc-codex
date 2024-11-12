@@ -30,7 +30,7 @@ public interface DatabaseManager {
 	void resetFiling(UUID filingId);
 	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
-	boolean companyExists(Company company);
+	List<String> getCompanyNumbers();
 	void createCompany(Company company);
 	void updateCompany(Company company);
 	List<Company> getIncompleteCompanies(int limit);

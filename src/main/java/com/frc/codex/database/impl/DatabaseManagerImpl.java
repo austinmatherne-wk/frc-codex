@@ -352,13 +352,16 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
-	public boolean companyExists(Company company) {
+	public List<String> getCompanyNumbers() {
 		try (Connection connection = getInitializedConnection(true)) {
-			String sql = "SELECT company_number FROM companies WHERE company_number = ? LIMIT 1";
+			String sql = "SELECT company_number FROM companies";
 			PreparedStatement statement = connection.prepareStatement(sql);
-			statement.setString(1, company.getCompanyNumber());
 			ResultSet resultSet = statement.executeQuery();
-			return resultSet.next();
+			ImmutableList.Builder<String> results = ImmutableList.builder();
+			while (resultSet.next()) {
+				results.add(resultSet.getString("company_number"));
+			}
+			return results.build();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
