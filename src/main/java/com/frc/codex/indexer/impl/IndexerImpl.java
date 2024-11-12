@@ -6,10 +6,12 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -147,7 +149,7 @@ public class IndexerImpl implements Indexer {
 	 * extracting company numbers from the contained filenames.
 	 * Returns true if the archive was processed successfully or doesn't need processing.
 	 */
-	private boolean processCompaniesHouseArchive(URI uri, String archiveType) {
+	private boolean processCompaniesHouseArchive(URI uri, String archiveType, Set<String> existingCompanyNumbers) {
 		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return false;
 		}
@@ -197,12 +199,13 @@ public class IndexerImpl implements Indexer {
 			Company company = Company.builder()
 					.companyNumber(companyNumber)
 					.build();
-			if (databaseManager.companyExists(company)) {
+			if (existingCompanyNumbers.contains(companyNumber)) {
 				LOG.debug("Skipping existing company: {}", companyNumber);
 				continue;
 			}
 			databaseManager.createCompany(company);
 			LOG.debug("Created company {}.", companyNumber);
+			existingCompanyNumbers.add(companyNumber);
 		}
 		if (completed) {
 			CompaniesHouseArchive archive = CompaniesHouseArchive.builder()
@@ -223,22 +226,23 @@ public class IndexerImpl implements Indexer {
 		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return;
 		}
+		var existingCompanyNumbers = new HashSet<String>(databaseManager.getCompanyNumbers());
 		List<URI> downloadLinks;
 		downloadLinks = companiesHouseHistoryClient.getDailyDownloadLinks();
 		for (URI uri : downloadLinks) {
-			if (!processCompaniesHouseArchive(uri, "daily")) {
+			if (!processCompaniesHouseArchive(uri, "daily", existingCompanyNumbers)) {
 				return;
 			}
 		}
 		downloadLinks = companiesHouseHistoryClient.getMonthlyDownloadLinks();
 		for (URI uri : downloadLinks) {
-			if (!processCompaniesHouseArchive(uri, "monthly")) {
+			if (!processCompaniesHouseArchive(uri, "monthly", existingCompanyNumbers)) {
 				return;
 			}
 		}
 		downloadLinks = companiesHouseHistoryClient.getArchiveDownloadLinks();
 		for (URI uri : downloadLinks) {
-			if (!processCompaniesHouseArchive(uri, "archive")) {
+			if (!processCompaniesHouseArchive(uri, "archive", existingCompanyNumbers)) {
 				return;
 			}
 		}

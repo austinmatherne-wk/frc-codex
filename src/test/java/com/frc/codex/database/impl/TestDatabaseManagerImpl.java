@@ -185,8 +185,8 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		updateFiling(newFiling);
 	}
 
-	public boolean companyExists(Company company) {
-		return false;
+	public List<String> getCompanyNumbers() {
+		return List.of();
 	}
 
 	public void createCompany(Company company) {
