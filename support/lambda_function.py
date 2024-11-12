@@ -5,7 +5,6 @@ from support.actions.list_errors_action import ListErrorsAction
 from support.actions.reset_filings_action import ResetFilingsAction
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='{%(processName)s} [%(levelname)s] %(message)s')
 
 ACTIONS_MAP = {
     'list_errors': ListErrorsAction,
