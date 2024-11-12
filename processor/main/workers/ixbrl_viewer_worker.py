@@ -139,6 +139,7 @@ class IxbrlViewerWorker(Worker):
                 'useStubViewer': True,
                 'viewerNoCopyScript': True,
                 'viewerURL': '/ixbrlviewer.js',
+                'viewer_feature_mandatory_facts': 'companies-house'
             },
             plugins=f"{self._ixbrl_viewer_plugin_path}|saveLoadableOIM",
         )
