@@ -75,7 +75,6 @@ public class HomeController {
 		if (searchFilingsRequest.isEmpty()) {
 			LOG.info("[ANALYTICS] HOME_PAGE");
 			filings = null;
-			message = "Please provide a company name or number.";
 		} else {
 			LOG.info("[ANALYTICS] SEARCH");
 			searchFilingsRequest.setLimit(

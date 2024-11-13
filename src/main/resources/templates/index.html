@@ -68,210 +68,113 @@
                        required
                        th:field="*{searchText}">
             </div>
-            <details id="advanced-search" class="govuk-details">
-                <summary class="govuk-details__summary">
-                    <span class="govuk-details__summary-text">
-                      Advanced Search
-                    </span>
-                </summary>
-                <div class="govuk-details__text">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <div class="govuk-form-group" th:classappend="${minDocumentDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="min-document-date-hint">
-                                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-                                        <h1 class="govuk-fieldset__legend">
-                                            Document Date
-                                        </h1>
-                                    </legend>
-                                    <div id="min-document-date-hint" class="govuk-hint">
-                                        From
-                                    </div>
-                                    <p th:if="${minDocumentDateError != null}" id="min-document-date-error" class="govuk-error-message">
-                                        <span class="govuk-visually-hidden">Error:</span><span th:text="${minDocumentDateError}"></span>
-                                    </p>
-                                    <div class="govuk-date-input" id="min-document-date">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-document-date-year">
-                                                    Year
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="min-document-date-year" th:field="*{minDocumentDateYear}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-document-date-month">
-                                                    Month
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-document-date-month" th:field="*{minDocumentDateMonth}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-document-date-day">
-                                                    Day
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-document-date-day" th:field="*{minDocumentDateDay}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-half">
+                    <div class="govuk-form-group" th:classappend="${minFilingDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
+                        <fieldset class="govuk-fieldset" role="group" aria-describedby="min-filing-date-hint">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                                <h1 class="govuk-fieldset__legend">
+                                    Filing Date
+                                </h1>
+                            </legend>
+                            <div id="min-filing-date-hint" class="govuk-hint">
+                                From
                             </div>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <div class="govuk-form-group" th:classappend="${maxDocumentDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="max-document-date-hint">
-                                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-                                        <h1 class="govuk-fieldset__legend">
-                                            <span class="govuk-visually-hidden">Document Date</span>&nbsp;
-                                        </h1>
-                                    </legend>
-                                    <div id="max-document-date-hint" class="govuk-hint">
-                                        To
+                            <p th:if="${minFilingDateError != null}" id="min-filing-date-error" class="govuk-error-message">
+                                <span class="govuk-visually-hidden">Error:</span><span th:text="${minFilingDateError}"></span>
+                            </p>
+                            <div class="govuk-date-input" id="min-filing-date">
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="min-filing-date-year">
+                                            Year
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="min-filing-date-year" th:field="*{minFilingDateYear}" type="text" inputmode="numeric">
                                     </div>
-                                    <p th:if="${maxDocumentDateError != null}" id="max-document-date-error" class="govuk-error-message">
-                                        <span class="govuk-visually-hidden">Error:</span><span th:text="${maxDocumentDateError}"></span>
-                                    </p>
-                                    <div class="govuk-date-input" id="max-document-date">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-document-date-year">
-                                                    Year
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="max-document-date-year" th:field="*{maxDocumentDateYear}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-document-date-month">
-                                                    Month
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-document-date-month" th:field="*{maxDocumentDateMonth}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-document-date-day">
-                                                    Day
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-document-date-day" th:field="*{maxDocumentDateDay}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="min-filing-date-month">
+                                            Month
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-filing-date-month" th:field="*{minFilingDateMonth}" type="text" inputmode="numeric">
                                     </div>
-                                </fieldset>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <div class="govuk-form-group" th:classappend="${minFilingDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="min-filing-date-hint">
-                                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-                                        <h1 class="govuk-fieldset__legend">
-                                            Filing Date
-                                        </h1>
-                                    </legend>
-                                    <div id="min-filing-date-hint" class="govuk-hint">
-                                        From
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="min-filing-date-day">
+                                            Day
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-filing-date-day" th:field="*{minFilingDateDay}" type="text" inputmode="numeric">
                                     </div>
-                                    <p th:if="${minFilingDateError != null}" id="min-filing-date-error" class="govuk-error-message">
-                                        <span class="govuk-visually-hidden">Error:</span><span th:text="${minFilingDateError}"></span>
-                                    </p>
-                                    <div class="govuk-date-input" id="min-filing-date">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-filing-date-year">
-                                                    Year
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="min-filing-date-year" th:field="*{minFilingDateYear}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-filing-date-month">
-                                                    Month
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-filing-date-month" th:field="*{minFilingDateMonth}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="min-filing-date-day">
-                                                    Day
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="min-filing-date-day" th:field="*{minFilingDateDay}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <div class="govuk-form-group" th:classappend="${maxFilingDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="max-filing-date-hint">
-                                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-                                        <h1 class="govuk-fieldset__legend">
-                                            <span class="govuk-visually-hidden">Filing Date</span>&nbsp;
-                                        </h1>
-                                    </legend>
-                                    <div id="max-filing-date-hint" class="govuk-hint">
-                                        To
-                                    </div>
-                                    <p th:if="${maxFilingDateError != null}" id="max-filing-date-error" class="govuk-error-message">
-                                        <span class="govuk-visually-hidden">Error:</span><span th:text="${maxFilingDateError}"></span>
-                                    </p>
-                                    <div class="govuk-date-input" id="max-filing-date">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-filing-date-year">
-                                                    Year
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="max-filing-date-year" th:field="*{maxFilingDateYear}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-filing-date-month">
-                                                    Month
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-filing-date-month" th:field="*{maxFilingDateMonth}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <label class="govuk-label govuk-date-input__label" for="max-filing-date-day">
-                                                    Day
-                                                </label>
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-filing-date-day" th:field="*{maxFilingDateDay}" type="text" inputmode="numeric">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            <div class="govuk-form-group">
-                                <div class="govuk-form-group">
-                                    <label class="govuk-label" for="registryCode">
-                                        Registry
-                                    </label>
-                                    <div id="registryCode-hint" class="govuk-hint">
-                                    </div>
-                                    <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
-                                        <option value="" selected>Any</option>
-                                        <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
-                                                th:value="${registry.getCode()}"
-                                                th:text="${registry.getDisplayName()}"></option>
-                                    </select>
                                 </div>
                             </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="govuk-grid-column-one-half">
+                    <div class="govuk-form-group" th:classappend="${maxFilingDateError != null} ? govuk-form-group--error : govuk-form-group--valid">
+                        <fieldset class="govuk-fieldset" role="group" aria-describedby="max-filing-date-hint">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                                <h1 class="govuk-fieldset__legend">
+                                    <span class="govuk-visually-hidden">Filing Date</span>&nbsp;
+                                </h1>
+                            </legend>
+                            <div id="max-filing-date-hint" class="govuk-hint">
+                                To
+                            </div>
+                            <p th:if="${maxFilingDateError != null}" id="max-filing-date-error" class="govuk-error-message">
+                                <span class="govuk-visually-hidden">Error:</span><span th:text="${maxFilingDateError}"></span>
+                            </p>
+                            <div class="govuk-date-input" id="max-filing-date">
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="max-filing-date-year">
+                                            Year
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="max-filing-date-year" th:field="*{maxFilingDateYear}" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="max-filing-date-month">
+                                            Month
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-filing-date-month" th:field="*{maxFilingDateMonth}" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="max-filing-date-day">
+                                            Day
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="max-filing-date-day" th:field="*{maxFilingDateDay}" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    <div class="govuk-form-group">
+                        <div class="govuk-form-group">
+                            <label class="govuk-label" for="registryCode">
+                                Registry
+                            </label>
+                            <div id="registryCode-hint" class="govuk-hint">
+                            </div>
+                            <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
+                                <option value="" selected>Any</option>
+                                <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
+                                        th:value="${registry.getCode()}"
+                                        th:text="${registry.getDisplayName()}"></option>
+                            </select>
                         </div>
                     </div>
                 </div>
-            </details>
+            </div>
             <div class="govuk-button-group" style="justify-content: flex-end;">
                 <button type="submit" class="govuk-button govuk-button--start" data-module="govuk-button" data-prevent-double-click="true">
                     Search
@@ -448,19 +351,6 @@
         }
         sessionStorage.setItem('ixbrl-viewer-home-link-query', query);
     }
-</script>
-<script>
-    (function() {
-        // If any input elements within #advanced-search have values, open the details element
-        const advancedSearch = document.getElementById('advanced-search');
-        const inputs = advancedSearch.querySelectorAll('input, select');
-        for (const input of inputs) {
-            if (input.value) {
-                advancedSearch.setAttribute('open', '');
-                break;
-            }
-        }
-    })();
 </script>
 </body>
 
