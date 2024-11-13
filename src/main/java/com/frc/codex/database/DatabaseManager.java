@@ -2,6 +2,7 @@ package com.frc.codex.database;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.frc.codex.RegistryCode;
@@ -18,6 +19,7 @@ public interface DatabaseManager {
 	boolean checkCompaniesLimit(int companiesLimit);
 	boolean checkRegistryLimit(RegistryCode registryCode, int limit);
 	boolean companiesHouseArchiveExists(String filename);
+	boolean companyNumberExists(String companyNumber);
 	String createCompaniesHouseArchive(CompaniesHouseArchive archive);
 	UUID createFiling(NewFilingRequest newFilingRequest);
 	boolean filingExists(String registryCode, String externalFilingId);
@@ -30,7 +32,7 @@ public interface DatabaseManager {
 	void resetFiling(UUID filingId);
 	List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest);
 	void updateFilingStatus(UUID filingId, String status);
-	List<String> getCompanyNumbers();
+	Set<String> getCompaniesCompanyNumbers();
 	void createCompany(Company company);
 	void updateCompany(Company company);
 	List<Company> getIncompleteCompanies(int limit);

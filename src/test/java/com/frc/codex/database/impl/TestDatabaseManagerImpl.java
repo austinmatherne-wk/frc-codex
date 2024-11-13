@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -56,6 +57,10 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public boolean companiesHouseArchiveExists(String filename) {
 		return companiesHouseArchives.containsKey(filename);
+	}
+
+	public boolean companyNumberExists(String companyNumber) {
+		return filings.values().stream().anyMatch(f -> f.getCompanyNumber().equals(companyNumber));
 	}
 
 	public String createCompaniesHouseArchive(CompaniesHouseArchive archive) {
@@ -144,14 +149,14 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 
 	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
 		Stream<Filing> results = filings.values().stream();
-		if (searchFilingsRequest.getCompanyName() != null) {
-			List<String> terms = List.of(searchFilingsRequest.getCompanyName().split(" "));
+		if (searchFilingsRequest.getSearchText() != null) {
+			List<String> terms = List.of(searchFilingsRequest.getSearchText().split(" "));
 			for(String term : terms) {
 				results = results.filter(f -> f.getCompanyName().contains(term));
 			}
 		}
-		if (searchFilingsRequest.getCompanyNumber() != null) {
-			results = results.filter(f -> f.getCompanyNumber().equals(searchFilingsRequest.getCompanyNumber()));
+		if (searchFilingsRequest.getSearchText() != null) {
+			results = results.filter(f -> f.getCompanyNumber().equals(searchFilingsRequest.getSearchText()));
 		}
 		if (searchFilingsRequest.getStatus() != null) {
 			results = results.filter(f -> f.getStatus().equals(searchFilingsRequest.getStatus()));
@@ -185,8 +190,8 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 		updateFiling(newFiling);
 	}
 
-	public List<String> getCompanyNumbers() {
-		return List.of();
+	public Set<String> getCompaniesCompanyNumbers() {
+		return Set.of();
 	}
 
 	public void createCompany(Company company) {

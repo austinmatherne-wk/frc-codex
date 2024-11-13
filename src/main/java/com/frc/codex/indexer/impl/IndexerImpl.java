@@ -242,7 +242,7 @@ public class IndexerImpl implements Indexer {
 		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return;
 		}
-		var existingCompanyNumbers = new HashSet<String>(databaseManager.getCompanyNumbers());
+		var existingCompanyNumbers = new HashSet<String>(databaseManager.getCompaniesCompanyNumbers());
 		List<URI> downloadLinks;
 		downloadLinks = companiesHouseHistoryClient.getDailyDownloadLinks();
 		for (URI uri : downloadLinks) {
