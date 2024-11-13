@@ -58,19 +58,15 @@
         <h1 class="govuk-heading-l" id="main-content">Search Filings</h1>
         <form action="#" th:action="@{/}" th:object="${searchFilingsRequest}" method="get">
             <div class="govuk-form-group">
-                <label class="govuk-label" for="company-name">
-                    Company Name
+                <label class="govuk-label" for="company-name-or-number">
+                    Search by Company Name or Number
                 </label>
-                <input class="govuk-input" id="company-name" type="text" th:field="*{companyName}">
-            </div>
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="company-number">
-                    Company Number
-                </label>
-                <div id="company-number-hint" class="govuk-hint">
-                    CRN (Company Registration Number) or LEI (Legal Entity Identifier)
-                </div>
-                <input class="govuk-input" id="company-number" type="text" th:field="*{companyNumber}">
+                <input class="govuk-input"
+                       id="company-name-or-number"
+                       placeholder="Company Name, CRN (Company Registration Number), or LEI (Legal Entity Identifier)"
+                       type="text"
+                       required
+                       th:field="*{searchText}">
             </div>
             <details id="advanced-search" class="govuk-details">
                 <summary class="govuk-details__summary">
@@ -317,7 +313,7 @@
                                 <dd class="govuk-summary-list__value">
                                     <a class="govuk-link govuk-link--no-underline"
                                        th:text="${filing.getCompanyNumber()}"
-                                       th:href="@{/(companyNumber=${filing.getCompanyNumber()})}"></a>
+                                       th:href="@{/(searchText=${filing.getCompanyNumber()})}"></a>
                                 </dd>
                             </div>
                             <div class="govuk-summary-list__row">

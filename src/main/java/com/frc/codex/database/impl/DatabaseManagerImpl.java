@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ import com.frc.codex.model.NewFilingRequest;
 import com.frc.codex.model.SearchFilingsRequest;
 import com.frc.codex.model.companieshouse.CompaniesHouseArchive;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.zaxxer.hikari.HikariDataSource;
 
 import jakarta.annotation.PostConstruct;
@@ -46,16 +49,20 @@ import jakarta.annotation.PostConstruct;
 @Profile("application")
 public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseManagerImpl.class);
+	private static final int MIN_COMPANY_NUMBER_LENGTH = 8; // CRN is 8 characters, LEI is 20 characters
 	public static final Calendar TIMEZONE_UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
 	private final FilingIndexProperties properties;
 	private final DataSource readDataSource;
 	private final DataSource writeDataSource;
+	private final Set<String> companyNumberCache;
+	private boolean companyNumberCacheInitialized = false;
 
 	public DatabaseManagerImpl(FilingIndexProperties properties) {
 		this.properties = properties;
 		this.readDataSource = new HikariDataSource(properties.getDatabaseConfig("read"));
 		this.writeDataSource = new HikariDataSource(properties.getDatabaseConfig("write"));
+		companyNumberCache = new HashSet<>();
 	}
 
 	public void applyFilingResult(FilingResultRequest filingResultRequest) {
@@ -353,12 +360,27 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
-	public List<String> getCompanyNumbers() {
+	public ImmutableSet<String> getCompaniesCompanyNumbers() {
 		try (Connection connection = getInitializedConnection(true)) {
 			String sql = "SELECT company_number FROM companies";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			ResultSet resultSet = statement.executeQuery();
-			ImmutableList.Builder<String> results = ImmutableList.builder();
+			ImmutableSet.Builder<String> results = ImmutableSet.builder();
+			while (resultSet.next()) {
+				results.add(resultSet.getString("company_number"));
+			}
+			return results.build();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private ImmutableSet<String> getFilingsCompanyNumbers() {
+		try (Connection connection = getInitializedConnection(true)) {
+			String sql = "SELECT company_number FROM filings";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			ResultSet resultSet = statement.executeQuery();
+			ImmutableSet.Builder<String> results = ImmutableSet.builder();
 			while (resultSet.next()) {
 				results.add(resultSet.getString("company_number"));
 			}
@@ -496,7 +518,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 	}
 
 	public void close() throws Exception {
-		try (AutoCloseable closeWriteDataSource = ((Closeable) writeDataSource)) {
+		try (AutoCloseable ignored = ((Closeable) writeDataSource)) {
 			((Closeable) readDataSource).close();
 		}
 	}
@@ -505,7 +527,7 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		try (Connection connection = getInitializedConnection(false)) {
 			String sql = "UPDATE filings SET " +
 					"status = 'pending', error = NULL, logs = NULL, " +
-					"stub_viewer_url = NULL, oim_directory = NULL, " +
+					"stub_viewer_url = NULL, oim_directory = NULL " +
 					"WHERE filing_id = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setObject(1, filingId);
@@ -519,8 +541,60 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 		}
 	}
 
+	public boolean companyNumberExists(String companyNumber) {
+		if (companyNumber == null) {
+			return false;
+		}
+		if (companyNumber.length() < MIN_COMPANY_NUMBER_LENGTH) {
+			// Too short to be company number
+			return false;
+		}
+		if (!companyNumber.matches("^(?=.*\\d)[^\\s]+$")) {
+			// Contains a space or does not contain a numeric digit
+			return false;
+		}
+		if (!companyNumberCacheInitialized) {
+			// No cached set of known company numbers, populate it
+			companyNumberCache.addAll(getFilingsCompanyNumbers());
+			companyNumberCacheInitialized = true;
+		}
+		if (companyNumberCache.contains(companyNumber)) {
+			// Cached set of known company numbers contains the company number
+			return true;
+		}
+		// Could be a company number that is not in the cache, check the database
+		// and add it to the cache if it exists.
+		String sql = "SELECT EXISTS (SELECT 1 FROM filings WHERE company_number = ?);";
+		try (Connection connection = getInitializedConnection(true)) {
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
+				statement.setString(1, companyNumber);
+				try (ResultSet resultSet = statement.executeQuery()) {
+					if (resultSet.next()) {
+						if (resultSet.getBoolean(1)) {
+							companyNumberCache.add(companyNumber);
+							return true;
+						}
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOG.error("Error checking if company number exists: {}", companyNumber, e);
+			return false;
+		}
+		return false;
+	}
+
 	public List<Filing> searchFilings(SearchFilingsRequest searchFilingsRequest) {
 		try (Connection connection = getInitializedConnection(true)) {
+			String searchText = searchFilingsRequest.getSearchText();
+			String companyName = null;
+			String companyNumber = null;
+			if (companyNumberExists(searchText)) {
+				companyNumber = searchText;
+			} else {
+				companyName = searchText;
+			}
+
 			List<String> selects = new ArrayList<>();
 			List<String> queries = new ArrayList<>();
 			List<String> conditions = new ArrayList<>();
@@ -531,16 +605,16 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 					add("filing_id");
 				}
 			};
-			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyName())) {
+			if (!StringUtils.isEmpty(companyName)) {
 				selects.add("ts_rank(to_tsvector('english', company_name), query) as rank");
 				queries.add("websearch_to_tsquery('english', ?) query");
 				conditions.add("to_tsvector('english', company_name) @@ query");
-				parameters.add(searchFilingsRequest.getCompanyName());
+				parameters.add(companyName);
 				orderBys.add(0, "rank DESC");
 			}
-			if (!StringUtils.isEmpty(searchFilingsRequest.getCompanyNumber())) {
+			if (!StringUtils.isEmpty(companyNumber)) {
 				conditions.add("company_number = ?");
-				parameters.add(searchFilingsRequest.getCompanyNumber());
+				parameters.add(companyNumber);
 			}
 			if (searchFilingsRequest.getMinDocumentDate() != null) {
 				conditions.add("document_date >= ?");

@@ -8,8 +8,7 @@ import org.thymeleaf.util.StringUtils;
 
 public class SearchFilingsRequest {
 	private Boolean admin;
-	private String companyName;
-	private String companyNumber;
+	private String searchText;
 	private long limit;
 	private Integer minDocumentDateDay;
 	private Integer minDocumentDateMonth;
@@ -42,12 +41,8 @@ public class SearchFilingsRequest {
 		return LocalDateTime.of(year, month, day, 0, 0);
 	}
 
-	public String getCompanyName() {
-		return companyName;
-	}
-
-	public String getCompanyNumber() {
-		return companyNumber;
+	public String getSearchText() {
+		return searchText;
 	}
 
 	public long getLimit() {
@@ -55,9 +50,7 @@ public class SearchFilingsRequest {
 	}
 
 	public String getLoadMoreLink(long pageSize, int lastResultIndex) {
-		String query = buildQuery("companyName", getCompanyName()) +
-				buildQuery("companyNumber", getCompanyNumber()) +
-				buildQuery("filingDate", getCompanyNumber()) +
+		String query = buildQuery("searchText", getSearchText()) +
 				buildQuery("limit", getLimit() + pageSize) +
 				buildQuery("minDocumentDateDay", getMinDocumentDateDay()) +
 				buildQuery("minDocumentDateMonth", getMinDocumentDateMonth()) +
@@ -159,21 +152,17 @@ public class SearchFilingsRequest {
 	}
 
 	public boolean isEmpty() {
-		return StringUtils.isEmpty(companyName)
-				&& StringUtils.isEmpty(companyNumber);
+		return StringUtils.isEmpty(searchText);
 	}
 
 	public void setAdmin(Boolean admin) {
 		this.admin = admin;
 	}
 
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
+	public void setSearchText(String searchText) {
+		this.searchText = searchText;
 	}
 
-	public void setCompanyNumber(String companyNumber) {
-		this.companyNumber = companyNumber;
-	}
 
 	public void setLimit(long limit) {
 		this.limit = limit;
