@@ -1,5 +1,4 @@
 import logging
-import os
 
 from processor.main.main_download_manager import MainDownloadManager
 from processor.main.main_upload_manager import MainUploadManager
