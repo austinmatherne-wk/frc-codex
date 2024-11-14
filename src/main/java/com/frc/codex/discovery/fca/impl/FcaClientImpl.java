@@ -30,7 +30,6 @@ import com.frc.codex.discovery.fca.FcaClient;
 import com.frc.codex.discovery.fca.FcaFiling;
 
 @Component
-@Profile("application")
 public class FcaClientImpl implements FcaClient {
 	private static final DateTimeFormatter INCOMING_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	private static final DateTimeFormatter OUTGOING_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");

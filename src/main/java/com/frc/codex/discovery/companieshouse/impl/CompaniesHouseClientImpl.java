@@ -35,7 +35,6 @@ import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component
-@Profile("application")
 public class CompaniesHouseClientImpl implements CompaniesHouseClient {
 	private static final Set<String> ACCEPTED_CONTENT_TYPES = Set.of("application/xml", "application/xhtml+xml");
 	private static final DateTimeFormatter CH_JSON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");

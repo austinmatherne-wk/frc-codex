@@ -25,7 +25,6 @@ import org.springframework.web.client.RestTemplate;
 import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
 
 @Component
-@Profile("application")
 public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryClient {
 
 	private final URI DOWNLOAD_ARCHIVE_PAGE_URL = URI.create("https://download.companieshouse.gov.uk/historicmonthlyaccountsdata.html");
