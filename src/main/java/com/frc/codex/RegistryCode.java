@@ -1,38 +1,35 @@
 package com.frc.codex;
 
 public enum RegistryCode {
-	COMPANIES_HOUSE ("CH", "Companies House", "CoHo", "govuk-tag govuk-tag--turquoise", "CRN"),
-	FCA ("FCA", "Financial Conduct Authority (FCA)", "FCA", "govuk-tag govuk-tag--purple", "LEI"),;
+	COMPANIES_HOUSE ("CH", "Companies House", "Companies House",  "CRN"),
+	FCA ("FCA", "Financial Conduct Authority (FCA)", "FCA", "LEI"),;
 
 	private final String code;
-	private final String companyFileReference;
-	private final String displayName;
+	private final String fullName;
 	private final String shortName;
-	private final String tagClass;
+	private final String companyFileReference;
 
 
-	private RegistryCode(String n, String d, String s, String c, String f) {
-		code = n;
-		companyFileReference = f;
-		displayName = d;
-		shortName = s;
-		tagClass = c;
+	private RegistryCode(String code, String fullName, String shortName, String companyFileReference) {
+		this.code = code;
+		this.fullName = fullName;
+		this.shortName = shortName;
+		this.companyFileReference = companyFileReference;
 	}
 
 	public String getCode() {
 		return this.code;
 	}
 
-	public String getCompanyFileReference() {
-		return companyFileReference;
-	}
-
-	public String getDisplayName() {
-		return this.displayName;
+	public String getFullName() {
+		return this.fullName;
 	}
 
 	public String getShortName() {
 		return this.shortName;
 	}
-	public String getTagClass() {return tagClass;}
+
+	public String getCompanyFileReference() {
+		return companyFileReference;
+	}
 }

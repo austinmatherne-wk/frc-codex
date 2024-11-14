@@ -15,3 +15,4 @@ Pipfile
 Pipfile.lock
 src/main/resources/static/assets
 tmp
+src/main/resources/static/localhost:8080

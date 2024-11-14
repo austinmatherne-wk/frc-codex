@@ -13,7 +13,7 @@ describe('Filing Index', () => {
         await codexPage.tearDown();
     })
 
-    test('Advanced Search - Filing Date', async () => {
+    test('Advanced Search - Date Filed', async () => {
         await codexPage.navigateToFilingIndex();
         await codexPage.search.companyNameInput.enterText('TUSCANY PIZZA LTD');
         await codexPage.search.companyNumberInput.enterText('11162569');
