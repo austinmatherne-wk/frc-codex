@@ -112,17 +112,17 @@ export class AdvancedSearch {
         this.maxDocDateDay = new TextInput(this.#codexPage,
             '//*[@id="max-document-date-day"]', 'Max Document Date Day');
         this.minFilingDateYear = new TextInput(this.#codexPage,
-            '//*[@id="min-filing-date-year"]', 'Min Filing Date Year');
+            '//*[@id="min-filing-date-year"]', 'Min Date Filed Year');
         this.minFilingDateMonth = new TextInput(this.#codexPage,
-            '//*[@id="min-filing-date-month"]', 'Min Filing Date Month');
+            '//*[@id="min-filing-date-month"]', 'Min Date Filed Month');
         this.minFilingDateDay = new TextInput(this.#codexPage,
-            '//*[@id="min-filing-date-day"]', 'Min Filing Date Day');
+            '//*[@id="min-filing-date-day"]', 'Min Date Filed Day');
         this.maxFilingDateYear = new TextInput(this.#codexPage,
-            '//*[@id="max-filing-date-year"]', 'Max Filing Date Year');
+            '//*[@id="max-filing-date-year"]', 'Max Date Filed Year');
         this.maxFilingDateMonth = new TextInput(this.#codexPage,
-            '//*[@id="max-filing-date-month"]', 'Max Filing Date Month');
+            '//*[@id="max-filing-date-month"]', 'Max Date Filed Month');
         this.maxFilingDateDay = new TextInput(this.#codexPage,
-            '//*[@id="max-filing-date-day"]', 'Max Filing Date Day');
+            '//*[@id="max-filing-date-day"]', 'Max Date Filed Day');
     }
 }
 
@@ -153,8 +153,8 @@ export class SearchResultCard {
             `${this.#locator}//a[normalize-space(text())="Filing"]`,
             'Select Button');
         this.filingDate = new Text(this.#codexPage,
-            `${this.#locator}//dt[contains(text(), 'Filing Date')]/following-sibling::dd`,
-            'Filing Date');
+            `${this.#locator}//dt[contains(text(), 'Date Filed')]/following-sibling::dd`,
+            'Date Filed');
         this.viewerButton = new Button(this.#codexPage,
             `${this.#locator}//a[normalize-space(text())="Viewer"]`, 'Viewer Button');
     }
