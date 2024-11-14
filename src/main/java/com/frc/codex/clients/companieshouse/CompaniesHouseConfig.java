@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse;
+package com.frc.codex.clients.companieshouse;
 
 public interface CompaniesHouseConfig {
 	String documentApiBaseUrl();

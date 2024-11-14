@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
@@ -18,7 +18,6 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -27,11 +26,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.frc.codex.RegistryCode;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseFiling;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.clients.companieshouse.CompaniesHouseClient;
+import com.frc.codex.clients.companieshouse.CompaniesHouseCompany;
+import com.frc.codex.clients.companieshouse.CompaniesHouseConfig;
+import com.frc.codex.clients.companieshouse.CompaniesHouseFiling;
+import com.frc.codex.clients.companieshouse.CompaniesHouseRateLimiter;
 import com.frc.codex.model.NewFilingRequest;
 
 @Component

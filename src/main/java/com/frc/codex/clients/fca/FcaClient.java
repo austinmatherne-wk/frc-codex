@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.fca;
+package com.frc.codex.clients.fca;
 
 import java.time.LocalDateTime;
 import java.util.List;

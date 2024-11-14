@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.frc.codex.database.DatabaseManager;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
-import com.frc.codex.discovery.companieshouse.RateLimitException;
+import com.frc.codex.clients.companieshouse.CompaniesHouseClient;
+import com.frc.codex.clients.companieshouse.CompaniesHouseCompany;
+import com.frc.codex.clients.companieshouse.RateLimitException;
 import com.frc.codex.indexer.IndexerJob;
 import com.frc.codex.model.Company;
 import com.frc.codex.model.NewFilingRequest;

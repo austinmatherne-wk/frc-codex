@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
@@ -15,8 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
-import com.frc.codex.discovery.companieshouse.RateLimitException;
+import com.frc.codex.clients.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.clients.companieshouse.RateLimitException;
 
 public class CompaniesHouseHttpClient {
 	private final Logger LOG = LoggerFactory.getLogger(CompaniesHouseHttpClient.class);

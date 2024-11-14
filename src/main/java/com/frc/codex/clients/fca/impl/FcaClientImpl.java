@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.fca.impl;
+package com.frc.codex.clients.fca.impl;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.util.Objects.requireNonNull;
@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,8 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.frc.codex.FilingIndexProperties;
-import com.frc.codex.discovery.fca.FcaClient;
-import com.frc.codex.discovery.fca.FcaFiling;
+import com.frc.codex.clients.fca.FcaClient;
+import com.frc.codex.clients.fca.FcaFiling;
 
 @Component
 public class FcaClientImpl implements FcaClient {

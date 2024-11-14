@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 

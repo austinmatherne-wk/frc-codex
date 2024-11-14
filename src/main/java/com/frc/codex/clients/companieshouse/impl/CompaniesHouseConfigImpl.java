@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
@@ -7,7 +7,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.FilingIndexProperties;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
+import com.frc.codex.clients.companieshouse.CompaniesHouseConfig;
 
 @Component
 public class CompaniesHouseConfigImpl implements CompaniesHouseConfig {

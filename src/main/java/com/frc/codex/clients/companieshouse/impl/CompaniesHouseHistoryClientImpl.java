@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import static java.util.Objects.requireNonNull;
 
@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,7 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
-import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
+import com.frc.codex.clients.companieshouse.CompaniesHouseHistoryClient;
 
 @Component
 public class CompaniesHouseHistoryClientImpl implements CompaniesHouseHistoryClient {

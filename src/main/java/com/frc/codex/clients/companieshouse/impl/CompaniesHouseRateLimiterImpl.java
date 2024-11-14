@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import java.sql.Timestamp;
 
@@ -8,8 +8,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import com.frc.codex.discovery.companieshouse.CompaniesHouseConfig;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseRateLimiter;
+import com.frc.codex.clients.companieshouse.CompaniesHouseConfig;
+import com.frc.codex.clients.companieshouse.CompaniesHouseRateLimiter;
 import com.frc.codex.tools.RateLimiter;
 
 @Component

@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse.impl;
+package com.frc.codex.clients.companieshouse.impl;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseCompany;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseFiling;
-import com.frc.codex.discovery.companieshouse.RateLimitException;
+import com.frc.codex.clients.companieshouse.CompaniesHouseClient;
+import com.frc.codex.clients.companieshouse.CompaniesHouseCompany;
+import com.frc.codex.clients.companieshouse.CompaniesHouseFiling;
+import com.frc.codex.clients.companieshouse.RateLimitException;
 import com.frc.codex.indexer.IndexerJob;
 import com.frc.codex.model.NewFilingRequest;
 

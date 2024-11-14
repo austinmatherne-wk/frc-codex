@@ -1,4 +1,4 @@
-package com.frc.codex.discovery.companieshouse;
+package com.frc.codex.clients.companieshouse;
 
 public class RateLimitException extends RuntimeException {
 	public RateLimitException(String message) {
