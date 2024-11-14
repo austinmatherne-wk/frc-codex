@@ -39,14 +39,9 @@ class Processor:
 
     def _get_target_path(self, filing_path: Path) -> FilingDownloadResult:
         if not zipfile.is_zipfile(filing_path):
-            return FilingDownloadResult(filing_path, filing_path, [])
-        target_path = None
+            return FilingDownloadResult(filing_path, [])
         with zipfile.ZipFile(filing_path) as zip_file:
-            for file in zip_file.namelist():
-                if file.endswith('.html') or file.endswith('.xhtml'):
-                    target_path = filing_path / file
-                    break
-            return FilingDownloadResult(filing_path, target_path, zip_file.namelist())
+            return FilingDownloadResult(filing_path, zip_file.namelist())
 
     def _handle_message(self, job_message: JobMessage, queue_manager: QueueManager) -> WorkerResult:
         logger.info(
@@ -80,16 +75,7 @@ class Processor:
                 taxonomy_package_urls = self._download_manager.get_package_urls()
                 filing_download_result = self._download_filing(job_message, temp_dir_path)
 
-                if not filing_download_result.target_path:
-                    logger.error(
-                        "Target path could not be determined in filing from %s: (Message: %s, Filing: %s)",
-                        filing_download_result.namelist, job_message.message_id, job_message.filing_id
-                    )
-                    return WorkerResult(
-                        job_message.filing_id,
-                        error=f'Target path could not be determined in filing from {filing_download_result.namelist}.'
-                    )
-                logger.info('Using target path: %s', filing_download_result.target_path)
+                logger.info('Using downloaded filing: %s', filing_download_result.download_path)
                 # Prepare directory for viewer files
 
                 viewer_directory = temp_dir_path / 'viewer'
