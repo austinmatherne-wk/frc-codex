@@ -1,4 +1,4 @@
-package com.frc.codex.impl;
+package com.frc.codex.properties.impl;
 
 import static java.util.Objects.requireNonNull;
 
@@ -10,7 +10,7 @@ import java.util.Properties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.zaxxer.hikari.HikariConfig;
 
 @Component

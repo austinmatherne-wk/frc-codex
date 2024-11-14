@@ -1,4 +1,4 @@
-package com.frc.codex;
+package com.frc.codex.properties;
 
 import com.zaxxer.hikari.HikariConfig;
 

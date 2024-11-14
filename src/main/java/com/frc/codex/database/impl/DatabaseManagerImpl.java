@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Company;

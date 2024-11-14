@@ -22,7 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.database.impl.DatabaseManagerImpl;

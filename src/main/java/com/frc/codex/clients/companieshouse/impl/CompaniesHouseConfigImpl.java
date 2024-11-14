@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.clients.companieshouse.CompaniesHouseConfig;
 
 @Component

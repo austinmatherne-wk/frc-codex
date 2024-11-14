@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.FilingPayload;
 import com.frc.codex.model.FilingResultRequest;

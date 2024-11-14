@@ -24,7 +24,7 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.indexer.LambdaManager;
 import com.frc.codex.model.Filing;

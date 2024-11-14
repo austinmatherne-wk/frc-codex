@@ -2,7 +2,7 @@ package com.frc.codex.controllers;
 
 import java.util.Objects;
 
-import com.frc.codex.FilingIndexProperties;
+import com.frc.codex.properties.FilingIndexProperties;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
