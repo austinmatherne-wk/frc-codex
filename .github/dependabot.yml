@@ -24,6 +24,10 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "puppeteer-screen-recorder"
+        versions:
+          - "3.0.6"
   - package-ecosystem: pip
     directory: "/"
     schedule:
@@ -43,3 +47,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
