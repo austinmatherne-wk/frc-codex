@@ -1,7 +1,6 @@
 import datetime
 import logging
 import shutil
-import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
@@ -46,17 +45,8 @@ class IxbrlViewerWorker(Worker):
             viewer_directory: Path,
             taxonomy_package_urls: list[str],
     ) -> WorkerResult:
-        assert filing_download.target_path is not None
-        packages = list(taxonomy_package_urls)
-        report_path = None
-        for parent in filing_download.target_path.parents:
-            if parent.name == 'reports':
-                report_path = parent
-                continue
-            if report_path and zipfile.is_zipfile(parent):
-                packages.append(str(parent))
-                break
-        result = self._generate_viewer(filing_download.target_path, viewer_directory, packages)
+        assert filing_download.download_path is not None
+        result = self._generate_viewer(filing_download.download_path, viewer_directory, taxonomy_package_urls)
         if not result.success:
             return WorkerResult(
                 job_message.filing_id,

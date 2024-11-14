@@ -46,7 +46,7 @@ class TestProcessor(TestCase):
                 success=False,
             ),
         }
-        mock_get_target_path.return_value = FilingDownloadResult(Path('download_url1'), Path('filing.zip'), [])
+        mock_get_target_path.return_value = FilingDownloadResult(Path('download_url1'), [])
         upload_manager = MockUploadManager()
         processor = Processor(
             download_manager=Mock(),
