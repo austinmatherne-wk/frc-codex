@@ -1,6 +1,5 @@
 package com.frc.codex.model;
 
-import com.frc.codex.RegistryCode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

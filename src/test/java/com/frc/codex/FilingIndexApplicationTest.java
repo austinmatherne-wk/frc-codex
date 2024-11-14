@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.frc.codex.filingindex.controller.HomeController;
+import com.frc.codex.controllers.HomeController;
 
 @SpringBootTest
 @ActiveProfiles("test")

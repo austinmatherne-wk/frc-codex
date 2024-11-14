@@ -16,7 +16,7 @@ RUN ./gradlew --version
 COPY --from=node /usr/app/node_modules /node_modules
 COPY src/ /src/
 
-RUN ./gradlew build -x npmInstall
+RUN ./gradlew build
 
 USER nobody
 

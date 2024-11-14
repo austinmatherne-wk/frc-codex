@@ -30,15 +30,15 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.frc.codex.FilingIndexProperties;
-import com.frc.codex.RegistryCode;
+import com.frc.codex.properties.FilingIndexProperties;
+import com.frc.codex.model.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseClient;
-import com.frc.codex.discovery.companieshouse.CompaniesHouseHistoryClient;
-import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseCompaniesIndexerImpl;
-import com.frc.codex.discovery.companieshouse.impl.CompaniesHouseStreamIndexerImpl;
-import com.frc.codex.discovery.fca.FcaClient;
-import com.frc.codex.discovery.fca.FcaFiling;
+import com.frc.codex.clients.companieshouse.CompaniesHouseClient;
+import com.frc.codex.clients.companieshouse.CompaniesHouseHistoryClient;
+import com.frc.codex.clients.companieshouse.impl.CompaniesHouseCompaniesIndexerImpl;
+import com.frc.codex.clients.companieshouse.impl.CompaniesHouseStreamIndexerImpl;
+import com.frc.codex.clients.fca.FcaClient;
+import com.frc.codex.clients.fca.FcaFiling;
 import com.frc.codex.indexer.Indexer;
 import com.frc.codex.indexer.IndexerJob;
 import com.frc.codex.indexer.LambdaManager;
@@ -91,7 +91,7 @@ public class IndexerImpl implements Indexer {
 		this.lambdaManager = lambdaManager;
 		this.queueManager = queueManager;
 		this.companiesHouseFilenamePattern = Pattern.compile(
-				"Prod\\d+_\\d+_([a-zA-Z0-9]+)_(\\d{8})\\.html"
+				"Prod\\d+_\\d+_([a-zA-Z0-9]+)_(\\d{8})\\..*"
 		);
 		this.jobs = List.of(
 				companiesHouseCompaniesIndexer,
@@ -201,13 +201,9 @@ public class IndexerImpl implements Indexer {
 
 		// Example: Prod223_3785_13056435_20240331.html
 		for (String arcname : arcnames) {
-			if (arcname.endsWith(".xml")) {
-				LOG.debug("Skipping entry in {}: {}", uri, arcname);
-				continue;
-			}
 			Matcher matcher = companiesHouseFilenamePattern.matcher(arcname);
 			if (!matcher.matches()) {
-				LOG.error("Found invalid archive entry in {}: {}", uri, arcname);
+				LOG.warn("Found invalid archive entry in {}: {}", uri, arcname);
 				completed = false;
 				continue;
 			}

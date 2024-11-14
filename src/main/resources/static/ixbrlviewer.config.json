@@ -1,8 +1,10 @@
 {
   "features": {
     "guide_link": "/FRC_Codex_User_Guide.pdf",
+    "highlight_facts_on_startup": true,
     "home_link_label": "UK Filing Index",
     "home_link_url": "/",
+    "search_on_startup": true,
     "support_link": "/help",
     "survey_link": "/survey"
   },
