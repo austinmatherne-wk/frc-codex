@@ -178,7 +178,7 @@
                             </div>
                             <select class="govuk-select" id="registryCode" th:field="*{registryCode}" aria-describedby="registryCode-hint">
                                 <option value="" selected>Any</option>
-                                <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
+                                <option th:each="registry:${T(com.frc.codex.model.RegistryCode).values()}"
                                         th:value="${registry.getCode()}"
                                         th:text="${registry.getFullName()}"></option>
                             </select>
@@ -209,7 +209,7 @@
                         <div style="display:flex;flex-wrap: wrap;justify-content: space-between;">
                             <dl style="flex-basis: 40%;">
                                 <dt th:switch="${filing.registryCode}" style="text-align: left">
-                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                    <span th:each="registryCode:${T(com.frc.codex.model.RegistryCode).values()}"
                                           th:case="${registryCode.code}"
                                           th:text="${registryCode.companyFileReference} + ': '" ></span>
                                     <span th:case="*">Company No.</span>
@@ -219,7 +219,7 @@
                             <dl style="flex-basis: 25%;">
                                 <dt>Registry: </dt>
                                 <dd th:switch="${filing.registryCode}">
-                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                    <span th:each="registryCode:${T(com.frc.codex.model.RegistryCode).values()}"
                                           th:case="${registryCode.code}"
                                           th:text="${registryCode.shortName}"></span>
                                 </dd>

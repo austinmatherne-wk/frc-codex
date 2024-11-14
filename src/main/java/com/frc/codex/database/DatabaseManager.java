@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.frc.codex.RegistryCode;
+import com.frc.codex.model.RegistryCode;
 import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.FilingResultRequest;

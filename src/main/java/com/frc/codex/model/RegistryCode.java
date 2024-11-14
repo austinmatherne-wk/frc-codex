@@ -1,4 +1,4 @@
-package com.frc.codex;
+package com.frc.codex.model;
 
 public enum RegistryCode {
 	COMPANIES_HOUSE ("CH", "Companies House", "Companies House",  "CRN"),

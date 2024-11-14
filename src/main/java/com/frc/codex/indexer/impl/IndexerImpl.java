@@ -31,7 +31,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.frc.codex.properties.FilingIndexProperties;
-import com.frc.codex.RegistryCode;
+import com.frc.codex.model.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.clients.companieshouse.CompaniesHouseClient;
 import com.frc.codex.clients.companieshouse.CompaniesHouseHistoryClient;

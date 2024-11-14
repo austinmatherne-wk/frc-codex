@@ -8,7 +8,7 @@ import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import com.frc.codex.RegistryCode;
+import com.frc.codex.model.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Company;
 import com.frc.codex.model.Filing;
