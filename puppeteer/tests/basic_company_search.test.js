@@ -17,7 +17,7 @@ describe('Filing Index', () => {
         await codexPage.navigateToFilingIndex();
 
         // Search for company by name only
-        await codexPage.search.companyNameInput.enterText('TUSCANY PIZZA LTD');
+        await codexPage.search.companyNameAndNumberInput.enterText('TUSCANY PIZZA LTD');
         await codexPage.search.submitButton.select();
 
         // Assert search results

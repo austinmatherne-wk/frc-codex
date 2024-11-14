@@ -19,7 +19,7 @@ describe('Filing Index', () => {
         await codexPage.navigateToFilingIndex();
 
         // Search for company by CRN number
-        await codexPage.search.companyNumberInput.enterText('11162569');
+        await codexPage.search.companyNameAndNumberInput.enterText('11162569');
         await codexPage.search.submitButton.select();
 
         // Assert search results
@@ -38,17 +38,5 @@ describe('Filing Index', () => {
         // Go back to Filing Index
         await codexPage.page.goBack({waitUntil: 'domcontentloaded'});
         await codexPage.assertPageNavigation('FRC CODEx Filing Index');
-
-        // Clear CRN and assert company CRN link applies search filter
-        await codexPage.search.companyNumberInput.scrollToElement();
-        await codexPage.search.companyNumberInput.clear();
-        await codexPage.search.companyNumberInput.assertContent('');
-        await result.crn.select();
-        await codexPage.search.companyNumberInput.assertContent('11162569');
-
-        // Assert search results
-        await codexPage.search.assertResultCount(2);
-        await codexPage.search.getSearchResult('TUSCANY PIZZA LTD',
-            '11162569', '2023-01-31', '2023-06-02');
     });
 });
