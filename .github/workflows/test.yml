@@ -88,6 +88,7 @@ jobs:
         if: always()
         with:
           name: docker-logs
+          if-no-files-found: error
           path: ./dev/logs
 
   puppeteer:
@@ -130,6 +131,7 @@ jobs:
         if: failure()
         with:
           name: puppeteer-artifacts
+          if-no-files-found: error
           path: |
             ./puppeteer/artifacts
             ./dev/logs
