@@ -57,6 +57,7 @@ public class CompaniesHouseHttpClient {
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode() == HttpStatusCode.valueOf(429)) {
 				rateLimiter.notifyRejection();
+				LOG.error("Companies House API rate limit exceeded with 429 response.", e);
 				throw new RateLimitException("Rate limit exceeded.", e);
 			}
 			throw e;
