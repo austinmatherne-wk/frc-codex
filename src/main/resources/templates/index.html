@@ -169,7 +169,7 @@
                                 <option value="" selected>Any</option>
                                 <option th:each="registry:${T(com.frc.codex.RegistryCode).values()}"
                                         th:value="${registry.getCode()}"
-                                        th:text="${registry.getDisplayName()}"></option>
+                                        th:text="${registry.getFullName()}"></option>
                             </select>
                         </div>
                     </div>
