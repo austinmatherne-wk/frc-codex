@@ -15,17 +15,15 @@ describe('Filing Index', () => {
 
     test('Advanced Search - Date Filed', async () => {
         await codexPage.navigateToFilingIndex();
-        await codexPage.search.companyNameInput.enterText('TUSCANY PIZZA LTD');
-        await codexPage.search.companyNumberInput.enterText('11162569');
-        await codexPage.search.advancedSearchToggle.select();
+        await codexPage.search.companyNameAndNumberInput.enterText('TUSCANY PIZZA LTD');
 
-        // Set the minimum doc date
+        // Set the minimum filing date
         await codexPage.search.advancedSearch.minFilingDateYear.scrollToElement();
         await codexPage.search.advancedSearch.minFilingDateYear.enterText('2023');
         await codexPage.search.advancedSearch.minFilingDateMonth.enterText('6');
         await codexPage.search.advancedSearch.minFilingDateDay.enterText('2');
 
-        // Set the maximum doc date
+        // Set the maximum filing date
         await codexPage.search.advancedSearch.maxFilingDateYear.enterText('2023');
         await codexPage.search.advancedSearch.maxFilingDateMonth.enterText('6');
         await codexPage.search.advancedSearch.maxFilingDateDay.enterText('2');

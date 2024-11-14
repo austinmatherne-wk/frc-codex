@@ -11,12 +11,8 @@ export class Search {
     constructor(codexPage) {
         this.#codexPage = codexPage;
         this.advancedSearch = new AdvancedSearch(this.#codexPage);
-        this.advancedSearchToggle = new Button(this.#codexPage,
-            '//span[contains(text(),"Advanced Search")]', 'Advanced Search');
-        this.companyNameInput = new TextInput(this.#codexPage,
-            '//*[@id="company-name"]', 'Company Name');
-        this.companyNumberInput = new TextInput(this.#codexPage,
-            '//*[@id="company-number"]', 'Company Number');
+        this.companyNameAndNumberInput = new TextInput(this.#codexPage,
+            '//*[@id="company-name-or-number"]', 'Company Name or Number');
         this.registry = new Dropdown(this.#codexPage,'//*[@id="registryCode"]', 'Registry Code');
         this.submitButton = new Button(this.#codexPage,
             '//button[@type="submit"]', 'Submit');
@@ -99,18 +95,6 @@ export class AdvancedSearch {
 
     constructor(codexPage) {
         this.#codexPage = codexPage;
-        this.minDocDateYear = new TextInput(this.#codexPage,
-            '//*[@id="min-document-date-year"]', 'Min Document Date Year');
-        this.minDocDateMonth = new TextInput(this.#codexPage,
-            '//*[@id="min-document-date-month"]', 'Min Document Date Month');
-        this.minDocDateDay = new TextInput(this.#codexPage,
-            '//*[@id="min-document-date-day"]', 'Min Document Date Day');
-        this.maxDocDateYear = new TextInput(this.#codexPage,
-            '//*[@id="max-document-date-year"]', 'Max Document Date Year');
-        this.maxDocDateMonth = new TextInput(this.#codexPage,
-            '//*[@id="max-document-date-month"]', 'Max Document Date Month');
-        this.maxDocDateDay = new TextInput(this.#codexPage,
-            '//*[@id="max-document-date-day"]', 'Max Document Date Day');
         this.minFilingDateYear = new TextInput(this.#codexPage,
             '//*[@id="min-filing-date-year"]', 'Min Date Filed Year');
         this.minFilingDateMonth = new TextInput(this.#codexPage,
@@ -133,8 +117,11 @@ export class SearchResultCard {
     #codexPage;
     companyName;
     crn;
+    registry;
     documentDate;
     filingButton;
+    csvButton;
+    jsonButton;
     filingDate;
     #locator;
     viewerButton;
@@ -145,17 +132,25 @@ export class SearchResultCard {
         this.companyName = new Link(this.#codexPage,
             `${this.#locator}//h3`, 'Company Name');
         this.crn = new Link(this.#codexPage,
-            `${this.#locator}//dt[span[text()='CRN']]/following-sibling::dd/a`, 'CRN');
+            `${this.#locator}//dt[span[contains(text(), 'CRN')]]/following-sibling::dd`, 'CRN');
+        this.registry = new Link(this.#codexPage,
+            `${this.#locator}//dt[contains(text(), 'Registry:')]/following-sibling::dd`, 'Registry');
         this.documentDate = new Text(this.#codexPage,
-            `${this.#locator}//dt[contains(text(), 'Document Date')]/following-sibling::dd`,
+            `${this.#locator}//dt[contains(text(), 'Document Date:')]/following-sibling::dd`,
             'Document Date');
         this.filingButton = new Button(this.#codexPage,
             `${this.#locator}//a[normalize-space(text())="Filing"]`,
-            'Select Button');
+            'Filing Button');
+        this.csvButton = new Button(this.#codexPage,
+            `${this.#locator}//a[normalize-space(text())="xBRL-CSV"]`,
+            'xBRL-CSV Button');
+        this.jsonButton = new Button(this.#codexPage,
+            `${this.#locator}//a[normalize-space(text())="xBRL-JSON"]`,
+            'xBRL-JSON Button');
         this.filingDate = new Text(this.#codexPage,
-            `${this.#locator}//dt[contains(text(), 'Date Filed')]/following-sibling::dd`,
+            `${this.#locator}//dt[contains(text(), 'Date Filed:')]/following-sibling::dd`,
             'Date Filed');
         this.viewerButton = new Button(this.#codexPage,
-            `${this.#locator}//a[normalize-space(text())="Viewer"]`, 'Viewer Button');
+            `${this.#locator}//a[normalize-space(text())="Open Viewer"]`, 'Viewer Button');
     }
 }

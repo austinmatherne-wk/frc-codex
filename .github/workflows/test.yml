@@ -88,6 +88,7 @@ jobs:
         if: always()
         with:
           name: docker-logs
+          if-no-files-found: error
           path: ./dev/logs
 
   puppeteer:
@@ -108,7 +109,7 @@ jobs:
           repository: Arelle/frc-ixbrl-viewer
           path: processor/plugins/frc-ixbrl-viewer
           token: ${{ secrets.FRC_IXBRL_VIEWER_CHECKOUT_PAT }}
-      - uses: actions/setup-node@v4.1.0
+      - uses: actions/setup-node@v4
         with:
           cache: 'npm'
           check-latest: true
@@ -126,10 +127,11 @@ jobs:
       - name: "Test"
         shell: bash
         run: npm run test
-      - uses: actions/upload-artifact@v4.4.3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: puppeteer-artifacts
+          if-no-files-found: error
           path: |
             ./puppeteer/artifacts
             ./dev/logs

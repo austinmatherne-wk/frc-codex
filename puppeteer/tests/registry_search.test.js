@@ -17,8 +17,7 @@ describe('Filing Index', () => {
         await codexPage.navigateToFilingIndex();
 
         // Search for company by name and registry
-        await codexPage.search.companyNameInput.enterText('TUSCANY PIZZA LTD');
-        await codexPage.search.advancedSearchToggle.select();
+        await codexPage.search.companyNameAndNumberInput.enterText('TUSCANY PIZZA LTD');
         await codexPage.search.registry.scrollToElement();
         await codexPage.search.registry.selectOption('CH');
         await codexPage.search.registry.assertValue('CH');
@@ -33,7 +32,6 @@ describe('Filing Index', () => {
         await ch_result.viewerButton.assertVisible();
 
         // Change Registry to FCA, then search again
-        await codexPage.search.advancedSearchToggle.select();
         await codexPage.search.registry.scrollToElement();
         await codexPage.search.registry.selectOption('FCA');
         await codexPage.search.registry.assertValue('FCA');
@@ -43,7 +41,6 @@ describe('Filing Index', () => {
         await codexPage.search.assertResultCount(0);
 
         // Change Registry to Any, then search again
-        await codexPage.search.advancedSearchToggle.select();
         await codexPage.search.registry.scrollToElement();
         await codexPage.search.registry.selectOption('ANY');
         await codexPage.search.registry.assertValue('');
