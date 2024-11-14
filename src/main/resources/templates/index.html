@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>FRC CODEx Filing Index</title>
+    <title>UK Filing Index</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b0c0c">
     <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
@@ -32,7 +32,7 @@
         </div>
         <div class="govuk-header__content">
             <a href="/" class="govuk-header__link govuk-header__service-name">
-                Filing Index
+                UK iXBRL Viewer
             </a>
         </div>
     </div>
@@ -49,12 +49,23 @@
         </p>
     </div>
     <main class="govuk-main-wrapper">
-        <h1 class="govuk-heading-l">View XBRL data from any tagged company report</h1>
-        <div class="govuk-inset-text">
-            Extensible Business Reporting Language (XBRL) is a standardized way of tagging company reports,
-            required by regulatory bodies such as Companies House and the Financial Conduct Authority (FCA).
-            It helps organize company information so it's easy to find what you're looking for.
-        </div>
+        <details class="govuk-details">
+            <summary class="govuk-details__summary">
+                <span class="govuk-details__summary-text">
+                    What is iXBRL?
+                </span>
+            </summary>
+            <div class="govuk-details__text">
+            iXBRL is an extension of XBRL (eXtensible Business Reporting Language), the international
+            standard for sharing business information electronically. In the UK, iXBRL is used to tag
+            accounts and other business information in annual reports and submit them as inline XBRL (iXBRL)
+            reports to the UK Business Register: Companies House; Securities Regulator: Financial Conduct Authority;
+            Tax Authority: HM Revenue & Customs, Charities Regulator: Charity Commission for England and Wales.
+            With UK iXBRL Viewer, you can access machine-readable structured data (XBRL facts) from tagged iXBRL
+            reports available in the Companies House Registry and the National Storage Mechanism.
+            For more information on the UK iXBRL Viewer, please see the <a href="/FRC_Codex_User_Guide.pdf">User Guide</a>.
+            </div>
+        </details>
         <h1 class="govuk-heading-l" id="main-content">Search Filings</h1>
         <form action="#" th:action="@{/}" th:object="${searchFilingsRequest}" method="get">
             <div class="govuk-form-group">

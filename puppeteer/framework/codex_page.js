@@ -57,7 +57,7 @@ export class CodexPage {
     }
 
     /**
-     * Navigates the browser to the FRC CODEx Filing Index page.
+     * Navigates the browser to the UK Filing Index page.
      * @returns {Promise<void>}
      */
     async navigateToFilingIndex() {
