@@ -1,4 +1,4 @@
-package com.frc.codex.filingindex.controller;
+package com.frc.codex.controllers;
 
 import java.util.Objects;
 

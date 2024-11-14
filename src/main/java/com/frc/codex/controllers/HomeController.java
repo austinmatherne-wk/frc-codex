@@ -1,4 +1,4 @@
-package com.frc.codex.filingindex.controller;
+package com.frc.codex.controllers;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.frc.codex.FilingIndexProperties;
-import com.frc.codex.RegistryCode;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
 import com.frc.codex.model.HelpRequest;

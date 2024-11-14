@@ -1,4 +1,4 @@
-package com.frc.codex.filingindex.controller;
+package com.frc.codex.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
