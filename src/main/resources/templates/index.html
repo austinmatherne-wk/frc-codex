@@ -187,88 +187,89 @@
         <p th:if="${message != null}" class="govuk-body">
             <i th:text="${message}"></i>
         </p>
-        <div th:if="${filings != null && filings.size() > 0}">
+        <div th:if="${filings != null && filings.size() > 0}" class="search-result">
             <h3 class="govuk-heading-m">Results</h3>
             <div th:each="filing, iter : ${filings}" th:id="|result-${iter.index}|">
-                <hr style="margin-bottom:2em;"/>
-                <div class="govuk-grid-row" style="margin-bottom: 1rem;">
-                    <div class="govuk-grid-column-three-quarters">
+                <hr/>
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-two-thirds">
                         <h3 class="govuk-heading-m" style="display:inline" th:text="${filing.companyName}"></h3>
-                        <span th:switch="${filing.registryCode}">
-                            <strong th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
-                                    th:case="${registryCode.code}"
-                                    th:class="${registryCode.tagClass}"
-                                    th:text="${registryCode.shortName}"
-                                    style="padding-bottom:0;"></strong>
+
+                        <div style="display:flex;flex-wrap: wrap;justify-content: space-between;">
+                            <dl style="flex-basis: 40%;">
+                                <dt th:switch="${filing.registryCode}" style="text-align: left">
+                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                          th:case="${registryCode.code}"
+                                          th:text="${registryCode.companyFileReference} + ': '" ></span>
+                                    <span th:case="*">Company No.</span>
+                                </dt>
+                                <dd th:text="${filing.getCompanyNumber()}"></dd>
+                            </dl>
+                            <dl style="flex-basis: 25%;">
+                                <dt>Registry: </dt>
+                                <dd th:switch="${filing.registryCode}">
+                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
+                                          th:case="${registryCode.code}"
+                                          th:text="${registryCode.shortName}"></span>
+                                </dd>
+                            </dl>
+                            <dl style="flex-basis: 20%;">
+                                <dt>Document Date: </dt>
+                                <dd th:text="${filing.displayDocumentDate()}"></dd>
+                            </dl>
+                            <dl style="flex-basis: 15%;">
+                                <dt>Date Filed: </dt>
+                                <dd th:text="${filing.displayFilingDate()}"></dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="govuk-grid-column-one-third" style="text-align: right;">
+                        <div class="govuk-button-group" style="justify-content: flex-end;margin-bottom: 0;">
+                            <a th:href="${filing.getViewerLink()}" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                                Open Viewer
+                            </a>
+                        </div>
+                        <div>
+                            <img src="/icons/download.svg" alt="Download icon" height="16" width="16">
+                            <b>Downloads:</b>
+                        </div>
+
+                        <span class="download-link">
+                            <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline">
+                                xBRL-CSV
+                            </a>
+                            <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
+                            <span class="download-tooltip">
+                                XBRL facts as CSV files in a zip report package.<br/>
+                                <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-csv-report">Learn more.</a>
+                            </span>
+                        </span>
+                        |
+                        <span class="download-link">
+                            <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline">
+                                xBRL-JSON
+                            </a>
+                            <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
+                            <span class="download-tooltip">
+                                XBRL facts as JSON files in a zip report package.<br/>
+                                <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-json-report">Learn more.</a>
+                            </span>
+                        </span>
+                        |
+                        <span class="download-link">
+                            <a th:href="${filing.getDownloadUrl()}" class="govuk-link govuk-link--no-underline">
+                                Filing
+                            </a>
+                            <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
+                            <span class="download-tooltip">
+                                The original inline XBRL filing.<br/>
+                                <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#ixbrl-report">Learn more.</a>
+                            </span>
                         </span>
                     </div>
                 </div>
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-one-half" style="padding-left: 2em;">
-                        <dl class="govuk-summary-list govuk-summary-list--no-border">
-                            <div class="govuk-summary-list__row">
-                                <dt th:switch="${filing.registryCode}" class="govuk-summary-list__key">
-                                    <span th:each="registryCode:${T(com.frc.codex.RegistryCode).values()}"
-                                          th:case="${registryCode.code}"
-                                          th:text="${registryCode.companyFileReference}" ></span>
-                                    <span th:case="*">Company No.</span>
-                                </dt>
-                                <dd class="govuk-summary-list__value">
-                                    <a class="govuk-link govuk-link--no-underline"
-                                       th:text="${filing.getCompanyNumber()}"
-                                       th:href="@{/(searchText=${filing.getCompanyNumber()})}"></a>
-                                </dd>
-                            </div>
-                            <div class="govuk-summary-list__row">
-                                <dt class="govuk-summary-list__key">
-                                    Document Date
-                                </dt>
-                                <dd class="govuk-summary-list__value" th:text="${filing.displayDocumentDate()}"></dd>
-                            </div>
-                            <div class="govuk-summary-list__row">
-                                <dt class="govuk-summary-list__key">
-                                    Filing Date
-                                </dt>
-                                <dd class="govuk-summary-list__value" th:text="${filing.displayFilingDate()}"></dd>
-                            </div>
-                            <div class="govuk-summary-list__row" th:if="${searchFilingsRequest.admin}">
-                                <dt class="govuk-summary-list__key">
-                                    Status
-                                </dt>
-                                <dd th:switch="${filing.status}" class="govuk-summary-list__value" style="text-transform: capitalize">
-                                    <strong class="govuk-tag govuk-tag--grey" th:case="'pending'" th:text="${filing.status}"></strong>
-                                    <strong class="govuk-tag govuk-tag--blue" th:case="'queued'" th:text="${filing.status}"></strong>
-                                    <strong class="govuk-tag govuk-tag--red" th:case="'failed'" th:text="${filing.status}"></strong>
-                                    <strong class="govuk-tag govuk-tag--green" th:case="'completed'" th:text="${filing.status}"></strong>
-                                    <strong class="govuk-tag govuk-tag--grey" th:case="*" th:text="${filing.status}"></strong>
-                                </dd>
-                            </div>
-                        </dl>
-                    </div>
-                    <div class="govuk-grid-column-one-quarter">
-                        <p class="govuk-body">
-                            <b class="govuk-!-display-block">Download:</b>
-                            <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
-                                xBRL-CSV
-                            </a>
-                            <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
-                                xBRL-JSON
-                            </a>
-                            <a th:href="${filing.getDownloadUrl()}" class="govuk-link govuk-link--no-underline govuk-!-display-block">
-                                Filing
-                            </a>
-                        </p>
-                    </div>
-                    <div class="govuk-grid-column-one-quarter">
-                        <div class="govuk-button-group" style="justify-content: flex-end;">
-                            <a th:href="${filing.getViewerLink()}" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                                Viewer
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <p th:if="${moreResultsLink != null}" class="govuk-body" style="text-align: center">
+            <p th:if="${moreResultsLink != null}" class="govuk-body" style="text-align: center; padding:1em;">
                 <a th:href="${moreResultsLink}">Load more filings</a>
             </p>
             <p th:if="${maximumResultsReturned}" class="govuk-body" style="text-align: center">
