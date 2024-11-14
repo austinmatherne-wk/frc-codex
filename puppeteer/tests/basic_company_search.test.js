@@ -31,7 +31,7 @@ describe('Filing Index', () => {
 
         // Go back to Filing Index
         await codexPage.page.goBack({waitUntil: 'domcontentloaded'});
-        await codexPage.assertPageNavigation('FRC CODEx Filing Index');
+        await codexPage.assertPageNavigation('UK Filing Index');
 
         // Open Viewer
         await result.viewerButton.scrollToElement();
