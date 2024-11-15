@@ -157,6 +157,8 @@ public class CompaniesHouseStreamIndexerImpl implements IndexerJob {
 			this.companiesHouseClient.streamFilings(startTimepoint, callback);
 		} catch (RateLimitException e) {
 			LOG.warn("Rate limit exceeded while streaming CH filings. Resuming later.", e);
+		} catch (IOException e) {
+			LOG.error("Companies House stream closed with an exception.", e);
 		}
 	}
 }
