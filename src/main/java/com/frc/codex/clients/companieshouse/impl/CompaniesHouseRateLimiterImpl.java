@@ -108,6 +108,9 @@ public class CompaniesHouseRateLimiterImpl extends RateLimiter implements Compan
 			this.reset = new Timestamp(Long.parseLong(reset) * 1000);
 			this.updated = new Timestamp(headers.getDate());
 		}
-		LOG.debug("Updated CH rate limit details: url={}, limit={}, remaining={}, reset={}, updated={}", url, this.limit, this.remaining, this.reset, this.updated);
+		LOG.info(
+				"Updated CH rate limit details: url={}, limit={}, remaining={}, reset={}, updated={}",
+				url, this.limit, this.remaining, this.reset, this.updated
+		);
 	}
 }
