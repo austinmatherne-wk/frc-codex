@@ -121,7 +121,7 @@ public class IndexerImpl implements Indexer {
 	 * If the connection closes, resumes after one minute.
 	 * One scheduler thread is effectively dedicated to this task.
 	 */
-	@Scheduled(fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
 	public void indexCompaniesHouseFilings() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
@@ -136,7 +136,7 @@ public class IndexerImpl implements Indexer {
 	/*
 	 * Indexes Companies House filings from local companies index.
 	 */
-	@Scheduled(fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(initialDelay = 90, fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
 	public void indexFilingsFromCompaniesIndex() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
@@ -234,7 +234,7 @@ public class IndexerImpl implements Indexer {
 		return true;
 	}
 
-	@Scheduled(fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(initialDelay = 5, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
 	public void indexCompaniesFromCompaniesHouseArchives() {
 		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return;
@@ -266,7 +266,7 @@ public class IndexerImpl implements Indexer {
 	 * Runs hourly, taking only a few seconds.
 	 * Can share a scheduler thread with other tasks.
 	 */
-	@Scheduled(fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(initialDelay = 1, fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
 	public void indexFca() {
 		// TODO: Implement as IndexerJob
 		fcaSessionLastStartedDate = new Date();
@@ -303,7 +303,7 @@ public class IndexerImpl implements Indexer {
 		LOG.info("Completed FCA indexing at {}", fcaSessionLastEndedDate);
 	}
 
-	@Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(initialDelay = 1, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
 	public void preprocessFcaViaLambda() throws InterruptedException {
 		int concurrency = properties.lambdaPreprocessingConcurrency();
 		if (concurrency < 1) {
@@ -384,7 +384,7 @@ public class IndexerImpl implements Indexer {
 	 * Reruns after a delay of 20 seconds.
 	 * Can share a scheduler thread with other tasks.
 	 */
-	@Scheduled(fixedDelay = 20, timeUnit = TimeUnit.SECONDS)
+	@Scheduled(initialDelay = 5, fixedDelay = 20, timeUnit = TimeUnit.SECONDS)
 	public void queueJobs() {
 		if (!properties.enablePreprocessing()) {
 			return;
