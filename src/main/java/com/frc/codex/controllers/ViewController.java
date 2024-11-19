@@ -117,42 +117,44 @@ public class ViewController {
 
 	@GetMapping("/download/{filingId}/{format}")
 	@ResponseBody
-	public void download(
+	public ModelAndView download(
 			HttpServletResponse response,
 			@PathVariable("filingId") String filingId,
 			@PathVariable("format") String format) throws IOException, InterruptedException {
 		OimFormat oimFormat = OimFormat.fromFormat(format);
 		if (oimFormat == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return;
+			response.setStatus(HttpStatus.BAD_REQUEST.value());
+			return null;
 		}
+		LOG.info("[ANALYTICS] DOWNLOAD (filingId=\"{}\",format=\"{}\")", filingId, oimFormat.getFormat());
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		boolean internalError = false;
-		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
-			internalError = true;
-		} else if (!filing.getStatus().equals(FilingStatus.COMPLETED.toString())) {
+		if (filing.getStatus().equals(FilingStatus.PENDING.toString()) || filing.getStatus().equals(FilingStatus.QUEUED.toString())) {
 			CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 			if (future == null) {
 				// No request in progress. We'll start one.
 				this.processFiling(filing);
 			}
 			internalError = !waitForFiling(filingUuid);
-			// Reload the filing object from the database now with processed filename details.
-			filing = databaseManager.getFiling(filingUuid);
+			if (!internalError) {
+				// Reload the filing object from the database now with processed filename details.
+				filing = databaseManager.getFiling(filingUuid);
+			}
 		}
-		if (internalError || filing.getFilename() == null) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-			response.getWriter().write("Failed to process filing.");
-			return;
+		if (filing.getStatus().equals(FilingStatus.FAILED.toString()) || filing.getFilename() == null || filing.getOimDirectory() == null) {
+			internalError = true;
+		}
+		if (internalError) {
+			return unavailableResult("Download unavailable. The requested filing could not be converted to " + oimFormat.getFormat() + " OIM format.");
 		}
 		response.setContentType("application/zip");
-		response.setStatus(HttpServletResponse.SC_OK);
+		response.setStatus(HttpStatus.OK.value());
 		String filename = String.format("%s.%s.zip", filing.getFilenameStem(), oimFormat.getFormat().toLowerCase());
 		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 		try (ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
 			reportPackageProvider.writeReportPackage(filing, oimFormat, zipOutputStream);
+			return null;
 		}
 	}
 
@@ -216,7 +218,7 @@ public class ViewController {
 		}
 		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
 			// Generation failed, show error message.
-			return unavailableResult();
+			return unavailableResult("Sorry, this viewer is currently unavailable.");
 		}
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 		if (future == null) {
@@ -253,9 +255,9 @@ public class ViewController {
 		}
 	}
 
-	private ModelAndView unavailableResult() {
+	private ModelAndView unavailableResult(String msg) {
 		ModelAndView modelAndView = new ModelAndView("view/unavailable");
-		modelAndView.addObject("message", "Viewer generation failed. Please try again later.");
+		modelAndView.addObject("message", msg);
 		return modelAndView;
 	}
 
@@ -272,7 +274,7 @@ public class ViewController {
 		if (waitForFiling(filingUuid)) {
 			return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 		} else {
-			return unavailableResult();
+			return unavailableResult("Processing failed. Please try again later.");
 		}
 	}
 

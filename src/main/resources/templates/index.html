@@ -244,29 +244,30 @@
                             <img src="/icons/download.svg" alt="Download icon" height="16" width="16">
                             <b>Downloads:</b>
                         </div>
-
-                        <span class="download-link">
-                            <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline">
-                                xBRL-CSV
-                            </a>
-                            <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
-                            <span class="download-tooltip">
-                                XBRL facts as CSV files in a zip report package.<br/>
-                                <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-csv-report">Learn more.</a>
+                        <span th:if="${!(filing.isCompleted() && filing.getOimDirectory() == null)}">
+                            <span class="download-link">
+                                <a th:href="${filing.getXbrlCsvUrl()}" class="govuk-link govuk-link--no-underline">
+                                    xBRL-CSV
+                                </a>
+                                <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
+                                <span class="download-tooltip">
+                                    XBRL facts as CSV files in a zip report package.<br/>
+                                    <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-csv-report">Learn more.</a>
+                                </span>
                             </span>
-                        </span>
-                        |
-                        <span class="download-link">
-                            <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline">
-                                xBRL-JSON
-                            </a>
-                            <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
-                            <span class="download-tooltip">
-                                XBRL facts as JSON files in a zip report package.<br/>
-                                <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-json-report">Learn more.</a>
+                            |
+                            <span class="download-link">
+                                <a th:href="${filing.getXbrlJsonUrl()}" class="govuk-link govuk-link--no-underline">
+                                    xBRL-JSON
+                                </a>
+                                <img src="/icons/info.svg" alt="Download icon" height="16" width="16">
+                                <span class="download-tooltip">
+                                    XBRL facts as JSON files in a zip report package.<br/>
+                                    <a target="_blank" href="https://www.xbrl.org/guidance/xbrl-glossary/#xbrl-json-report">Learn more.</a>
+                                </span>
                             </span>
+                            |
                         </span>
-                        |
                         <span class="download-link">
                             <a th:href="${filing.getDownloadUrl()}" class="govuk-link govuk-link--no-underline">
                                 Filing

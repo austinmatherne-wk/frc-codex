@@ -74,7 +74,7 @@ class TestProcessor(TestCase):
         self.assertEqual(worker_results[1].logs, 'logs2')
         self.assertEqual(worker_results[1].success, False)
         self.assertEqual(worker_results[1].viewer_entrypoint, '')
-        self.assertEqual(worker_results[1].oim_directory, '')
+        self.assertEqual(worker_results[1].oim_directory, None)
 
         self.assertEqual(upload_manager.uploads, [
             ('filing_id1', 'viewer'),

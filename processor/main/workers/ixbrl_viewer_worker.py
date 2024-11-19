@@ -70,27 +70,18 @@ class IxbrlViewerWorker(Worker):
                 xbrl_json_files.append(f)
             else:
                 logger.error(f'Unexpected file found in OIM directory: {f.name}')
-        if len(xbrl_json_files) == 0:
-            return WorkerResult(
-                job_message.filing_id,
-                error='Arelle reported success but no xBRL-JSON reports found. Check the logs for details.',
-                logs=result.logs
-            )
-        if len(xbrl_csv_files) == 0:
-            return WorkerResult(
-                job_message.filing_id,
-                error='Arelle reported success but no xBRL-CSV reports found. Check the logs for details.',
-                logs=result.logs
-            )
-        xbrl_csv_path = oim_path / XBRL_CSV_DIRECTORY
-        xbrl_csv_path.mkdir(exist_ok=True)
-        for f in xbrl_csv_files:
-            shutil.move(f, xbrl_csv_path)
-        xbrl_json_path = oim_path / XBRL_JSON_DIRECTORY
-        xbrl_json_path.mkdir(exist_ok=True)
-        for f in xbrl_json_files:
-            shutil.move(f, xbrl_json_path)
-        if isReportPackageExtension(filing_download.download_path.name):
+        if len(xbrl_csv_files) > 0:
+            xbrl_csv_path = oim_path / XBRL_CSV_DIRECTORY
+            xbrl_csv_path.mkdir(exist_ok=True)
+            for f in xbrl_csv_files:
+                shutil.move(f, xbrl_csv_path)
+        if len(xbrl_json_files) > 0:
+            xbrl_json_path = oim_path / XBRL_JSON_DIRECTORY
+            xbrl_json_path.mkdir(exist_ok=True)
+            for f in xbrl_json_files:
+                shutil.move(f, xbrl_json_path)
+        generated_oim_files = len(xbrl_csv_files) > 0 and len(xbrl_json_files) > 0
+        if generated_oim_files and isReportPackageExtension(filing_download.download_path.name):
             # Save packages for constructing OIM versions of the packages.
             oim_package_dest = oim_path / filing_download.download_path.name
             shutil.copy(filing_download.download_path, oim_package_dest)
@@ -98,7 +89,7 @@ class IxbrlViewerWorker(Worker):
             job_message.filing_id,
             success=True,
             viewer_entrypoint=VIEWER_HTML_FILENAME,
-            oim_directory=OIM_DIRECTORY,
+            oim_directory=OIM_DIRECTORY if generated_oim_files else None,
             logs=result.logs,
             filename=filing_download.download_path.name,
             company_name=result.company_name,
