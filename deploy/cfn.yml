@@ -6,11 +6,11 @@ Parameters:
     Default: arn:aws:acm:eu-west-2:390403885523:certificate/e3e73ab8-e2bb-49b3-93a9-ad1e10b05ebc
   CompaniesHouseRapidRateLimit:
     Type: Number
-    Default: 5
+    Default: 1
     Description: "The number of requests allowed in the rate limit window."
   CompaniesHouseRapidRateWindow:
     Type: Number
-    Default: 10000
+    Default: 2000
     Description: "The duration of the rate limit window in milliseconds."
   CompaniesHouseRESTAPIKey:
     Type: String
