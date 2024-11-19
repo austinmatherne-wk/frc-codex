@@ -123,7 +123,7 @@ public class ViewController {
 			@PathVariable("format") String format) throws IOException, InterruptedException {
 		OimFormat oimFormat = OimFormat.fromFormat(format);
 		if (oimFormat == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setStatus(HttpStatus.BAD_REQUEST.value());
 			return;
 		}
 		LOG.info("[ANALYTICS] DOWNLOAD (filingId=\"{}\",format=\"{}\")", filingId, oimFormat.getFormat());
@@ -143,13 +143,13 @@ public class ViewController {
 			filing = databaseManager.getFiling(filingUuid);
 		}
 		if (internalError || filing.getFilename() == null) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			response.setContentType(MediaType.TEXT_PLAIN_VALUE);
 			response.getWriter().write("Failed to process filing.");
 			return;
 		}
 		response.setContentType("application/zip");
-		response.setStatus(HttpServletResponse.SC_OK);
+		response.setStatus(HttpStatus.OK.value());
 		String filename = String.format("%s.%s.zip", filing.getFilenameStem(), oimFormat.getFormat().toLowerCase());
 		response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 		try (ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
