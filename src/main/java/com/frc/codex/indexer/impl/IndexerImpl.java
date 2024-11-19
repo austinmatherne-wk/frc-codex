@@ -124,7 +124,7 @@ public class IndexerImpl implements Indexer {
 	public void indexCompaniesHouseFilings() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
-				LOG.info("Can not index from Companies House stream. Companies House client is disabled.");
+				LOG.info("Cannot index from Companies House stream. Companies House client is disabled.");
 				return false;
 			}
 			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
@@ -139,7 +139,7 @@ public class IndexerImpl implements Indexer {
 	public void indexFilingsFromCompaniesIndex() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
-				LOG.info("Can not index filings from companies index: Companies House client is disabled.");
+				LOG.info("Cannot index filings from companies index: Companies House client is disabled.");
 				return false;
 			}
 			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
