@@ -41,7 +41,7 @@ Parameters:
     Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/support
   ServerMillivCPU:
     Type: String
-    Default: "1024"
+    Default: "512"
   ServerMemoryMB:
     Type: String
     Default: "3072"
