@@ -181,7 +181,7 @@ public class FilingResultRequest {
 				error = jsonNode.get("Error").asText();
 			} else {
 				filename = jsonNode.get("Filename").asText();
-				oimDirectory = jsonNode.get("OimDirectory").asText();
+				oimDirectory = jsonNode.get("OimDirectory").asText(null);
 				viewerEntrypoint = jsonNode.get("ViewerEntrypoint").asText();
 			}
 			String companyName = jsonNode.get("CompanyName").asText();

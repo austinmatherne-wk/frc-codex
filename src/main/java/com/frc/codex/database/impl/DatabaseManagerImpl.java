@@ -90,7 +90,11 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			statement.setString(++i, filingResultRequest.getLogs());
 			statement.setString(++i, filingResultRequest.getStatus().toString());
 			statement.setString(++i, filingResultRequest.getFilename());
-			statement.setString(++i, filingResultRequest.getOimDirectory());
+			if (filingResultRequest.getOimDirectory() == null) {
+				statement.setNull(++i, java.sql.Types.VARCHAR);
+			} else {
+				statement.setString(++i, filingResultRequest.getOimDirectory());
+			}
 			statement.setString(++i, filingResultRequest.getStubViewerUrl());
 			statement.setString(++i, filingResultRequest.getCompanyName());
 			statement.setString(++i, filingResultRequest.getCompanyNumber());

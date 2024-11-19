@@ -142,7 +142,7 @@ public class ViewController {
 				filing = databaseManager.getFiling(filingUuid);
 			}
 		}
-		if (filing.getStatus().equals(FilingStatus.FAILED.toString()) || filing.getFilename() == null) {
+		if (filing.getStatus().equals(FilingStatus.FAILED.toString()) || filing.getFilename() == null || filing.getOimDirectory() == null) {
 			internalError = true;
 		}
 		if (internalError) {

@@ -74,6 +74,10 @@ public class Filing {
 		return status;
 	}
 
+	public boolean isCompleted() {
+		return Objects.equals(status, FilingStatus.COMPLETED.toString());
+	}
+
 	public String getRegistryCode() {
 		return registryCode;
 	}
@@ -146,7 +150,7 @@ public class Filing {
 	}
 
 	public String getViewerLink() {
-		String path = Objects.equals(status, FilingStatus.COMPLETED.name()) ? stubViewerUrl : "viewer";
+		String path = isCompleted() ? stubViewerUrl : "viewer";
 		return "view/" + filingId.toString() + "/" + path;
 	}
 
