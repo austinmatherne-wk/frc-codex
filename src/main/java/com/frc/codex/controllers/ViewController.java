@@ -216,7 +216,7 @@ public class ViewController {
 		}
 		if (filing.getStatus().equals(FilingStatus.FAILED.toString())) {
 			// Generation failed, show error message.
-			return unavailableResult();
+			return unavailableResult("Sorry, this viewer is currently unavailable.");
 		}
 		CompletableFuture<InvokeResponse> future = invokeFutures.get(filingUuid);
 		if (future == null) {
@@ -253,9 +253,9 @@ public class ViewController {
 		}
 	}
 
-	private ModelAndView unavailableResult() {
+	private ModelAndView unavailableResult(String msg) {
 		ModelAndView modelAndView = new ModelAndView("view/unavailable");
-		modelAndView.addObject("message", "Viewer generation failed. Please try again later.");
+		modelAndView.addObject("message", msg);
 		return modelAndView;
 	}
 
@@ -272,7 +272,7 @@ public class ViewController {
 		if (waitForFiling(filingUuid)) {
 			return new ModelAndView("redirect:/view/" + filingId + "/viewer");
 		} else {
-			return unavailableResult();
+			return unavailableResult("Processing failed. Please try again later.");
 		}
 	}
 
