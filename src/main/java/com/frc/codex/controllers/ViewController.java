@@ -126,6 +126,7 @@ public class ViewController {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
+		LOG.info("[ANALYTICS] DOWNLOAD (filingId=\"{}\",format=\"{}\")", filingId, oimFormat.getFormat());
 		UUID filingUuid = UUID.fromString(filingId);
 		Filing filing = databaseManager.getFiling(filingUuid);
 		boolean internalError = false;
