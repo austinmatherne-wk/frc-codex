@@ -39,6 +39,12 @@ Parameters:
   SupportImage:
     Type: String
     Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/support
+  ServerMillivCPU:
+    Type: String
+    Default: "1024"
+  ServerMemoryMB:
+    Type: String
+    Default: "3072"
   Version:
     Type: String
     Description: "The docker tag to use.  See ECR for available tags."
@@ -250,12 +256,12 @@ Resources:
   ECSTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
-      Cpu: "1024"
+      Cpu: !Ref ServerMillivCPU
       EphemeralStorage:
         SizeInGiB: 21
       ExecutionRoleArn: !GetAtt IAMRoleECSTaskExecution.Arn
       Family: !Sub "${EnvironmentName}-server"
-      Memory: "3072"
+      Memory: !Ref ServerMemoryMB
       NetworkMode: "awsvpc"
       RequiresCompatibilities:
       - "FARGATE"
