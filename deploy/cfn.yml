@@ -6,11 +6,11 @@ Parameters:
     Default: arn:aws:acm:eu-west-2:390403885523:certificate/e3e73ab8-e2bb-49b3-93a9-ad1e10b05ebc
   CompaniesHouseRapidRateLimit:
     Type: Number
-    Default: 5
+    Default: 1
     Description: "The number of requests allowed in the rate limit window."
   CompaniesHouseRapidRateWindow:
     Type: Number
-    Default: 10000
+    Default: 2000
     Description: "The duration of the rate limit window in milliseconds."
   CompaniesHouseRESTAPIKey:
     Type: String
@@ -39,6 +39,12 @@ Parameters:
   SupportImage:
     Type: String
     Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/support
+  ServerMillivCPU:
+    Type: String
+    Default: "512"
+  ServerMemoryMB:
+    Type: String
+    Default: "3072"
   Version:
     Type: String
     Description: "The docker tag to use.  See ECR for available tags."
@@ -250,12 +256,12 @@ Resources:
   ECSTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
-      Cpu: "1024"
+      Cpu: !Ref ServerMillivCPU
       EphemeralStorage:
         SizeInGiB: 21
       ExecutionRoleArn: !GetAtt IAMRoleECSTaskExecution.Arn
       Family: !Sub "${EnvironmentName}-server"
-      Memory: "3072"
+      Memory: !Ref ServerMemoryMB
       NetworkMode: "awsvpc"
       RequiresCompatibilities:
       - "FARGATE"

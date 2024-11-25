@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -120,11 +121,11 @@ public class IndexerImpl implements Indexer {
 	 * If the connection closes, resumes after one minute.
 	 * One scheduler thread is effectively dedicated to this task.
 	 */
-	@Scheduled(fixedDelay = 60 * 1000)
+	@Scheduled(initialDelay = 1, fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
 	public void indexCompaniesHouseFilings() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
-				LOG.info("Can not index from Companies House stream. Companies House client is disabled.");
+				LOG.info("Cannot index from Companies House stream. Companies House client is disabled.");
 				return false;
 			}
 			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
@@ -135,11 +136,11 @@ public class IndexerImpl implements Indexer {
 	/*
 	 * Indexes Companies House filings from local companies index.
 	 */
-	@Scheduled(fixedDelay = 60 * 1000)
+	@Scheduled(initialDelay = 90, fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
 	public void indexFilingsFromCompaniesIndex() throws IOException {
 		Supplier<Boolean> continueCallback = () -> {
 			if (!companiesHouseClient.isEnabled()) {
-				LOG.info("Can not index filings from companies index: Companies House client is disabled.");
+				LOG.info("Cannot index filings from companies index: Companies House client is disabled.");
 				return false;
 			}
 			return !databaseManager.checkRegistryLimit(RegistryCode.COMPANIES_HOUSE, properties.filingLimitCompaniesHouse());
@@ -233,7 +234,7 @@ public class IndexerImpl implements Indexer {
 		return true;
 	}
 
-	@Scheduled(fixedDelay = 30 * 60 * 1000)
+	@Scheduled(initialDelay = 5, fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
 	public void indexCompaniesFromCompaniesHouseArchives() {
 		if (databaseManager.checkCompaniesLimit(properties.unprocessedCompaniesLimit())) {
 			return;
@@ -265,7 +266,7 @@ public class IndexerImpl implements Indexer {
 	 * Runs hourly, taking only a few seconds.
 	 * Can share a scheduler thread with other tasks.
 	 */
-	@Scheduled(fixedDelay = 60 * 60 * 1000)
+	@Scheduled(initialDelay = 1, fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
 	public void indexFca() {
 		// TODO: Implement as IndexerJob
 		fcaSessionLastStartedDate = new Date();
@@ -302,7 +303,7 @@ public class IndexerImpl implements Indexer {
 		LOG.info("Completed FCA indexing at {}", fcaSessionLastEndedDate);
 	}
 
-	@Scheduled(fixedDelay = 60 * 10 * 1000)
+	@Scheduled(initialDelay = 1, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
 	public void preprocessFcaViaLambda() throws InterruptedException {
 		int concurrency = properties.lambdaPreprocessingConcurrency();
 		if (concurrency < 1) {
@@ -360,7 +361,7 @@ public class IndexerImpl implements Indexer {
 	 * Reruns after a delay of 20 seconds.
 	 * Can share a scheduler thread with other tasks.
 	 */
-	@Scheduled(fixedDelay = 20 * 1000)
+	@Scheduled(fixedDelay = 20, timeUnit = TimeUnit.SECONDS)
 	public void processResults() {
 		if (!properties.enablePreprocessing()) {
 			return;
@@ -383,7 +384,7 @@ public class IndexerImpl implements Indexer {
 	 * Reruns after a delay of 20 seconds.
 	 * Can share a scheduler thread with other tasks.
 	 */
-	@Scheduled(fixedDelay = 20 * 1000)
+	@Scheduled(initialDelay = 5, fixedDelay = 20, timeUnit = TimeUnit.SECONDS)
 	public void queueJobs() {
 		if (!properties.enablePreprocessing()) {
 			return;
