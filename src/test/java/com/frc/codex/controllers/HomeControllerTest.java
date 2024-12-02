@@ -29,7 +29,7 @@ class HomeControllerTest {
 	@Test
 	void indexPage() {
 		assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/",
-				String.class)).contains("UK Filing Index");
+				String.class)).contains("UK iXBRL Viewer");
 	}
 
 	@Test

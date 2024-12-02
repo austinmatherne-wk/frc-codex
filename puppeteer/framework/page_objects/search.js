@@ -2,7 +2,7 @@ import { Button, Dropdown, Link, Text, TextInput } from "../core_elements";
 import { getElementsByXpath, getProperty, waitFor } from "../utils";
 
 /**
- * Represents the search options on the UK Filing Index page.
+ * Represents the search options on the UK iXBRL Viewer page.
  */
 export class Search {
     #codexPage;
@@ -88,7 +88,7 @@ export class Search {
 }
 
 /**
- * Represents the advanced search options on the UK Filing Index page.
+ * Represents the advanced search options on the UK iXBRL Viewer page.
  */
 export class AdvancedSearch {
     #codexPage;
@@ -111,7 +111,7 @@ export class AdvancedSearch {
 }
 
 /**
- * Represents a search result card on the UK Filing Index page.
+ * Represents a search result card on the UK iXBRL Viewer page.
  */
 export class SearchResultCard {
     #codexPage;
