@@ -23,9 +23,9 @@
 <header class="govuk-header" data-module="govuk-header">
     <div class="govuk-header__container govuk-width-container">
         <div class="govuk-header__logo">
-                <img src="/logo.svg"
+            <img src="/logo.svg"
                  alt="CODEx Logo"
-                     height="30"
+                 height="30"
                  width="110">
         </div>
         <div class="govuk-header__content">
@@ -77,40 +77,15 @@
             </div>
         </div>
         <p class="govuk-body">
-            Use this form to contact our staff with any questions, issues,
+            Use this email address to contact our staff with any questions, issues,
             or feedback you have about the UK iXBRL Viewer.<br>
             Some helpful details may include the company name, company number,
             or URL associated with a specific viewer or filing.
         </p>
-        <form th:action="@{/help}" th:object="${helpRequest}" method="post">
-            <input class="govuk-input" id="referer" type="hidden" th:field="*{referer}">
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="name">
-                    Your Name
-                </label>
-                <input class="govuk-input" id="name" type="text" th:field="*{name}">
-            </div>
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="email-address">
-                    Your Email Address
-                </label>
-                <div id="email-address-hint" class="govuk-hint">
-                    We will use this to respond about your request.
-                </div>
-                <input class="govuk-input" id="email-address" type="text" aria-describedby="email-address-hint" th:field="*{emailAddress}">
-            </div>
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="message">
-                    Message
-                </label>
-                <textarea class="govuk-textarea" id="message" name="message" rows="5" th:field="*{message}"></textarea>
-            </div>
-            <div class="govuk-button-group">
-                <button type="submit" class="govuk-button" data-module="govuk-button" data-prevent-double-click="true">
-                    Send
-                </button>
-            </div>
-        </form>
+        <p class="govuk-body">
+            <span th:if="${supportEmail == null}">Service deployed without support email address (environment variable: SUPPORT_EMAIL).</span>
+            <a th:unless="${supportEmail == null}" class="govuk-link" th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}"></a>
+        </p>
     </main>
 </div>
 <footer class="govuk-footer">
