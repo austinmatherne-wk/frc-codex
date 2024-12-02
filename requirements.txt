@@ -1,4 +1,4 @@
-arelle-release==2.35.10
-boto3==1.35.68
+arelle-release==2.35.12
+boto3==1.35.72
 filelock==3.16.1
 requests==2.32.3
