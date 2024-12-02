@@ -41,7 +41,7 @@ public class SupportManagerImpl implements SupportManager {
 			return null;
 		}
 		UUID id = UUID.randomUUID();
-		String subject = "FRC CODEx Help Request [" + id + "]";
+		String subject = "CODEx Help Request [" + id + "]";
 		String body =
 				"ID: " + id + "\n" +
 				"Name: " + helpRequest.getName() + "\n" +
