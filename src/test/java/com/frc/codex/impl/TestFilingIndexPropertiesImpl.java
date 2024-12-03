@@ -98,6 +98,14 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 		return config;
 	}
 
+	public String httpUsername() {
+		return null;
+	}
+
+	public String httpPassword() {
+		return null;
+	}
+
 	public boolean isAws() {
 		return false;
 	}

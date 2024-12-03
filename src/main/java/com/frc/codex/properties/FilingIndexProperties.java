@@ -23,6 +23,8 @@ public interface FilingIndexProperties {
 	int filingLimitCompaniesHouse();
 	int filingLimitFca();
 	HikariConfig getDatabaseConfig(String poolName);
+	String httpUsername();
+	String httpPassword();
 	boolean isAws();
 	boolean isDbMigrateAsync();
 	int lambdaPreprocessingConcurrency();
