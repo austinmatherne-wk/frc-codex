@@ -36,7 +36,6 @@ class IxbrlViewerWorker(Worker):
 
     def __init__(self, processor_options: ProcessorOptions, http_cache_directory: Path | None = None):
         self._http_cache_directory = http_cache_directory or processor_options.http_cache_directory
-        self._ixbrl_viewer_plugin_path = processor_options.ixbrl_viewer_plugin_path
 
     def work(
             self,
@@ -122,7 +121,7 @@ class IxbrlViewerWorker(Worker):
                 'viewerURL': '/ixbrlviewer.js',
                 'viewer_feature_mandatory_facts': 'companies-house'
             },
-            plugins=f"{self._ixbrl_viewer_plugin_path}|saveLoadableOIM",
+            plugins="ixbrl-viewer|saveLoadableOIM",
         )
         with Session() as session:
             success = session.run(runtime_options)
