@@ -31,13 +31,17 @@ public class SupportManagerImpl implements SupportManager {
 		this.supportEmail = properties.supportEmail();
 	}
 
+	public String getSupportEmail() {
+		return supportEmail;
+	}
+
 	public UUID sendHelpRequest(HelpRequest helpRequest) {
 		if (supportEmail == null || supportEmail.isEmpty()) {
 			LOG.info("Support email address is not configured. Could not email help request: {}.", helpRequest);
 			return null;
 		}
 		UUID id = UUID.randomUUID();
-		String subject = "FRC CODEx Help Request [" + id + "]";
+		String subject = "CODEx Help Request [" + id + "]";
 		String body =
 				"ID: " + id + "\n" +
 				"Name: " + helpRequest.getName() + "\n" +

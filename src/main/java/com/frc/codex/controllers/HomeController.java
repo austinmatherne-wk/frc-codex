@@ -110,11 +110,9 @@ public class HomeController {
 
 	@GetMapping("/help")
 	public ModelAndView helpPage(HttpServletRequest request) {
-		HelpRequest helpRequest = new HelpRequest();
-		helpRequest.setReferer(request.getHeader("Referer"));
 		ModelAndView model = new ModelAndView("help");
 		model.addObject("success", null);
-		model.addObject("helpRequest", helpRequest);
+		model.addObject("supportEmail", supportManager.getSupportEmail());
 		return model;
 	}
 
