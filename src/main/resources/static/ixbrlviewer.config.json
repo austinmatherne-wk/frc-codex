@@ -8,6 +8,9 @@
     "support_link": "/help",
     "survey_link": "/survey"
   },
+  "skin": {
+    "faviconUrl": "/favicon.svg"
+  },
   "taxonomyNames": {
     "http://xbrl\\.frc\\.org\\.uk/cd/(\\d{4})-\\d{2}-\\d{2}/business": ["uk-bus", "UK Business"],
     "http://xbrl\\.frc\\.org\\.uk/fr/(\\d{4})-\\d{2}-\\d{2}/core": ["uk-core", "UK Core"],
