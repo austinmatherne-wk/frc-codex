@@ -14,13 +14,6 @@ class ProcessorOptions:
         return Path(os.getenv('HTTP_CACHE_DIRECTORY', '/tmp/_HTTP_CACHE'))
 
     @cached_property
-    def ixbrl_viewer_plugin_path(self) -> Path:
-        return Path(os.getenv(
-            'IXBRL_VIEWER_PLUGIN_PATH',
-            '/var/task/processor/plugins/frc-ixbrl-viewer/iXBRLViewerPlugin'
-        ))
-
-    @cached_property
     def maximum_processors(self):
         return int(os.getenv('MAXIMUM_PROCESSORS', 0))
 

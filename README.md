@@ -61,19 +61,11 @@ COMPANIES_HOUSE_STREAM_API_KEY=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
 
 #### Local Configuration
-Add `./dev/compose-local.yml` (untracked) to override Docker compose configuration.
-This is required to add a volume for the processor to access your local installation of `frc-ixbrl-viewer`.
-The processor expects an `iXBRLViewerPlugin` directory in the plugins directory: `/processor/plugins/iXBRLViewerPlugin`.
+If desired, add `./dev/compose-local.yml` (untracked) to customize Docker compose configuration.
 
 Example `./dev/compose-local.yml`:
 ```yaml
 services:
-  frc-codex-lambda:
-    volumes:
-      - ../../frc-ixbrl-viewer/iXBRLViewerPlugin:/var/task/processor/plugins/frc-ixbrl-viewer/iXBRLViewerPlugin
-  frc-codex-processor:
-    volumes:
-      - ../../frc-ixbrl-viewer/iXBRLViewerPlugin:/processor/plugins/iXBRLViewerPlugin
   postgres:
     volumes:
       # Persists the database data in the tmp directory between startups

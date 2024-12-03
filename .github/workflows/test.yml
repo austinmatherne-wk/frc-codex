@@ -27,12 +27,6 @@ jobs:
       - name: Test with tox
         shell: bash
         run: tox
-      - name: Checkout frc-ixbrl-viewer
-        uses: actions/checkout@v4
-        with:
-          repository: Arelle/frc-ixbrl-viewer
-          path: processor/plugins/frc-ixbrl-viewer
-          token: ${{ secrets.FRC_IXBRL_VIEWER_CHECKOUT_PAT }}
       - name: "Secrets"
         shell: bash
         run: |
@@ -103,12 +97,6 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: python -m pip install --upgrade pip setuptools wheel
-      - name: Checkout frc-ixbrl-viewer
-        uses: actions/checkout@v4
-        with:
-          repository: Arelle/frc-ixbrl-viewer
-          path: processor/plugins/frc-ixbrl-viewer
-          token: ${{ secrets.FRC_IXBRL_VIEWER_CHECKOUT_PAT }}
       - uses: actions/setup-node@v4
         with:
           cache: 'npm'
