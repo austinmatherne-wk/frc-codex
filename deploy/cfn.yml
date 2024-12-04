@@ -186,23 +186,6 @@ Resources:
           Action: "s3:*Object"
           Effect: "Allow"
           Sid: "AllObjectActions"
-  IAMPolicySendEmail:
-    Type: "AWS::IAM::ManagedPolicy"
-    Properties:
-      ManagedPolicyName: !Sub "${EnvironmentName}CodexSendEmail"
-      Path: "/"
-      Description: !Sub "Permission to send email using SES."
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-        - Resource:
-          - !Sub "arn:*:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
-          - !Sub "arn:*:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*"
-          Action:
-          - "ses:SendEmail"
-          - "ses:SendRawEmail"
-          Effect: "Allow"
-          Sid: "SendEmail"
   IAMRoleECSTaskExecution:
     Type: "AWS::IAM::Role"
     Properties:
@@ -236,7 +219,6 @@ Resources:
       ManagedPolicyArns:
       - "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
       - Ref: IAMPolicyReadResultsBucket
-      - Ref: IAMPolicySendEmail
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
