@@ -28,6 +28,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String COMPANIES_HOUSE_REST_API_KEY = "COMPANIES_HOUSE_REST_API_KEY";
 	private static final String COMPANIES_HOUSE_STREAM_API_BASE_URL = "COMPANIES_HOUSE_STREAM_API_BASE_URL";
 	private static final String COMPANIES_HOUSE_STREAM_API_KEY = "COMPANIES_HOUSE_STREAM_API_KEY";
+	private static final String HTTP_USERNAME = "HTTP_USERNAME";
+	private static final String HTTP_PASSWORD = "HTTP_PASSWORD";
 	private static final String DB_URL = "DB_URL";
 	private static final String DB_USERNAME = "DB_USERNAME";
 	private static final String DB_PASSWORD = "DB_PASSWORD";
@@ -80,6 +82,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final String sqsResultsQueueName;
 	private final String supportEmail;
 	private final int unprocessedCompaniesLimit;
+	private final String httpUsername;
+	private final String httpPassword;
 
 
 	public FilingIndexPropertiesImpl() {
@@ -129,6 +133,19 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		unprocessedCompaniesLimit = Integer.parseInt(requireNonNull(getEnv(UNPROCESSED_COMPANIES_LIMIT, "1000")));
 
 		Properties secrets = getSecrets();
+		if (secrets.containsKey(HTTP_USERNAME)) {
+			httpUsername = secrets.getProperty(HTTP_USERNAME);
+		} else {
+			httpUsername = getEnv(HTTP_USERNAME);
+		}
+		if (secrets.containsKey(HTTP_PASSWORD)) {
+			httpPassword = secrets.getProperty(HTTP_PASSWORD);
+		} else {
+			httpPassword = getEnv(HTTP_PASSWORD);
+		}
+		if ((httpUsername == null) != (httpPassword == null)) {
+			throw new RuntimeException("HTTP_USERNAME and HTTP_PASSWORD must both be set or unset");
+		}
 		if (secrets.containsKey(COMPANIES_HOUSE_REST_API_KEY)) {
 			companiesHouseRestApiKey = secrets.getProperty(COMPANIES_HOUSE_REST_API_KEY);
 		} else {
@@ -256,6 +273,14 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		config.setMaxLifetime(dbMaxLifetime);
 		config.setPoolName(poolName);
 		return config;
+	}
+
+	public String httpUsername() {
+		return httpUsername;
+	}
+
+	public String httpPassword() {
+		return httpPassword;
 	}
 
 	public boolean isAws() {

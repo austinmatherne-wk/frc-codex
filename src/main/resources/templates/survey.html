@@ -82,9 +82,9 @@
                         How satisfied are you with the <b>usefulness</b> of the index search tool?
                     </legend>
                     <div class="govuk-radios" data-module="govuk-radios">
-                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                        <div class="govuk-radios__item" th:each="rating, iter : ${T(com.frc.codex.model.Rating).values()}">
                             <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.searchUtilityRating}" th:value="${rating.getValue()}">
-                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
+                            <label class="govuk-label govuk-radios__label" th:for="'searchUtilityRating' + ${iter.index + 1}" th:text="${rating.getLabel()}"></label>
                         </div>
                     </div>
                 </fieldset>
@@ -95,10 +95,10 @@
                         How satisfied are you with the <b>speed</b> of the index search tool?
                     </legend>
                     <div class="govuk-radios" data-module="govuk-radios">
-                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                        <div class="govuk-radios__item" th:each="rating, iter : ${T(com.frc.codex.model.Rating).values()}">
                             <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.searchSpeedRating}" th:value="${rating.getValue()}">
-                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
-                        </div>
+                            <label class="govuk-label govuk-radios__label" th:for="'searchSpeedRating' + ${iter.index + 1}" th:text="${rating.getLabel()}"></label>
+                        Utility>
                     </div>
                 </fieldset>
             </div>
@@ -108,9 +108,9 @@
                         How satisfied are you with the <b>loading speed</b> of the viewers?
                     </legend>
                     <div class="govuk-radios" data-module="govuk-radios">
-                        <div class="govuk-radios__item" th:each="rating:${T(com.frc.codex.model.Rating).values()}">
+                        <div class="govuk-radios__item" th:each="rating, iter : ${T(com.frc.codex.model.Rating).values()}">
                             <input class="govuk-radios__input" type="radio" th:field="${surveyRequest.viewerSpeedRating}" th:value="${rating.getValue()}">
-                            <label class="govuk-label govuk-radios__label" th:for="${rating.getValue()}" th:text="${rating.getLabel()}"></label>
+                            <label class="govuk-label govuk-radios__label" th:for="'viewerSpeedRating' + ${iter.index + 1}" th:text="${rating.getLabel()}"></label>
                         </div>
                     </div>
                 </fieldset>
