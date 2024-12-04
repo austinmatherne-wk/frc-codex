@@ -35,46 +35,6 @@ public class SupportManagerImpl implements SupportManager {
 		return supportEmail;
 	}
 
-	public UUID sendHelpRequest(HelpRequest helpRequest) {
-		if (supportEmail == null || supportEmail.isEmpty()) {
-			LOG.info("Support email address is not configured. Could not email help request: {}.", helpRequest);
-			return null;
-		}
-		UUID id = UUID.randomUUID();
-		String subject = "CODEx Help Request [" + id + "]";
-		String body =
-				"ID: " + id + "\n" +
-				"Name: " + helpRequest.getName() + "\n" +
-				"Email: " + helpRequest.getEmailAddress() + "\n" +
-				"Referer URL: " + helpRequest.getReferer() + "\n" +
-				"Message: \n" + helpRequest.getMessage() + "\n";
-		try {
-			SendEmailRequest emailRequest = SendEmailRequest.builder()
-					.destination(Destination.builder()
-							.toAddresses(supportEmail)
-							.build())
-					.message(Message.builder()
-							.subject(Content.builder()
-									.data(subject)
-									.build())
-							.body(Body.builder()
-									.text(Content.builder()
-											.data(body)
-											.build())
-									.build())
-							.build())
-					.replyToAddresses(helpRequest.getEmailAddress())
-					.source(supportEmail)
-					.build();
-			SendEmailResponse response = sesClient.sendEmail(emailRequest);
-			LOG.info("Sent help request message {} ({}).", response.messageId(), helpRequest);
-			return id;
-		} catch (SesException e) {
-			LOG.error("Failed to send help request email ({}).", helpRequest, e);
-			return null;
-		}
-	}
-
 	public UUID sendSurveyRequest(SurveyRequest surveyRequest) {
 		UUID id = UUID.randomUUID();
 		if (surveyRequest.getSearchUtilityRating() != null) {

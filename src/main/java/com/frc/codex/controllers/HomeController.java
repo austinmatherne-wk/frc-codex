@@ -19,7 +19,6 @@ import org.springframework.web.servlet.ModelAndView;
 import com.frc.codex.properties.FilingIndexProperties;
 import com.frc.codex.database.DatabaseManager;
 import com.frc.codex.model.Filing;
-import com.frc.codex.model.HelpRequest;
 import com.frc.codex.model.SearchFilingsRequest;
 import com.frc.codex.model.SurveyRequest;
 import com.frc.codex.support.SupportManager;
@@ -116,17 +115,6 @@ public class HomeController {
 		ModelAndView model = new ModelAndView("help");
 		model.addObject("success", null);
 		model.addObject("supportEmail", supportManager.getSupportEmail());
-		return model;
-	}
-
-	@PostMapping("/help")
-	public ModelAndView helpPost(HelpRequest helpRequest) {
-		UUID id = supportManager.sendHelpRequest(helpRequest);
-		ModelAndView model = new ModelAndView("help");
-		model.addObject("success", id != null);
-		model.addObject("id", id);
-		model.addObject("helpRequest", id != null ? new HelpRequest() : helpRequest);
-		model.setStatus(id == null ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK);
 		return model;
 	}
 

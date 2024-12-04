@@ -44,10 +44,6 @@ jobs:
         if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: |
-          echo "Testing help form submission..."
-          curl i --fail -X POST http://localhost:8080/help \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "name=testname&emailAddress=test@email.com&message=testmessage&referer=http://localhost:8080/"
           echo "Testing survey form submission..."
           curl i --fail -X POST http://localhost:8080/survey \
             -H "Content-Type: application/x-www-form-urlencoded" \
