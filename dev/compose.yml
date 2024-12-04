@@ -31,7 +31,7 @@ services:
       S3_RESULTS_BUCKET_NAME: "frc-codex-results"
       SQS_JOBS_QUEUE_NAME: "frc_codex_jobs"
       SQS_RESULTS_QUEUE_NAME: "frc_codex_results"
-      SUPPORT_EMAIL: "support@arelle.org"
+      SUPPORT_EMAIL: "dev@localhost"
     secrets:
       - frc-codex-server.secrets
     ports:
@@ -123,7 +123,7 @@ services:
       S3_HTTP_CACHE_BUCKET_NAME: 'frc-codex-http-cache'
       S3_RESULTS_BUCKET_NAME: 'frc-codex-results'
       S3_TAXONOMY_PACKAGES_BUCKET_NAME: 'frc-codex-taxonomy-packages'
-      SUPPORT_EMAIL: 'support@arelle.org'
+      SUPPORT_EMAIL: 'dev@localhost'
     ports:
       - 4566:4566
     networks:

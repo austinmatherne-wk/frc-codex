@@ -48,6 +48,9 @@ Parameters:
   Version:
     Type: String
     Description: "The docker tag to use.  See ECR for available tags."
+  SupportEmail:
+    Type: String
+    Description: "The email address to display on the contact us page."
 
   CompaniesHouseFilingLimit:
     Type: Number
@@ -321,7 +324,7 @@ Resources:
         - Name: "SQS_RESULTS_QUEUE_NAME"
           Value: unused
         - Name: "SUPPORT_EMAIL"
-          Value: "support@arelle.org"
+          Value: !Ref SupportEmail
         - Name: "UNPROCESSED_COMPANIES_LIMIT"
           Value: !Ref UnprocessedCompaniesLimit
       Tags:
