@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -671,6 +672,19 @@ public class DatabaseManagerImpl implements AutoCloseable, DatabaseManager {
 			return getFilings(resultSet);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean isHealthy() {
+		try (Connection connection = getInitializedConnection(true)) {
+			boolean isValid = connection.isValid(properties.dbHealthCheckTimeout());
+			if (!isValid) {
+				LOG.error("Database health check failed");
+			}
+			return isValid;
+		} catch (SQLException e) {
+			LOG.error("Database health check failed", e);
+			return false;
 		}
 	}
 }

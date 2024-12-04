@@ -145,4 +145,8 @@ public class TestFilingIndexPropertiesImpl implements FilingIndexProperties {
 	public int unprocessedCompaniesLimit() {
 		return 1000;
 	}
+
+	public int dbHealthCheckTimeout() {
+		return 2;
+	}
 }

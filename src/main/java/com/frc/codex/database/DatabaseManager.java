@@ -36,4 +36,5 @@ public interface DatabaseManager {
 	void createCompany(Company company);
 	void updateCompany(Company company);
 	List<Company> getIncompleteCompanies(int limit);
+	boolean isHealthy();
 }
