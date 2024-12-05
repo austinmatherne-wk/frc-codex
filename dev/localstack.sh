@@ -19,9 +19,3 @@ echo "Initializing taxonomy packages in bucket: $S3_TAXONOMY_PACKAGES_BUCKET_NAM
 awslocal s3 sync --exclude "*" --include "*.zip" \
   "/tmp/taxonomy_packages" \
   "s3://$S3_TAXONOMY_PACKAGES_BUCKET_NAME"
-
-# Create SES Identity
-echo "Initializing localstack SES identity: $SES_EMAIL"
-awslocal ses verify-email-identity \
-  --email-address "$SUPPORT_EMAIL" \
-  --region "$REGION_NAME"

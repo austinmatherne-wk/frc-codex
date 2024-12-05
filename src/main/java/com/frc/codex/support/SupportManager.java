@@ -6,7 +6,6 @@ import com.frc.codex.model.HelpRequest;
 import com.frc.codex.model.SurveyRequest;
 
 public interface SupportManager {
-	UUID sendHelpRequest(HelpRequest helpRequest);
 	UUID sendSurveyRequest(SurveyRequest surveyRequest);
 	String getSupportEmail();
 }
