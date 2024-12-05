@@ -102,4 +102,8 @@ public class TestDatabaseManagerImpl implements DatabaseManager {
 	public List<Company> getIncompleteCompanies(int limit) {
 		return List.of();
 	}
+
+	public boolean isHealthy() {
+		return true;
+	}
 }

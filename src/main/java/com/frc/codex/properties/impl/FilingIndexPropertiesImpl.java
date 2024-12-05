@@ -35,6 +35,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private static final String DB_PASSWORD = "DB_PASSWORD";
 	private static final String DB_MAX_LIFETIME = "DB_MAX_LIFETIME";
 	private static final String DB_SEED_SCRIPT_PATH = "DB_SEED_SCRIPT_PATH";
+	private static final String DB_HEALTH_CHECK_TIMEOUT = "DB_HEALTH_CHECK_TIMEOUT";
 	private static final String ENABLE_PREPROCESSING = "ENABLE_PREPROCESSING";
 	private static final String FCA_DATA_API_BASE_URL = "FCA_DATA_API_BASE_URL";
 	private static final String FCA_PAST_DAYS = "FCA_PAST_DAYS";
@@ -84,6 +85,7 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 	private final int unprocessedCompaniesLimit;
 	private final String httpUsername;
 	private final String httpPassword;
+	private final int dbHealthCheckTimeout;
 
 
 	public FilingIndexPropertiesImpl() {
@@ -129,6 +131,8 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 		sqsResultsQueueName = requireNonNull(getEnv(SQS_RESULTS_QUEUE_NAME));
 
 		supportEmail = getEnv(SUPPORT_EMAIL, null);
+
+		dbHealthCheckTimeout = Integer.parseInt(requireNonNull(getEnv(DB_HEALTH_CHECK_TIMEOUT, "2")));
 
 		unprocessedCompaniesLimit = Integer.parseInt(requireNonNull(getEnv(UNPROCESSED_COMPANIES_LIMIT, "1000")));
 
@@ -321,5 +325,9 @@ public class FilingIndexPropertiesImpl implements FilingIndexProperties {
 
 	public int unprocessedCompaniesLimit() {
 		return unprocessedCompaniesLimit;
+	}
+
+	public int dbHealthCheckTimeout() {
+		return dbHealthCheckTimeout;
 	}
 }

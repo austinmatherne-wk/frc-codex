@@ -531,7 +531,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: !Sub "${EnvironmentName}-ecs-server"
-      HealthCheckPath: /
+      HealthCheckPath: /health
       Port: 80
       Protocol: HTTP
       TargetType: ip

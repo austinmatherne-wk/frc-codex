@@ -34,6 +34,7 @@ public interface FilingIndexProperties {
 	String sqsJobsQueueName();
 	String sqsResultsQueueName();
 	String supportEmail();
+	int dbHealthCheckTimeout();
 
 	/**
 	 * @return The number of unprocessed `companies` records that can be queued before the indexer stops

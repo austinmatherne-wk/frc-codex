@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +47,10 @@ public class HomeController {
 
 	@GetMapping("/health")
 	public ResponseEntity<String> healthPage() {
-		return ResponseEntity.ok().build();
+		if (databaseManager.isHealthy()) {
+			return ResponseEntity.ok().build();
+		}
+		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 	}
 
 	private String getDateValidation(Callable<LocalDateTime> callable) throws Exception {
@@ -123,7 +126,7 @@ public class HomeController {
 		model.addObject("success", id != null);
 		model.addObject("id", id);
 		model.addObject("helpRequest", id != null ? new HelpRequest() : helpRequest);
-		model.setStatus(HttpStatusCode.valueOf(id != null ? 200 : 500));
+		model.setStatus(id == null ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK);
 		return model;
 	}
 
@@ -143,7 +146,7 @@ public class HomeController {
 		model.addObject("success", id != null);
 		model.addObject("id", id);
 		model.addObject("surveyRequest", id != null ? new SurveyRequest() : surveyRequest);
-		model.setStatus(HttpStatusCode.valueOf(id != null ? 200 : 500));
+		model.setStatus(id == null ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK);
 		return model;
 	}
 }
