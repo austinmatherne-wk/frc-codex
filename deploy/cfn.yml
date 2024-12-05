@@ -36,6 +36,12 @@ Parameters:
   ServerImage:
     Type: String
     Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/server
+  SitePassword:
+    Type: String
+    Description: "Require this password to access the site."
+  SiteUserName:
+    Type: String
+    Description: "Require this user name to access the site."
   SupportImage:
     Type: String
     Default: 390403885523.dkr.ecr.eu-west-2.amazonaws.com/frc-codex/support
@@ -311,6 +317,10 @@ Resources:
           Value: !Ref CompaniesHouseFilingLimit
         - Name: "FILING_LIMIT_FCA"
           Value: !Ref FCAFilingLimit
+        - Name: "HTTP_PASSWORD"
+          Value: !Ref SitePassword
+        - Name: "HTTP_USERNAME"
+          Value: !Ref SiteUserName
         - Name: "JAVA_TOOL_OPTIONS"
           Value: "-XX:MaxRAMPercentage=80"
         - Name: "LAMBDA_PREPROCESSING_CONCURRENCY"
