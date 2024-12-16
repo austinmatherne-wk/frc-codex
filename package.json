@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "govuk-frontend": "^5.6.0",
-    "ixbrl-viewer": "^1.4.44"
+    "ixbrl-viewer": "^1.4.46"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
