@@ -2,19 +2,23 @@ name: Test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "master"
-  pull_request:
+  pull_request_target:
     branches:
       - "**"
 
+permissions: {}
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    environment: ci
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
           check-latest: true
@@ -37,44 +41,10 @@ jobs:
         shell: bash
         run: |
           ./dev/env-setup.sh
-      - name: "Test"
-        # dependabot can not access secrets, which is required for these tests to pass
-        # Quick workaround is to not run the tests, but we could implement solutions described here:
-        # https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-797125425
-        if: ${{ github.actor != 'dependabot[bot]' }}
+      - name: "Smoke Test"
         shell: bash
-        run: |
-          echo "Testing survey form submission..."
-          curl i --fail -X POST http://localhost:8080/survey \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "searchUtilityRating=5&searchSpeedRating=4&viewerSpeedRating=3"
-          
-          echo "Wait for smoke testing to be ready..."
-          curl -i --fail --silent http://localhost:8080/admin/smoketest/wait
-          echo "Test invocation"
-          curl -i --fail --silent -L http://localhost:8080/admin/smoketest/invoke
-          echo "Test homepage"
-          curl -i --fail http://localhost:8080/
-          echo "Test CH API client"
-          curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/company/00324341
-          echo "Test CH archive client"
-          curl -i --fail http://localhost:8080/admin/smoketest/companieshouse/history
-          echo "Test FCA API"
-          curl -i --fail http://localhost:8080/admin/smoketest/fca
-          echo "Test indexer page"
-          curl -i --fail http://localhost:8080/admin/smoketest/indexer
-          echo "Test queue page"
-          curl -i --fail http://localhost:8080/admin/smoketest/queue
-          echo "Test database page"
-          curl -i --fail http://localhost:8080/admin/smoketest/database
-          echo "Test support action: list_errors"
-          curl -i --fail 'localhost:8082/2015-03-31/functions/function/invocations' \
-            --data '{"action":"list_errors"}'
-          echo "Test support action: reset_filings"
-          curl -i --fail 'localhost:8082/2015-03-31/functions/function/invocations' \
-            --data '{"action":"reset_filings","company_number":"1234567890"}'
-
-      - uses: actions/upload-artifact@v4
+        run: ./dev/smoke-test.sh
+      - uses: actions/upload-artifact@v4.5.0
         if: always()
         with:
           name: docker-logs
@@ -82,10 +52,14 @@ jobs:
           path: ./dev/logs
 
   puppeteer:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
           check-latest: true
@@ -93,7 +67,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: python -m pip install --upgrade pip setuptools wheel
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.1.0
         with:
           cache: 'npm'
           check-latest: true
@@ -101,6 +75,14 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: npm ci
+      - name: Setup Chromium Sandbox
+        shell: bash
+        run: |
+          cd ~/.cache/puppeteer/chrome/linux-*/chrome-linux64
+          sudo chown root:root chrome_sandbox
+          sudo chmod 4755 chrome_sandbox
+          sudo cp -p chrome_sandbox /usr/local/sbin/chrome-devel-sandbox
+          echo "CHROME_DEVEL_SANDBOX=/usr/local/sbin/chrome-devel-sandbox" >> $GITHUB_ENV
       - name: "Create Dummy Secrets File"
         shell: bash
         run: touch ./frc-codex-server.secrets # Seeded DB does not require secrets
@@ -111,7 +93,7 @@ jobs:
       - name: "Test"
         shell: bash
         run: npm run test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4.5.0
         if: failure()
         with:
           name: puppeteer-artifacts
