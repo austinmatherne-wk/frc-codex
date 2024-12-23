@@ -2,10 +2,7 @@ name: Test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "master"
-  pull_request:
+  pull_request_target:
     branches:
       - "**"
 
@@ -14,8 +11,13 @@ permissions: {}
 jobs:
   test:
     runs-on: ubuntu-24.04
+    environment: ci
     steps:
       - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
@@ -57,6 +59,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: actions/setup-python@v5.3.0
         with:
           cache: 'pip'
