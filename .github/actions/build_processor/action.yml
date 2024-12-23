@@ -4,7 +4,7 @@ description: Builds the frc-codex-processor Docker image
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5.3.0
       with:
         cache: 'pip'
         check-latest: true
@@ -17,9 +17,9 @@ runs:
     - name: Test with tox
       shell: bash
       run: tox
-    - uses: docker/setup-buildx-action@v3
+    - uses: docker/setup-buildx-action@v3.8.0
     - name: Build frc-codex-processor image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v6.10.0
       with:
         context: .
         file: frc-codex-processor.Dockerfile
