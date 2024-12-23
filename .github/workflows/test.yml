@@ -11,7 +11,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -82,7 +82,7 @@ jobs:
           path: ./dev/logs
 
   puppeteer:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -101,6 +101,14 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: npm ci
+      - name: Setup Chromium Sandbox
+        shell: bash
+        run: |
+          cd ~/.cache/puppeteer/chrome/linux-*/chrome-linux64
+          sudo chown root:root chrome_sandbox
+          sudo chmod 4755 chrome_sandbox
+          sudo cp -p chrome_sandbox /usr/local/sbin/chrome-devel-sandbox
+          echo "CHROME_DEVEL_SANDBOX=/usr/local/sbin/chrome-devel-sandbox" >> $GITHUB_ENV
       - name: "Create Dummy Secrets File"
         shell: bash
         run: touch ./frc-codex-server.secrets # Seeded DB does not require secrets
