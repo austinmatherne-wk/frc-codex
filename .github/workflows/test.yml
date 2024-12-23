@@ -42,10 +42,6 @@ jobs:
         run: |
           ./dev/env-setup.sh
       - name: "Smoke Test"
-        # dependabot can not access secrets, which is required for these tests to pass
-        # Quick workaround is to not run the tests, but we could implement solutions described here:
-        # https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-797125425
-        if: ${{ github.actor != 'dependabot[bot]' }}
         shell: bash
         run: ./dev/smoke-test.sh
       - uses: actions/upload-artifact@v4.5.0
