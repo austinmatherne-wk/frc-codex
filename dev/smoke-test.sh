@@ -2,7 +2,7 @@
 
 set -e
 
-CURL_OPTS="--include --fail"
+CURL_OPTS="--include --fail --connect-timeout 30 --max-time 300"
 
 echo "Testing survey form submission..."
 curl $CURL_OPTS -X POST http://localhost:8080/survey \
