@@ -86,6 +86,7 @@
 </div>
 <footer th:replace="fragments/page :: footer-main"></footer>
 <div th:replace="fragments/page :: script-govuk-frontend"></div>
+<div th:replace="fragments/page :: script-i18n"></div>
 <script th:if="${success == true}">
     localStorage.setItem("survey_submitted_date", new Date().toString());
 </script>

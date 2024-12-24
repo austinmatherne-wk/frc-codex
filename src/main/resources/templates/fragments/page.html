@@ -39,6 +39,49 @@
     </script>
   </div>
 
+  <div th:fragment="script-i18n">
+    <script type="module" src="/i18next.min.js"></script>
+    <script type="module" src="/i18nextHttpBackend.min.js"></script>
+    <script type="module" src="/i18nextBrowserLanguageDetector.min.js"></script>
+    <script type="module">
+      i18next
+        .use(i18nextHttpBackend)
+        .use(i18nextBrowserLanguageDetector)
+        .init(
+          {
+            backend: {
+              loadPath: "/api/translations?lang={{lng}}",
+            },
+            fallbackLng: "en",
+            debug: true,
+          },
+          function (err, t) {
+            if (err) {
+              console.error(err);
+            } else {
+              updateTexts();
+            }
+          }
+        );
+
+      function changeLanguage(language) {
+        i18next.changeLanguage(language, () => {
+          updateTexts();
+        });
+      }
+
+      function updateTexts() {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          const translation = i18next.t(key);
+          if (translation) {
+            el.innerHTML = translation;
+          }
+        });
+      }
+    </script>
+  </div>
+
   <a th:fragment="link-skip-to-main" href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">
     Skip to main content
   </a>
